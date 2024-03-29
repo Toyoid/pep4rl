@@ -1,0 +1,29 @@
+2024-03-06 13:15:09,888 INFO    MainThread:26027 [wandb_setup.py:_flush():76] Current SDK version is 0.16.3
+2024-03-06 13:15:09,888 INFO    MainThread:26027 [wandb_setup.py:_flush():76] Configure stats pid to 26027
+2024-03-06 13:15:09,888 INFO    MainThread:26027 [wandb_setup.py:_flush():76] Loading settings from /home/toy/.config/wandb/settings
+2024-03-06 13:15:09,889 INFO    MainThread:26027 [wandb_setup.py:_flush():76] Loading settings from /home/toy/coding-projects/pep4rl/learning/scripts/train/wandb/settings
+2024-03-06 13:15:09,889 INFO    MainThread:26027 [wandb_setup.py:_flush():76] Loading settings from environment variables: {}
+2024-03-06 13:15:09,889 INFO    MainThread:26027 [wandb_setup.py:_flush():76] Applying setup settings: {'_disable_service': False}
+2024-03-06 13:15:09,889 INFO    MainThread:26027 [wandb_setup.py:_flush():76] Inferring run settings from compute environment: {'program_relpath': 'cleanrl_ppo_continuous_action.py', 'program_abspath': '/home/toy/coding-projects/pep4rl/learning/scripts/train/cleanrl_ppo_continuous_action.py', 'program': '/home/toy/coding-projects/pep4rl/learning/scripts/train/cleanrl_ppo_continuous_action.py'}
+2024-03-06 13:15:09,889 INFO    MainThread:26027 [wandb_init.py:_log_setup():526] Logging user logs to /home/toy/coding-projects/pep4rl/learning/scripts/train/wandb/run-20240306_131509-smcz2oq1/logs/debug.log
+2024-03-06 13:15:09,889 INFO    MainThread:26027 [wandb_init.py:_log_setup():527] Logging internal logs to /home/toy/coding-projects/pep4rl/learning/scripts/train/wandb/run-20240306_131509-smcz2oq1/logs/debug-internal.log
+2024-03-06 13:15:09,889 INFO    MainThread:26027 [wandb_init.py:init():566] calling init triggers
+2024-03-06 13:15:09,889 INFO    MainThread:26027 [wandb_init.py:init():573] wandb.init called with sweep_config: {}
+config: {'exp_name': 'cleanrl_ppo_continuous_action', 'seed': 1, 'torch_deterministic': True, 'cuda': True, 'track': True, 'wandb_project_name': 'MuJoCo', 'wandb_entity': None, 'capture_video': True, 'save_model': False, 'upload_model': False, 'env_name': 'Pusher-v4', 'total_timesteps': 1000000, 'learning_rate': 0.0003, 'num_envs': 1, 'num_steps': 2048, 'anneal_lr': True, 'gamma': 0.99, 'gae_lambda': 0.95, 'num_minibatches': 32, 'update_epochs': 10, 'norm_adv': True, 'clip_coef': 0.2, 'clip_vloss': True, 'ent_coef': 0.0, 'vf_coef': 0.5, 'max_grad_norm': 0.5, 'target_kl': None, 'batch_size': 2048, 'minibatch_size': 64, 'num_iterations': 488}
+2024-03-06 13:15:09,889 INFO    MainThread:26027 [wandb_init.py:init():616] starting backend
+2024-03-06 13:15:09,889 INFO    MainThread:26027 [wandb_init.py:init():620] setting up manager
+2024-03-06 13:15:09,890 INFO    MainThread:26027 [backend.py:_multiprocessing_setup():105] multiprocessing start_methods=fork,spawn,forkserver, using: spawn
+2024-03-06 13:15:09,892 INFO    MainThread:26027 [wandb_init.py:init():628] backend started and connected
+2024-03-06 13:15:09,894 INFO    MainThread:26027 [wandb_init.py:init():720] updated telemetry
+2024-03-06 13:15:09,894 INFO    MainThread:26027 [wandb_init.py:init():753] communicating run to backend with 90.0 second timeout
+2024-03-06 13:15:11,482 INFO    MainThread:26027 [wandb_run.py:_on_init():2262] communicating current version
+2024-03-06 13:15:13,129 INFO    MainThread:26027 [wandb_run.py:_on_init():2271] got version response upgrade_message: "wandb version 0.16.4 is available!  To upgrade, please run:\n $ pip install wandb --upgrade"
+
+2024-03-06 13:15:13,129 INFO    MainThread:26027 [wandb_init.py:init():804] starting run threads in backend
+2024-03-06 13:15:14,429 INFO    MainThread:26027 [wandb_run.py:_console_start():2241] atexit reg
+2024-03-06 13:15:14,429 INFO    MainThread:26027 [wandb_run.py:_redirect():2096] redirect: wrap_raw
+2024-03-06 13:15:14,429 INFO    MainThread:26027 [wandb_run.py:_redirect():2161] Wrapping output streams.
+2024-03-06 13:15:14,429 INFO    MainThread:26027 [wandb_run.py:_redirect():2186] Redirects installed.
+2024-03-06 13:15:14,430 INFO    MainThread:26027 [wandb_init.py:init():847] run started, returning control to user process
+2024-03-06 13:15:14,430 INFO    MainThread:26027 [wandb_run.py:_tensorboard_callback():1499] tensorboard callback: runs/Pusher-v4__cleanrl_ppo_continuous_action__seed-1__20240306131506, True
+2024-03-06 13:48:30,179 WARNING MsgRouterThr:26027 [router.py:message_loop():77] message_loop has been closed

@@ -1,0 +1,122 @@
+{
+    "os": "Linux-5.15.0-86-generic-x86_64-with-glibc2.31",
+    "python": "3.9.18",
+    "heartbeatAt": "2024-03-06T03:36:16.766560",
+    "startedAt": "2024-03-06T03:36:12.876229",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/home/toy/coding-projects/pep4rl/learning/scripts/train/cleanrl_ppo_continuous_action.py",
+    "codePathLocal": "cleanrl_ppo_continuous_action.py",
+    "codePath": "cleanrl_ppo_continuous_action.py",
+    "host": "toy-OMEN-Laptop",
+    "username": "toy",
+    "executable": "/home/toy/anaconda3/envs/pep4rl/bin/python",
+    "cpu_count": 8,
+    "cpu_count_logical": 16,
+    "cpu_freq": {
+        "current": 1596.5952499999999,
+        "min": 1600.0,
+        "max": 3200.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1512.734,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 145.61280059814453,
+            "used": 18.049564361572266
+        }
+    },
+    "gpu": "NVIDIA GeForce RTX 3070 Ti Laptop GPU",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce RTX 3070 Ti Laptop GPU",
+            "memory_total": 8589934592
+        }
+    ],
+    "memory": {
+        "total": 14.842987060546875
+    }
+}

@@ -1,0 +1,122 @@
+{
+    "os": "Linux-5.15.0-86-generic-x86_64-with-glibc2.31",
+    "python": "3.9.18",
+    "heartbeatAt": "2024-03-06T02:58:23.634047",
+    "startedAt": "2024-03-06T02:58:18.947918",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/home/toy/coding-projects/pep4rl/learning/scripts/train/train_ppo_mujoco.py",
+    "codePathLocal": "train_ppo_mujoco.py",
+    "codePath": "train_ppo_mujoco.py",
+    "host": "toy-OMEN-Laptop",
+    "username": "toy",
+    "executable": "/home/toy/anaconda3/envs/pep4rl/bin/python",
+    "cpu_count": 8,
+    "cpu_count_logical": 16,
+    "cpu_freq": {
+        "current": 1686.847375,
+        "min": 1600.0,
+        "max": 3200.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 1800.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1800.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1800.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1409.258,
+            "min": 1600.0,
+            "max": 3200.0
+        },
+        {
+            "current": 1600.0,
+            "min": 1600.0,
+            "max": 3200.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 145.61280059814453,
+            "used": 18.042835235595703
+        }
+    },
+    "gpu": "NVIDIA GeForce RTX 3070 Ti Laptop GPU",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce RTX 3070 Ti Laptop GPU",
+            "memory_total": 8589934592
+        }
+    ],
+    "memory": {
+        "total": 14.842987060546875
+    }
+}
