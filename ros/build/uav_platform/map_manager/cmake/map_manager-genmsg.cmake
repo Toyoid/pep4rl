@@ -17,9 +17,9 @@ add_custom_target(map_manager_generate_messages ALL)
 
 
 
-get_filename_component(_filename "/home/toy/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv" NAME_WE)
+get_filename_component(_filename "/home/lhx/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv" NAME_WE)
 add_custom_target(_map_manager_generate_messages_check_deps_${_filename}
-  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "map_manager" "/home/toy/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv" ""
+  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "map_manager" "/home/lhx/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv" ""
 )
 
 #
@@ -31,7 +31,7 @@ add_custom_target(_map_manager_generate_messages_check_deps_${_filename}
 
 ### Generating Services
 _generate_srv_cpp(map_manager
-  "/home/toy/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv"
+  "/home/lhx/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv"
   "${MSG_I_FLAGS}"
   ""
   ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/map_manager
@@ -49,7 +49,7 @@ add_custom_target(map_manager_generate_messages_cpp
 add_dependencies(map_manager_generate_messages map_manager_generate_messages_cpp)
 
 # add dependencies to all check dependencies targets
-get_filename_component(_filename "/home/toy/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv" NAME_WE)
+get_filename_component(_filename "/home/lhx/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv" NAME_WE)
 add_dependencies(map_manager_generate_messages_cpp _map_manager_generate_messages_check_deps_${_filename})
 
 # target for backward compatibility
@@ -64,7 +64,7 @@ list(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS map_manager_generate_messages_cpp)
 
 ### Generating Services
 _generate_srv_eus(map_manager
-  "/home/toy/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv"
+  "/home/lhx/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv"
   "${MSG_I_FLAGS}"
   ""
   ${CATKIN_DEVEL_PREFIX}/${geneus_INSTALL_DIR}/map_manager
@@ -82,7 +82,7 @@ add_custom_target(map_manager_generate_messages_eus
 add_dependencies(map_manager_generate_messages map_manager_generate_messages_eus)
 
 # add dependencies to all check dependencies targets
-get_filename_component(_filename "/home/toy/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv" NAME_WE)
+get_filename_component(_filename "/home/lhx/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv" NAME_WE)
 add_dependencies(map_manager_generate_messages_eus _map_manager_generate_messages_check_deps_${_filename})
 
 # target for backward compatibility
@@ -97,7 +97,7 @@ list(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS map_manager_generate_messages_eus)
 
 ### Generating Services
 _generate_srv_lisp(map_manager
-  "/home/toy/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv"
+  "/home/lhx/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv"
   "${MSG_I_FLAGS}"
   ""
   ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/map_manager
@@ -115,7 +115,7 @@ add_custom_target(map_manager_generate_messages_lisp
 add_dependencies(map_manager_generate_messages map_manager_generate_messages_lisp)
 
 # add dependencies to all check dependencies targets
-get_filename_component(_filename "/home/toy/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv" NAME_WE)
+get_filename_component(_filename "/home/lhx/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv" NAME_WE)
 add_dependencies(map_manager_generate_messages_lisp _map_manager_generate_messages_check_deps_${_filename})
 
 # target for backward compatibility
@@ -130,7 +130,7 @@ list(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS map_manager_generate_messages_lisp)
 
 ### Generating Services
 _generate_srv_nodejs(map_manager
-  "/home/toy/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv"
+  "/home/lhx/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv"
   "${MSG_I_FLAGS}"
   ""
   ${CATKIN_DEVEL_PREFIX}/${gennodejs_INSTALL_DIR}/map_manager
@@ -148,7 +148,7 @@ add_custom_target(map_manager_generate_messages_nodejs
 add_dependencies(map_manager_generate_messages map_manager_generate_messages_nodejs)
 
 # add dependencies to all check dependencies targets
-get_filename_component(_filename "/home/toy/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv" NAME_WE)
+get_filename_component(_filename "/home/lhx/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv" NAME_WE)
 add_dependencies(map_manager_generate_messages_nodejs _map_manager_generate_messages_check_deps_${_filename})
 
 # target for backward compatibility
@@ -163,7 +163,7 @@ list(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS map_manager_generate_messages_nodej
 
 ### Generating Services
 _generate_srv_py(map_manager
-  "/home/toy/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv"
+  "/home/lhx/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv"
   "${MSG_I_FLAGS}"
   ""
   ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/map_manager
@@ -181,7 +181,7 @@ add_custom_target(map_manager_generate_messages_py
 add_dependencies(map_manager_generate_messages map_manager_generate_messages_py)
 
 # add dependencies to all check dependencies targets
-get_filename_component(_filename "/home/toy/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv" NAME_WE)
+get_filename_component(_filename "/home/lhx/coding-projects/pep4rl/ros/src/uav_platform/map_manager/srv/CheckPosCollision.srv" NAME_WE)
 add_dependencies(map_manager_generate_messages_py _map_manager_generate_messages_check_deps_${_filename})
 
 # target for backward compatibility
@@ -238,7 +238,7 @@ if(TARGET std_msgs_generate_messages_nodejs)
 endif()
 
 if(genpy_INSTALL_DIR AND EXISTS ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/map_manager)
-  install(CODE "execute_process(COMMAND \"/home/toy/anaconda3/envs/pep4rl/bin/python3\" -m compileall \"${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/map_manager\")")
+  install(CODE "execute_process(COMMAND \"/home/lhx/.conda/envs/pep4rl/bin/python3\" -m compileall \"${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/map_manager\")")
   # install generated code
   install(
     DIRECTORY ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/map_manager

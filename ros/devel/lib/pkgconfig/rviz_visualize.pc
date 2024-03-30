@@ -1,4 +1,4 @@
-prefix=/home/toy/coding-projects/pep4rl/ros/devel
+prefix=/home/lhx/coding-projects/pep4rl/ros/devel
 
 Name: rviz_visualize
 Description: Description of rviz_visualize

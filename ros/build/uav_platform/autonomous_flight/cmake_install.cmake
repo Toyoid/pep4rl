@@ -1,8 +1,8 @@
-# Install script for directory: /home/toy/coding-projects/pep4rl/ros/src/uav_platform/autonomous_flight
+# Install script for directory: /home/lhx/coding-projects/pep4rl/ros/src/uav_platform/autonomous_flight
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/toy/coding-projects/pep4rl/ros/install")
+  set(CMAKE_INSTALL_PREFIX "/home/lhx/coding-projects/pep4rl/ros/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -37,23 +37,18 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
   set(CMAKE_CROSSCOMPILING "FALSE")
 endif()
 
-# Set default install directory permissions.
-if(NOT DEFINED CMAKE_OBJDUMP)
-  set(CMAKE_OBJDUMP "/usr/bin/objdump")
-endif()
-
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/toy/coding-projects/pep4rl/ros/build/uav_platform/autonomous_flight/catkin_generated/installspace/autonomous_flight.pc")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/lhx/coding-projects/pep4rl/ros/build/uav_platform/autonomous_flight/catkin_generated/installspace/autonomous_flight.pc")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/autonomous_flight/cmake" TYPE FILE FILES
-    "/home/toy/coding-projects/pep4rl/ros/build/uav_platform/autonomous_flight/catkin_generated/installspace/autonomous_flightConfig.cmake"
-    "/home/toy/coding-projects/pep4rl/ros/build/uav_platform/autonomous_flight/catkin_generated/installspace/autonomous_flightConfig-version.cmake"
+    "/home/lhx/coding-projects/pep4rl/ros/build/uav_platform/autonomous_flight/catkin_generated/installspace/autonomous_flightConfig.cmake"
+    "/home/lhx/coding-projects/pep4rl/ros/build/uav_platform/autonomous_flight/catkin_generated/installspace/autonomous_flightConfig-version.cmake"
     )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/autonomous_flight" TYPE FILE FILES "/home/toy/coding-projects/pep4rl/ros/src/uav_platform/autonomous_flight/package.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/autonomous_flight" TYPE FILE FILES "/home/lhx/coding-projects/pep4rl/ros/src/uav_platform/autonomous_flight/package.xml")
 endif()
 

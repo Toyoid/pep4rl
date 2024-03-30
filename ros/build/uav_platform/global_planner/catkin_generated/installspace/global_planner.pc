@@ -1,4 +1,4 @@
-prefix=/home/toy/coding-projects/pep4rl/ros/install
+prefix=/home/lhx/coding-projects/pep4rl/ros/install
 
 Name: global_planner
 Description: Description of global_planner

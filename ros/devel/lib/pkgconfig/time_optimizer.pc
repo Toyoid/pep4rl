@@ -1,8 +1,8 @@
-prefix=/home/toy/coding-projects/pep4rl/ros/devel
+prefix=/home/lhx/coding-projects/pep4rl/ros/devel
 
 Name: time_optimizer
 Description: Description of time_optimizer
 Version: 1.0.0
-Cflags: -I/home/toy/coding-projects/pep4rl/ros/src/uav_platform/time_optimizer/include
+Cflags: -I/home/lhx/coding-projects/pep4rl/ros/src/uav_platform/time_optimizer/include
 Libs: -L${prefix}/lib -ltime_optimizer
 Requires: 

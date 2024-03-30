@@ -2,10 +2,9 @@ file(REMOVE_RECURSE
   "CMakeFiles/quadcopterTFBroadcaster_autogen.dir/AutogenUsed.txt"
   "CMakeFiles/quadcopterTFBroadcaster_autogen.dir/ParseCache.txt"
   "quadcopterTFBroadcaster_autogen"
-  "/home/toy/coding-projects/pep4rl/ros/devel/lib/uav_simulator/quadcopterTFBroadcaster"
-  "/home/toy/coding-projects/pep4rl/ros/devel/lib/uav_simulator/quadcopterTFBroadcaster.pdb"
+  "/home/lhx/coding-projects/pep4rl/ros/devel/lib/uav_simulator/quadcopterTFBroadcaster"
+  "/home/lhx/coding-projects/pep4rl/ros/devel/lib/uav_simulator/quadcopterTFBroadcaster.pdb"
   "CMakeFiles/quadcopterTFBroadcaster.dir/src/quadcopterTFBroadcaster.cpp.o"
-  "CMakeFiles/quadcopterTFBroadcaster.dir/src/quadcopterTFBroadcaster.cpp.o.d"
 )
 
 # Per-language clean rules from dependency scanning.

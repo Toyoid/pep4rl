@@ -1,4 +1,4 @@
-prefix=/home/toy/coding-projects/pep4rl/ros/install
+prefix=/home/lhx/coding-projects/pep4rl/ros/install
 
 Name: map_manager
 Description: Description of map_manager

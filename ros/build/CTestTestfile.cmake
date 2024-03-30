@@ -1,9 +1,10 @@
 # CMake generated Testfile for 
-# Source directory: /home/toy/coding-projects/pep4rl/ros/src
-# Build directory: /home/toy/coding-projects/pep4rl/ros/build
+# Source directory: /home/lhx/coding-projects/pep4rl/ros/src
+# Build directory: /home/lhx/coding-projects/pep4rl/ros/build
 # 
 # This file includes the relevant testing commands required for 
 # testing this directory and lists subdirectories to be tested as well.
+subdirs("gtest")
 subdirs("uav_platform/rviz_visualize")
 subdirs("uav_platform/tracking_controller")
 subdirs("uav_platform/uav_simulator")

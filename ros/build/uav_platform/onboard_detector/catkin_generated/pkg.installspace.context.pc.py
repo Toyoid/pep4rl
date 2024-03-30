@@ -4,5 +4,5 @@ PROJECT_PKG_CONFIG_INCLUDE_DIRS = "${prefix}/include".split(';') if "${prefix}/i
 PROJECT_CATKIN_DEPENDS = "roscpp;rospy;std_msgs".replace(';', ' ')
 PKG_CONFIG_LIBRARIES_WITH_PREFIX = "-lonboard_detector".split(';') if "-lonboard_detector" != "" else []
 PROJECT_NAME = "onboard_detector"
-PROJECT_SPACE_DIR = "/home/toy/coding-projects/pep4rl/ros/install"
+PROJECT_SPACE_DIR = "/home/lhx/coding-projects/pep4rl/ros/install"
 PROJECT_VERSION = "1.0.0"

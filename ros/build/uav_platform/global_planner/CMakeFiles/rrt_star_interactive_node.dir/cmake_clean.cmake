@@ -1,8 +1,7 @@
 file(REMOVE_RECURSE
-  "/home/toy/coding-projects/pep4rl/ros/devel/lib/global_planner/rrt_star_interactive_node"
-  "/home/toy/coding-projects/pep4rl/ros/devel/lib/global_planner/rrt_star_interactive_node.pdb"
+  "/home/lhx/coding-projects/pep4rl/ros/devel/lib/global_planner/rrt_star_interactive_node"
+  "/home/lhx/coding-projects/pep4rl/ros/devel/lib/global_planner/rrt_star_interactive_node.pdb"
   "CMakeFiles/rrt_star_interactive_node.dir/src/rrt_star_interactive_node.cpp.o"
-  "CMakeFiles/rrt_star_interactive_node.dir/src/rrt_star_interactive_node.cpp.o.d"
 )
 
 # Per-language clean rules from dependency scanning.

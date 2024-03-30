@@ -1,2 +1,2 @@
 uav_platform/autonomous_flight:uav_platform/global_planner:uav_platform/map_manager:uav_platform/onboard_detector:uav_platform/rviz_visualize:uav_platform/time_optimizer:uav_platform/tracking_controller:uav_platform/trajectory_planner:uav_platform/uav_simulator
--DCATKIN_DEVEL_PREFIX=/home/toy/coding-projects/pep4rl/ros/devel -DCMAKE_INSTALL_PREFIX=/home/toy/coding-projects/pep4rl/ros/install -G Unix Makefiles
+-DCATKIN_DEVEL_PREFIX=/home/lhx/coding-projects/pep4rl/ros/devel -DCMAKE_INSTALL_PREFIX=/home/lhx/coding-projects/pep4rl/ros/install -G Unix Makefiles

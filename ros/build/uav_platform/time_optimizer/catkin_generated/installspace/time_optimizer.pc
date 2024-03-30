@@ -1,4 +1,4 @@
-prefix=/home/toy/coding-projects/pep4rl/ros/install
+prefix=/home/lhx/coding-projects/pep4rl/ros/install
 
 Name: time_optimizer
 Description: Description of time_optimizer

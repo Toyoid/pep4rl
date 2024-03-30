@@ -43,4 +43,4 @@ list(APPEND CATKIN_ORDERED_PACKAGES_BUILD_TYPE "catkin")
 
 set(CATKIN_MESSAGE_GENERATORS )
 
-set(CATKIN_METAPACKAGE_CMAKE_TEMPLATE "/home/toy/anaconda3/envs/pep4rl/lib/python3.9/site-packages/catkin_pkg/templates/metapackage.cmake.in")
+set(CATKIN_METAPACKAGE_CMAKE_TEMPLATE "/home/lhx/.conda/envs/pep4rl/lib/python3.9/site-packages/catkin_pkg/templates/metapackage.cmake.in")

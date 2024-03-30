@@ -62,7 +62,7 @@ class FlightBase:
 if __name__ == '__main__':
     rospy.init_node('cmd_vel_test_node')
     flight_base = FlightBase()
-    # flight_base.takeoff()
+    flight_base.takeoff()
     rate = rospy.Rate(30)
 
     # set_model_state test

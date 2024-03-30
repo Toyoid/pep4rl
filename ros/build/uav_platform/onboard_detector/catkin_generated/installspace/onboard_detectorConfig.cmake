@@ -67,14 +67,14 @@ set(onboard_detector_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("FALSE" STREQUAL "TRUE")
-  set(onboard_detector_SOURCE_PREFIX /home/toy/coding-projects/pep4rl/ros/src/uav_platform/onboard_detector)
-  set(onboard_detector_DEVEL_PREFIX /home/toy/coding-projects/pep4rl/ros/devel)
+  set(onboard_detector_SOURCE_PREFIX /home/lhx/coding-projects/pep4rl/ros/src/uav_platform/onboard_detector)
+  set(onboard_detector_DEVEL_PREFIX /home/lhx/coding-projects/pep4rl/ros/devel)
   set(onboard_detector_INSTALL_PREFIX "")
   set(onboard_detector_PREFIX ${onboard_detector_DEVEL_PREFIX})
 else()
   set(onboard_detector_SOURCE_PREFIX "")
   set(onboard_detector_DEVEL_PREFIX "")
-  set(onboard_detector_INSTALL_PREFIX /home/toy/coding-projects/pep4rl/ros/install)
+  set(onboard_detector_INSTALL_PREFIX /home/lhx/coding-projects/pep4rl/ros/install)
   set(onboard_detector_PREFIX ${onboard_detector_INSTALL_PREFIX})
 endif()
 
@@ -154,7 +154,7 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
-    foreach(path /home/toy/coding-projects/pep4rl/ros/install/lib;/home/toy/coding-projects/pep4rl/ros/devel/lib;/opt/ros/noetic/lib)
+    foreach(path /home/lhx/coding-projects/pep4rl/ros/install/lib;/home/lhx/coding-projects/pep4rl/ros/devel/lib;/opt/ros/noetic/lib)
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)

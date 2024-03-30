@@ -1,9 +1,9 @@
-#!/home/toy/anaconda3/envs/pep4rl/bin/python3
+#!/home/lhx/.conda/envs/pep4rl/bin/python3
 # -*- coding: utf-8 -*-
 # generated from catkin/cmake/template/script.py.in
 # creates a relay to a python script source file, acting as that file.
 # The purpose is that of a symlink
-python_script = '/home/toy/coding-projects/pep4rl/ros/src/uav_platform/map_manager/scripts/voxel_counter/voxel_counter_node.py'
+python_script = '/home/lhx/coding-projects/pep4rl/ros/src/uav_platform/map_manager/scripts/voxel_counter/voxel_counter_node.py'
 with open(python_script, 'r') as fh:
     context = {
         '__builtins__': __builtins__,

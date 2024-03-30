@@ -1,8 +1,8 @@
-# Install script for directory: /home/toy/coding-projects/pep4rl/ros/src/uav_platform/global_planner
+# Install script for directory: /home/lhx/coding-projects/pep4rl/ros/src/uav_platform/global_planner
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/toy/coding-projects/pep4rl/ros/install")
+  set(CMAKE_INSTALL_PREFIX "/home/lhx/coding-projects/pep4rl/ros/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -37,24 +37,19 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
   set(CMAKE_CROSSCOMPILING "FALSE")
 endif()
 
-# Set default install directory permissions.
-if(NOT DEFINED CMAKE_OBJDUMP)
-  set(CMAKE_OBJDUMP "/usr/bin/objdump")
-endif()
-
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/toy/coding-projects/pep4rl/ros/build/uav_platform/global_planner/catkin_generated/installspace/global_planner.pc")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/lhx/coding-projects/pep4rl/ros/build/uav_platform/global_planner/catkin_generated/installspace/global_planner.pc")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/global_planner/cmake" TYPE FILE FILES
-    "/home/toy/coding-projects/pep4rl/ros/build/uav_platform/global_planner/catkin_generated/installspace/global_plannerConfig.cmake"
-    "/home/toy/coding-projects/pep4rl/ros/build/uav_platform/global_planner/catkin_generated/installspace/global_plannerConfig-version.cmake"
+    "/home/lhx/coding-projects/pep4rl/ros/build/uav_platform/global_planner/catkin_generated/installspace/global_plannerConfig.cmake"
+    "/home/lhx/coding-projects/pep4rl/ros/build/uav_platform/global_planner/catkin_generated/installspace/global_plannerConfig-version.cmake"
     )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/global_planner" TYPE FILE FILES "/home/toy/coding-projects/pep4rl/ros/src/uav_platform/global_planner/package.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/global_planner" TYPE FILE FILES "/home/lhx/coding-projects/pep4rl/ros/src/uav_platform/global_planner/package.xml")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
@@ -64,12 +59,12 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libglobal_planner.so"
          RPATH "")
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE SHARED_LIBRARY FILES "/home/toy/coding-projects/pep4rl/ros/devel/lib/libglobal_planner.so")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE SHARED_LIBRARY FILES "/home/lhx/coding-projects/pep4rl/ros/devel/lib/libglobal_planner.so")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libglobal_planner.so" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libglobal_planner.so")
     file(RPATH_CHANGE
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libglobal_planner.so"
-         OLD_RPATH "/opt/ros/noetic/lib:/home/toy/coding-projects/pep4rl/ros/devel/lib:"
+         OLD_RPATH "/opt/ros/noetic/lib:/home/lhx/coding-projects/pep4rl/ros/devel/lib:"
          NEW_RPATH "")
     if(CMAKE_INSTALL_DO_STRIP)
       execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/libglobal_planner.so")
@@ -81,6 +76,6 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/global_planner" TYPE DIRECTORY FILES "/home/toy/coding-projects/pep4rl/ros/src/uav_platform/global_planner/include/global_planner/")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/global_planner" TYPE DIRECTORY FILES "/home/lhx/coding-projects/pep4rl/ros/src/uav_platform/global_planner/include/global_planner/")
 endif()
 

@@ -7,4 +7,4 @@
 # new environment variables
 
 # modified environment variables
-export PWD='/home/toy/coding-projects/pep4rl/ros/build'
+export PWD='/home/lhx/coding-projects/pep4rl/ros/build'

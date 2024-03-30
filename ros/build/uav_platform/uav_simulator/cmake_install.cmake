@@ -1,8 +1,8 @@
-# Install script for directory: /home/toy/coding-projects/pep4rl/ros/src/uav_platform/uav_simulator
+# Install script for directory: /home/lhx/coding-projects/pep4rl/ros/src/uav_platform/uav_simulator
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/toy/coding-projects/pep4rl/ros/install")
+  set(CMAKE_INSTALL_PREFIX "/home/lhx/coding-projects/pep4rl/ros/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -37,38 +37,33 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
   set(CMAKE_CROSSCOMPILING "FALSE")
 endif()
 
-# Set default install directory permissions.
-if(NOT DEFINED CMAKE_OBJDUMP)
-  set(CMAKE_OBJDUMP "/usr/bin/objdump")
-endif()
-
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/toy/coding-projects/pep4rl/ros/build/uav_platform/uav_simulator/catkin_generated/installspace/uav_simulator.pc")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/lhx/coding-projects/pep4rl/ros/build/uav_platform/uav_simulator/catkin_generated/installspace/uav_simulator.pc")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/uav_simulator/cmake" TYPE FILE FILES
-    "/home/toy/coding-projects/pep4rl/ros/build/uav_platform/uav_simulator/catkin_generated/installspace/uav_simulatorConfig.cmake"
-    "/home/toy/coding-projects/pep4rl/ros/build/uav_platform/uav_simulator/catkin_generated/installspace/uav_simulatorConfig-version.cmake"
+    "/home/lhx/coding-projects/pep4rl/ros/build/uav_platform/uav_simulator/catkin_generated/installspace/uav_simulatorConfig.cmake"
+    "/home/lhx/coding-projects/pep4rl/ros/build/uav_platform/uav_simulator/catkin_generated/installspace/uav_simulatorConfig-version.cmake"
     )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/uav_simulator" TYPE FILE FILES "/home/toy/coding-projects/pep4rl/ros/src/uav_platform/uav_simulator/package.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/uav_simulator" TYPE FILE FILES "/home/lhx/coding-projects/pep4rl/ros/src/uav_platform/uav_simulator/package.xml")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/toy/coding-projects/pep4rl/ros/build/uav_platform/uav_simulator/catkin_generated/installspace/uav_simulator.pc")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/lhx/coding-projects/pep4rl/ros/build/uav_platform/uav_simulator/catkin_generated/installspace/uav_simulator.pc")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/uav_simulator/cmake" TYPE FILE FILES
-    "/home/toy/coding-projects/pep4rl/ros/build/uav_platform/uav_simulator/catkin_generated/installspace/uav_simulatorConfig.cmake"
-    "/home/toy/coding-projects/pep4rl/ros/build/uav_platform/uav_simulator/catkin_generated/installspace/uav_simulatorConfig-version.cmake"
+    "/home/lhx/coding-projects/pep4rl/ros/build/uav_platform/uav_simulator/catkin_generated/installspace/uav_simulatorConfig.cmake"
+    "/home/lhx/coding-projects/pep4rl/ros/build/uav_platform/uav_simulator/catkin_generated/installspace/uav_simulatorConfig-version.cmake"
     )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/uav_simulator" TYPE FILE FILES "/home/toy/coding-projects/pep4rl/ros/src/uav_platform/uav_simulator/package.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/uav_simulator" TYPE FILE FILES "/home/lhx/coding-projects/pep4rl/ros/src/uav_platform/uav_simulator/package.xml")
 endif()
 

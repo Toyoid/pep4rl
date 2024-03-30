@@ -1,5 +1,5 @@
 file(REMOVE_RECURSE
-  "/home/toy/coding-projects/pep4rl/ros/devel/share/common-lisp/ros/tracking_controller/msg/Target.lisp"
+  "/home/lhx/coding-projects/pep4rl/ros/devel/share/common-lisp/ros/tracking_controller/msg/Target.lisp"
   "CMakeFiles/tracking_controller_generate_messages_lisp"
 )
 

@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "/home/toy/coding-projects/pep4rl/ros/devel/lib/python3/dist-packages/map_manager/srv/_CheckPosCollision.py"
-  "/home/toy/coding-projects/pep4rl/ros/devel/lib/python3/dist-packages/map_manager/srv/__init__.py"
+  "/home/lhx/coding-projects/pep4rl/ros/devel/lib/python3/dist-packages/map_manager/srv/_CheckPosCollision.py"
+  "/home/lhx/coding-projects/pep4rl/ros/devel/lib/python3/dist-packages/map_manager/srv/__init__.py"
   "CMakeFiles/map_manager_generate_messages_py"
 )
 

@@ -1,8 +1,8 @@
-# Install script for directory: /home/toy/coding-projects/pep4rl/ros/src/uav_platform/tracking_controller
+# Install script for directory: /home/lhx/coding-projects/pep4rl/ros/src/uav_platform/tracking_controller
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/toy/coding-projects/pep4rl/ros/install")
+  set(CMAKE_INSTALL_PREFIX "/home/lhx/coding-projects/pep4rl/ros/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -37,59 +37,54 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
   set(CMAKE_CROSSCOMPILING "FALSE")
 endif()
 
-# Set default install directory permissions.
-if(NOT DEFINED CMAKE_OBJDUMP)
-  set(CMAKE_OBJDUMP "/usr/bin/objdump")
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/tracking_controller/msg" TYPE FILE FILES "/home/lhx/coding-projects/pep4rl/ros/src/uav_platform/tracking_controller/msg/Target.msg")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/tracking_controller/msg" TYPE FILE FILES "/home/toy/coding-projects/pep4rl/ros/src/uav_platform/tracking_controller/msg/Target.msg")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/tracking_controller/cmake" TYPE FILE FILES "/home/lhx/coding-projects/pep4rl/ros/build/uav_platform/tracking_controller/catkin_generated/installspace/tracking_controller-msg-paths.cmake")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/tracking_controller/cmake" TYPE FILE FILES "/home/toy/coding-projects/pep4rl/ros/build/uav_platform/tracking_controller/catkin_generated/installspace/tracking_controller-msg-paths.cmake")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/home/lhx/coding-projects/pep4rl/ros/devel/include/tracking_controller")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/home/toy/coding-projects/pep4rl/ros/devel/include/tracking_controller")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/roseus/ros" TYPE DIRECTORY FILES "/home/lhx/coding-projects/pep4rl/ros/devel/share/roseus/ros/tracking_controller")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/roseus/ros" TYPE DIRECTORY FILES "/home/toy/coding-projects/pep4rl/ros/devel/share/roseus/ros/tracking_controller")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/common-lisp/ros" TYPE DIRECTORY FILES "/home/lhx/coding-projects/pep4rl/ros/devel/share/common-lisp/ros/tracking_controller")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/common-lisp/ros" TYPE DIRECTORY FILES "/home/toy/coding-projects/pep4rl/ros/devel/share/common-lisp/ros/tracking_controller")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/gennodejs/ros" TYPE DIRECTORY FILES "/home/lhx/coding-projects/pep4rl/ros/devel/share/gennodejs/ros/tracking_controller")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/gennodejs/ros" TYPE DIRECTORY FILES "/home/toy/coding-projects/pep4rl/ros/devel/share/gennodejs/ros/tracking_controller")
+  execute_process(COMMAND "/home/lhx/.conda/envs/pep4rl/bin/python3" -m compileall "/home/lhx/coding-projects/pep4rl/ros/devel/lib/python3/dist-packages/tracking_controller")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  execute_process(COMMAND "/home/toy/anaconda3/envs/pep4rl/bin/python3" -m compileall "/home/toy/coding-projects/pep4rl/ros/devel/lib/python3/dist-packages/tracking_controller")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/python3/dist-packages" TYPE DIRECTORY FILES "/home/lhx/coding-projects/pep4rl/ros/devel/lib/python3/dist-packages/tracking_controller")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/python3/dist-packages" TYPE DIRECTORY FILES "/home/toy/coding-projects/pep4rl/ros/devel/lib/python3/dist-packages/tracking_controller")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/lhx/coding-projects/pep4rl/ros/build/uav_platform/tracking_controller/catkin_generated/installspace/tracking_controller.pc")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/toy/coding-projects/pep4rl/ros/build/uav_platform/tracking_controller/catkin_generated/installspace/tracking_controller.pc")
-endif()
-
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/tracking_controller/cmake" TYPE FILE FILES "/home/toy/coding-projects/pep4rl/ros/build/uav_platform/tracking_controller/catkin_generated/installspace/tracking_controller-msg-extras.cmake")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/tracking_controller/cmake" TYPE FILE FILES "/home/lhx/coding-projects/pep4rl/ros/build/uav_platform/tracking_controller/catkin_generated/installspace/tracking_controller-msg-extras.cmake")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/tracking_controller/cmake" TYPE FILE FILES
-    "/home/toy/coding-projects/pep4rl/ros/build/uav_platform/tracking_controller/catkin_generated/installspace/tracking_controllerConfig.cmake"
-    "/home/toy/coding-projects/pep4rl/ros/build/uav_platform/tracking_controller/catkin_generated/installspace/tracking_controllerConfig-version.cmake"
+    "/home/lhx/coding-projects/pep4rl/ros/build/uav_platform/tracking_controller/catkin_generated/installspace/tracking_controllerConfig.cmake"
+    "/home/lhx/coding-projects/pep4rl/ros/build/uav_platform/tracking_controller/catkin_generated/installspace/tracking_controllerConfig-version.cmake"
     )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/tracking_controller" TYPE FILE FILES "/home/toy/coding-projects/pep4rl/ros/src/uav_platform/tracking_controller/package.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/tracking_controller" TYPE FILE FILES "/home/lhx/coding-projects/pep4rl/ros/src/uav_platform/tracking_controller/package.xml")
 endif()
 

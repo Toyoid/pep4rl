@@ -1,5 +1,5 @@
 file(REMOVE_RECURSE
-  "/home/toy/coding-projects/pep4rl/ros/devel/share/common-lisp/ros/map_manager/srv/CheckPosCollision.lisp"
+  "/home/lhx/coding-projects/pep4rl/ros/devel/share/common-lisp/ros/map_manager/srv/CheckPosCollision.lisp"
   "CMakeFiles/map_manager_generate_messages_lisp"
 )
 
