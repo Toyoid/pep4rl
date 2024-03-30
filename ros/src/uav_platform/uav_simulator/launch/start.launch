@@ -4,8 +4,8 @@
   <arg name="use_sim_time" value="true"/>
   <arg name="debug" value="false" />
 
-  <!-- <arg name="world_name" value="/home/toy/coding-projects/pep4rl/ros/src/worlds/dense_world.world" /> -->
-  <!-- <arg name="world_name" value="/home/toy/coding-projects/pep4rl/ros/src/worlds/training_worlds.world" /> -->
+  <!-- <arg name="world_name" value="coding-projects/pep4rl/ros/src/worlds/dense_world.world" /> -->
+  <arg name="world_name" value="$(find uav_simulator)/worlds/training_worlds.world" />
 
   <!-- <arg name="world_name" value="$(find uav_simulator)/worlds/square/square_box.world" /> -->
   <!-- <arg name="world_name" value="$(find uav_simulator)/worlds/square/square_static.world" /> -->
@@ -81,7 +81,7 @@
     <arg name="pose_topic" value="/CERLAB/quadcopter/pose" />
   </include>
 
-  <node name="keyboard_control" pkg="uav_simulator" type="keyboard_control"/>
+<!--   <node name="keyboard_control" pkg="uav_simulator" type="keyboard_control"/> -->
 
   <!-- <include file="$(find uav_simulator)/launch/rviz.launch"></include> -->
 

@@ -1,8 +1,0 @@
-prefix=/home/toy/coding-projects/pep4rl/ros/devel
-
-Name: onboard_detector
-Description: Description of onboard_detector
-Version: 1.0.0
-Cflags: -I/home/toy/coding-projects/pep4rl/ros/src/uav_platform/onboard_detector/include
-Libs: -L${prefix}/lib -lonboard_detector
-Requires: roscpp rospy std_msgs

@@ -415,7 +415,9 @@ class NavigationEnv:
     @staticmethod
     def _get_init_robot_goal(rand_name):
         # Read Random Start Pose and Goal Position based on random name
-        overall_list_xy = pickle.load(open("/home/toy/coding-projects/pep4rl/learning/envs/random_positions/" + rand_name + ".p", "rb"))
+        from os import path as os_path
+        current_dir = os_path.dirname(os_path.abspath(__file__))
+        overall_list_xy = pickle.load(open(current_dir + "/random_positions/" + rand_name + ".p", "rb"))
         overall_robot_list_xy = overall_list_xy[0]
         overall_goal_list_xy = overall_list_xy[1]
         print(f"Use Random Start and Goal Positions [{rand_name}] for training...")
