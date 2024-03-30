@@ -1,0 +1,8 @@
+prefix=/home/toy/coding-projects/pep4rl/ros/install
+
+Name: time_optimizer
+Description: Description of time_optimizer
+Version: 1.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib -ltime_optimizer
+Requires: 

@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/toy/coding-projects/pep4rl/ros/install/setup.sh
