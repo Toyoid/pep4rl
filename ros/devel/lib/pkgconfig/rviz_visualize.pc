@@ -1,8 +1,0 @@
-prefix=/home/lhx/coding-projects/pep4rl/ros/devel
-
-Name: rviz_visualize
-Description: Description of rviz_visualize
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

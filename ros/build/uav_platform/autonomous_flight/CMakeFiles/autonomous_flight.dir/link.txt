@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC   -shared -Wl,-soname,libautonomous_flight.so -o /home/lhx/coding-projects/pep4rl/ros/devel/lib/libautonomous_flight.so CMakeFiles/autonomous_flight.dir/include/autonomous_flight/flightBase.cpp.o CMakeFiles/autonomous_flight.dir/include/autonomous_flight/dynamicNavigation.cpp.o CMakeFiles/autonomous_flight.dir/include/autonomous_flight/dynamicPRM.cpp.o 
