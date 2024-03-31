@@ -6,7 +6,8 @@ README.md
 
 # private notes
 Research Diary_Predator-Prey-Learning.md
-*.png
+ros/*.png
+!ros/*/*.png
 
 # learning
 learning/ir_sim_learning/
@@ -27,7 +28,7 @@ __pycache__/
 *$py.class
 
 # C extensions
-*.so
+#*.so
 
 # Distribution / packaging
 .Python
