@@ -1,7 +1,0 @@
-matplotlib
-numpy
-scipy
-pyyaml
-pynput
-imageio
-pathlib
