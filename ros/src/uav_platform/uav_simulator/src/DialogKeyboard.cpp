@@ -30,11 +30,11 @@ void DialogKeyboard::keyPressEvent(QKeyEvent *event) {
     break;
   case 'W':
     // going up
-    drone->rise(1.0);
+    drone->rise(0.8f);
     break;
   case 'S':
     // going down
-    drone->rise(-1.0);
+    drone->rise(-0.8f);
     break;
   case 'A':
     // turn left
@@ -46,19 +46,19 @@ void DialogKeyboard::keyPressEvent(QKeyEvent *event) {
     break;
   case 'J':
     // tilt left
-    drone->roll(2.0f);
+    drone->roll(1.5f);
     break;
   case 'L':
     // tilt right
-    drone->roll(-2.0f);
+    drone->roll(-1.5f);
     break;
   case 'I':
     // title front
-    drone->pitch(1.5);  //1.5f
+    drone->pitch(1.5f);
     break;
   case 'K':
     // title back
-    drone->pitch(-1.5);
+    drone->pitch(-1.5f);
     break;
   case 'T':
     testPositionControl();

@@ -42,6 +42,8 @@ void replanDEP(){
 		std::cin.get();		
 		// replan = true;	
 	}
+
+
 }
 
 
@@ -70,6 +72,7 @@ int main(int argc, char**argv){
 	p->setMap(m);
 
 	std::thread planningWorker = std::thread(replanDEP);
+
 
 	// ros::Timer replanTimer = nh.createTimer(ros::Duration(0.1), replanCB);	
 	ros::spin();

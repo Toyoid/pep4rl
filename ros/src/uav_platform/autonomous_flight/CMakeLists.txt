@@ -3,6 +3,8 @@ project(autonomous_flight)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
+set(CMAKE_CXX_FLAGS "-std=c++14 ${CMAKE_CXX_FLAGS} -O3 -Wall")
+
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -135,7 +137,7 @@ add_library(
   ${PROJECT_NAME}
   include/${PROJECT_NAME}/flightBase.cpp
   include/${PROJECT_NAME}/dynamicNavigation.cpp
-  # include/${PROJECT_NAME}/dynamicExploration.cpp
+ # include/${PROJECT_NAME}/dynamicExploration.cpp
   include/${PROJECT_NAME}/dynamicPRM.cpp
 )
 
@@ -152,7 +154,7 @@ add_executable(takeoff_node src/takeoff_node.cpp)
 add_executable(takeoff_and_track_circle_node src/takeoff_and_track_circle_node.cpp)
 add_executable(test_cmd_vel_node src/test_cmd_vel_node.cpp)
 add_executable(dynamic_navigation_node src/dynamic_navigation_node.cpp)
-# add_executable(dynamic_exploration_node src/dynamic_exploration_node.cpp)
+#add_executable(dynamic_exploration_node src/dynamic_exploration_node.cpp)
 add_executable(test_dynamic_prm_node src/test_dynamic_prm_node.cpp)
 
 
@@ -170,11 +172,12 @@ add_executable(test_dynamic_prm_node src/test_dynamic_prm_node.cpp)
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 target_link_libraries(takeoff_node ${catkin_LIBRARIES} ${PROJECT_NAME})
 target_link_libraries(takeoff_and_track_circle_node ${catkin_LIBRARIES} ${PROJECT_NAME})
 target_link_libraries(test_cmd_vel_node ${catkin_LIBRARIES} ${PROJECT_NAME})
 target_link_libraries(dynamic_navigation_node ${catkin_LIBRARIES} ${PROJECT_NAME})
-# target_link_libraries(dynamic_exploration_node ${catkin_LIBRARIES} ${PROJECT_NAME})
+#target_link_libraries(dynamic_exploration_node ${catkin_LIBRARIES} ${PROJECT_NAME})
 target_link_libraries(test_dynamic_prm_node ${catkin_LIBRARIES} ${PROJECT_NAME})
 
 

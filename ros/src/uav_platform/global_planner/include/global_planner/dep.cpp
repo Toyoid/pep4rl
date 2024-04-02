@@ -1147,9 +1147,9 @@ namespace globalPlanner{
 			point.scale.y = 0.1;
 			point.scale.z = 0.1;
 			point.color.a = 1.0;
-			point.color.r = 0.0;
-			point.color.g = 1.0;
-			point.color.b = 0.5;
+			point.color.r = 1.0;
+			point.color.g = 0.0;
+			point.color.b = 0.0;
 			++countPointNum;
 			roadmapMarkers.markers.push_back(point);
 
@@ -1196,7 +1196,7 @@ namespace globalPlanner{
 				line.scale.z = 0.05;
 				line.color.r = 0.0;
 				line.color.g = 1.0;
-				line.color.b = 1.0;
+				line.color.b = 0.0;
 				line.color.a = 1.0;
 				line.lifetime = ros::Duration(0.5);
 				++countEdgeNum;
@@ -1224,9 +1224,9 @@ namespace globalPlanner{
 			goalCandidatePoint.scale.y = 0.2;
 			goalCandidatePoint.scale.z = 0.2;
 			goalCandidatePoint.color.a = 1.0;
-			goalCandidatePoint.color.r = 0.0;
-			goalCandidatePoint.color.g = 0.5;
-			goalCandidatePoint.color.b = 2.0;
+			goalCandidatePoint.color.r = 1.0;
+			goalCandidatePoint.color.g = 0.0;
+			goalCandidatePoint.color.b = 1.0;
 			++countGoalCandidateNum;
 			roadmapMarkers.markers.push_back(goalCandidatePoint);
 		}

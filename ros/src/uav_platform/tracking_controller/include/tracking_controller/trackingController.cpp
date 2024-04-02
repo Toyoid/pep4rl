@@ -165,7 +165,7 @@ namespace controller{
 		// command publisher
 		this->cmdPub_ = this->nh_.advertise<mavros_msgs::AttitudeTarget>("/mavros/setpoint_raw/attitude", 100);
 
-		// acc command publisher
+		// acc comman publisher
 		this->accCmdPub_ = this->nh_.advertise<mavros_msgs::PositionTarget>("/mavros/setpoint_raw/local", 100);
 		
 		// current pose visualization publisher
@@ -388,7 +388,6 @@ namespace controller{
 		this->cmdPub_.publish(cmdMsg);
 	}
 
-	// publish acceleration command
 	void trackingController::publishCommand(const Eigen::Vector3d& accRef){
 		mavros_msgs::PositionTarget cmdMsg;
 		cmdMsg.coordinate_frame = cmdMsg.FRAME_LOCAL_NED;
