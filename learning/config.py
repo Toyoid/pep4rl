@@ -37,7 +37,7 @@ class Args:
     """total timesteps of the experiments"""
     num_episodes: int = 1000
     """total episodes of the experiments"""
-    learning_rate: float = 0.0026  # isaacgym: 0.0026   mujoco: 3e-4
+    learning_rate: float = 3e-4  # isaacgym: 0.0026   mujoco: 3e-4
     """the learning rate of the optimizer"""
     num_envs: int = 1  # isaacgym: 4096   mujoco: 1
     """the number of parallel game environments"""
@@ -59,7 +59,7 @@ class Args:
     """the surrogate clipping coefficient"""
     clip_vloss: lambda x: bool(strtobool(x)) = False
     """Toggles whether or not to use a clipped loss for the value function, as per the paper."""
-    ent_coef: float = 1
+    ent_coef: float = 0.5
     """coefficient of the entropy"""
     vf_coef: float = 2
     """coefficient of the value function"""

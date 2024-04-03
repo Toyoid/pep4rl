@@ -52,14 +52,14 @@ class CNNPPONets(nn.Module):
     def __init__(self, img_obs_shape, robot_obs_dim, action_dim):
         super().__init__()
         self.cnn = nn.Sequential(
-            layer_init(nn.Conv2d(in_channels=img_obs_shape[0], out_channels=32, kernel_size=(6, 8), stride=8)),
+            layer_init(nn.Conv2d(in_channels=img_obs_shape[0], out_channels=16, kernel_size=(6, 8), stride=8)),
             nn.ReLU(),
-            layer_init(nn.Conv2d(in_channels=32, out_channels=64, kernel_size=(3, 4), stride=3)),
+            layer_init(nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(3, 4), stride=3)),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=3, stride=2),
             # layer_init(nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=2)),
             nn.Flatten(),
-            layer_init(nn.Linear(64 * 9 * 12, 512)),
+            layer_init(nn.Linear(32 * 9 * 12, 512)),
             nn.ReLU(),
         )
 
@@ -70,11 +70,11 @@ class CNNPPONets(nn.Module):
         # raise
 
         self.fcn = nn.Sequential(
-            layer_init(nn.Linear(robot_obs_dim, 64)),
+            layer_init(nn.Linear(robot_obs_dim, 128)),
             nn.ReLU(),
         )
         self.critic = nn.Sequential(     # whether to share AC networks?
-            layer_init(nn.Linear(512+64, 256)),
+            layer_init(nn.Linear(512+128, 256)),
             # nn.Tanh(),
             nn.ReLU(),
             layer_init(nn.Linear(256, 256)),
@@ -82,7 +82,7 @@ class CNNPPONets(nn.Module):
             layer_init(nn.Linear(256, 1), std=1.0),
         )
         self.actor_mean = nn.Sequential(
-            layer_init(nn.Linear(512+64, 256)),
+            layer_init(nn.Linear(512+128, 256)),
             # nn.Tanh(),
             nn.ReLU(),
             layer_init(nn.Linear(256, 256)),
@@ -100,7 +100,7 @@ class CNNPPONets(nn.Module):
     def get_action_and_value(self, img, obs_robot, action=None):
         img_embedding = self.cnn(img)
         robot_embedding = self.fcn(obs_robot)
-        obs_merge = torch.cat((robot_embedding, img_embedding), dim=1)  # !!! debug
+        obs_merge = torch.cat((robot_embedding, img_embedding), dim=1)
         action_mean = self.actor_mean(obs_merge)
         action_logstd = self.actor_logstd.expand_as(action_mean)
         action_std = torch.exp(action_logstd)

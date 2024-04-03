@@ -25,7 +25,7 @@ class NavigationEnv:
     def __init__(self,
                  frame_stack_num=10,
                  step_time=0.1,
-                 max_episode_steps=800,
+                 max_episode_steps=1000,
                  goal_reward=30,
                  collision_reward=-20,
                  goal_dis_amp=15,
@@ -34,7 +34,7 @@ class NavigationEnv:
                  goal_dis_scale=1.0,
                  goal_dis_min_dis=0.3,
                  linear_spd_range_x=1.5,
-                 linear_spd_range_y=1.0,
+                 linear_spd_range_y=0.1,
                  angular_spd_range=2.0
                  ):
         # Observation space:
