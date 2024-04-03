@@ -21,19 +21,7 @@ def _t2n(x):
 class NavigationEnv:
     """
     Class for Single-Robot Navigation in Gazebo Environment
-
-    Main Function:
-        1. Reset: Rest environment at the end of each episode
-        and generate new goal position for next episode
-
-        2. Step: Execute new action and return state
-
-        3. Generate random initial pose of the robot and the target
-
-        4. Generate training environment
-
-        5. Reward computation, collision check
-     """
+    """
     def __init__(self,
                  frame_stack_num=10,
                  step_time=0.1,
@@ -44,7 +32,11 @@ class NavigationEnv:
                  goal_near_th=0.4,
                  env_height_range=[0.5,2.5],
                  goal_dis_scale=1.0,
-                 goal_dis_min_dis=0.3):
+                 goal_dis_min_dis=0.3,
+                 linear_spd_range_x=1.5,
+                 linear_spd_range_y=1.0,
+                 angular_spd_range=2.0
+                 ):
         # Observation space:
         self.depth_img_size = (480, 640)
         self.frame_stack_num = frame_stack_num
@@ -53,8 +45,12 @@ class NavigationEnv:
         self.robot_obs_space = (5,)
         # Action space:
         # forward flight speed, range: [0.0, 2.0], leftward flight speed, range: [-2.0, 2.0], left turn speed, range: [-1.5, 1.5]
+        self.linear_spd_range_x = linear_spd_range_x
+        self.linear_spd_range_y = linear_spd_range_y
+        self.angular_spd_range = angular_spd_range
         self.action_space = (3,)
-        self.action_range = np.array([[0.0, -1.0, -1.5], [2.0, 1.0, 1.5]])
+        self.action_range = np.array([[0.0, -linear_spd_range_y, -angular_spd_range],
+                                      [linear_spd_range_x, linear_spd_range_y, angular_spd_range]])
 
         # get initial robot and goal pose list in training_worlds.world
         self.init_robot_array, self.init_goal_array = self._get_init_robot_goal("Rand_R1")
@@ -329,8 +325,7 @@ class NavigationEnv:
             direction = math.copysign(neg_dir, -(ego_direction - robot_direction))
         return distance, direction
 
-    def _robot_state_2_policy_obs(self, img, state, scale=True,
-                                  goal_dir_range=math.pi, linear_spd_range=2.0, angular_spd_range=1.5):
+    def _robot_state_2_policy_obs(self, img, state, scale=True, goal_dir_range=math.pi):
         """
         Transform CV image and robot state to observation for the policy network, and scale the observation value
         Robot observation to policy network: [Direction to goal, Distance to goal, Linear speed x, Linear speed y, Angular speed]
@@ -364,9 +359,9 @@ class NavigationEnv:
                     tmp_goal_dis = 1
                 tmp_goal_dis = tmp_goal_dis * self.goal_dis_scale
             policy_obs[0, 1] = tmp_goal_dis
-            policy_obs[0, 2] = state[1][0] / linear_spd_range
-            policy_obs[0, 3] = state[1][1] / linear_spd_range
-            policy_obs[0, 4] = state[1][2] / angular_spd_range
+            policy_obs[0, 2] = state[1][0] / self.linear_spd_range_x
+            policy_obs[0, 3] = state[1][1] / self.linear_spd_range_y
+            policy_obs[0, 4] = state[1][2] / self.angular_spd_range
 
         stacked_imgs = np.expand_dims(stacked_imgs, axis=0)  # stacked image size: (1, 10, 480, 640)
 

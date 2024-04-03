@@ -57,10 +57,10 @@ class CNNPPONets(nn.Module):
             layer_init(nn.Conv2d(in_channels=32, out_channels=64, kernel_size=(3, 4), stride=3)),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=3, stride=2),
-            layer_init(nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=2)),
-            nn.ReLU(),
+            # layer_init(nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=2)),
             nn.Flatten(),
-            # layer_init(nn.Linear(6912, 512)),   # !!!!maybe not necessary
+            layer_init(nn.Linear(64 * 9 * 12, 512)),
+            nn.ReLU(),
         )
 
         # X = torch.randn(1, 10, 480, 640)
@@ -74,20 +74,20 @@ class CNNPPONets(nn.Module):
             nn.ReLU(),
         )
         self.critic = nn.Sequential(     # whether to share AC networks?
-            layer_init(nn.Linear(1280+64, 64)),
+            layer_init(nn.Linear(512+64, 256)),
             # nn.Tanh(),
             nn.ReLU(),
-            layer_init(nn.Linear(64, 64)),
+            layer_init(nn.Linear(256, 256)),
             nn.Tanh(),
-            layer_init(nn.Linear(64, 1), std=1.0),
+            layer_init(nn.Linear(256, 1), std=1.0),
         )
         self.actor_mean = nn.Sequential(
-            layer_init(nn.Linear(1280+64, 64)),
+            layer_init(nn.Linear(512+64, 256)),
             # nn.Tanh(),
             nn.ReLU(),
-            layer_init(nn.Linear(64, 64)),
+            layer_init(nn.Linear(256, 256)),
             nn.Tanh(),
-            layer_init(nn.Linear(64, action_dim), std=0.01),
+            layer_init(nn.Linear(256, action_dim), std=0.01),
         )
         self.actor_logstd = nn.Parameter(torch.zeros(1, action_dim))
 

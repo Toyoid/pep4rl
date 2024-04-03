@@ -15,11 +15,11 @@ class Args:
     """if toggled, cuda will be enabled by default"""
     cuda_deterministic: lambda x: bool(strtobool(x)) = True
     """if toggled, `torch.backends.cudnn.deterministic=False`"""
-    n_training_threads: int = 1
+    n_training_threads: int = 2
     """"number of torch threads for parallel CPU operations"""
-    use_wandb: lambda x: bool(strtobool(x)) = False
+    use_wandb: lambda x: bool(strtobool(x)) = True
     """if toggled, this experiment will be tracked with Weights and Biases"""
-    wandb_project_name: str = "UAV-Navigation"
+    wandb_project_name: str = "UAV-End2End-Navigation"
     """the wandb's project name"""
     wandb_entity: str = None
     """the entity (team) of wandb's project"""
@@ -37,7 +37,7 @@ class Args:
     """total timesteps of the experiments"""
     num_episodes: int = 1000
     """total episodes of the experiments"""
-    learning_rate: float = 3e-4  # isaacgym: 0.0026   mujoco: 3e-4
+    learning_rate: float = 0.0026  # isaacgym: 0.0026   mujoco: 3e-4
     """the learning rate of the optimizer"""
     num_envs: int = 1  # isaacgym: 4096   mujoco: 1
     """the number of parallel game environments"""
@@ -49,7 +49,7 @@ class Args:
     """the discount factor gamma"""
     gae_lambda: float = 0.95
     """the lambda for the general advantage estimation"""
-    num_minibatches: int = 32
+    num_minibatches: int = 8
     """the number of mini-batches"""
     update_epochs: int = 10
     """the K epochs to update the policy"""
@@ -57,13 +57,13 @@ class Args:
     """Toggles advantages normalization"""
     clip_coef: float = 0.2
     """the surrogate clipping coefficient"""
-    clip_vloss: lambda x: bool(strtobool(x)) = True
+    clip_vloss: lambda x: bool(strtobool(x)) = False
     """Toggles whether or not to use a clipped loss for the value function, as per the paper."""
-    ent_coef: float = 0.2
+    ent_coef: float = 1
     """coefficient of the entropy"""
-    vf_coef: float = 0.5
+    vf_coef: float = 2
     """coefficient of the value function"""
-    max_grad_norm: float = 0.5
+    max_grad_norm: float = 1
     """the maximum norm for the gradient clipping"""
     target_kl: float = None
     """the target KL divergence threshold"""

@@ -59,7 +59,7 @@
         <rollpitchLimit>1.0</rollpitchLimit>
         <yawProportionalGain>1.5</yawProportionalGain>
         <yawDifferentialGain>1.0</yawDifferentialGain>
-        <yawLimit>1.5</yawLimit>
+        <yawLimit>2.0</yawLimit>
         <yawAngleProportionalGain>3.0</yawAngleProportionalGain>
         <yawAngleLimit>3.15</yawAngleLimit>
         <velocityXYProportionalGain>5.0</velocityXYProportionalGain>

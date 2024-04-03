@@ -56,9 +56,9 @@ int main(int argc, char** argv){
         twist_msg.header.frame_id = "base_link";
         twist_msg.header.stamp = ros::Time::now();
         twist_msg.twist.linear.x = 1.5;  // maximum reachable velocity: 2.0
-        twist_msg.twist.linear.y = 1.5;  // maximum reachable velocity: 2.0
+        twist_msg.twist.linear.y = 0.0;  // maximum reachable velocity: 2.0
         // twist_msg.twist.linear.z = 80.0;  // it can be controlled to gradually reach any velocity value
-        twist_msg.twist.angular.z = 1.5;  // maximum reachable velocity: 1.5
+        twist_msg.twist.angular.z = 10.0;  // maximum reachable velocity: 1.5
 
         velCmdPub.publish(twist_msg);
 

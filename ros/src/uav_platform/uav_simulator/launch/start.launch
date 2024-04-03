@@ -4,7 +4,8 @@
   <arg name="use_sim_time" value="true"/>
   <arg name="debug" value="false" />
 
-  <arg name="world_name" value="/home/toy/coding-projects/pep4rl/ros/src/uav_platform/uav_simulator/worlds/dense_world.world" />
+<!--   <arg name="world_name" value="$(find uav_simulator)/worlds/dense_world.world" /> -->
+  <arg name="world_name" value="$(find uav_simulator)/worlds/training_worlds.world" />
   <!-- <arg name="world_name" value="$(find uav_simulator)/worlds/square/square_box.world" /> -->
   <!-- <arg name="world_name" value="$(find uav_simulator)/worlds/square/square_static.world" /> -->
   <!-- <arg name="world_name" value="$(find uav_simulator)/worlds/square/square_test.world" /> -->
@@ -75,10 +76,12 @@
   <!-- push robot_description to factory and spawn robot in gazebo at the origin, change x,y,z arguments to spawn in a different position -->
   <!-- <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model quadcopter -x 0 -y 0 -z 0.1" respawn="false" /> -->
 
+  <!-- limit the publish frequency of rostopics -->
   <node pkg="topic_tools" type="throttle" name="gt_pose_throttle" args="messages /CERLAB/quadcopter/pose_raw 30 /CERLAB/quadcopter/pose"/>
   <node pkg="topic_tools" type="throttle" name="gt_vel_throttle" args="messages /CERLAB/quadcopter/vel_raw 30 /CERLAB/quadcopter/vel"/>
   <node pkg="topic_tools" type="throttle" name="gt_acc_throttle" args="messages /CERLAB/quadcopter/acc_raw 30 /CERLAB/quadcopter/acc"/>
   <node pkg="topic_tools" type="throttle" name="gt_odom_throttle" args="messages /CERLAB/quadcopter/odom_raw 30 /CERLAB/quadcopter/odom"/>
+
   <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model quadcopter -x -0.0 -y 0.0 -z 0.1 -Y 0.0" respawn="false" />
 
   <!-- TF -->
@@ -86,7 +89,7 @@
     <arg name="pose_topic" value="/CERLAB/quadcopter/pose" />
   </include>
 
-  <node name="keyboard_control" pkg="uav_simulator" type="keyboard_control" />
+<!--   <node name="keyboard_control" pkg="uav_simulator" type="keyboard_control" /> -->
 
   <!-- <include file="$(find uav_simulator)/launch/rviz.launch"></include> -->
 
