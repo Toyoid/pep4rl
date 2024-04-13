@@ -23,19 +23,18 @@ class NavigationEnv:
     Class for Single-Robot Navigation in Gazebo Environment
     """
     def __init__(self,
+                 args,
                  frame_stack_num=10,
-                 step_time=0.1,
+                 step_time=0.05,
                  max_episode_steps=1000,
                  goal_reward=30,
                  collision_reward=-20,
-                 goal_dis_amp=15,
+                 goal_dis_amp=10,
+                 step_penalty=0.05,
                  goal_near_th=0.4,
                  env_height_range=[0.5,2.5],
                  goal_dis_scale=1.0,
-                 goal_dis_min_dis=0.3,
-                 linear_spd_range_x=1.5,
-                 linear_spd_range_y=0.1,
-                 angular_spd_range=2.0
+                 goal_dis_min_dis=0.3
                  ):
         # Observation space:
         self.depth_img_size = (480, 640)
@@ -45,12 +44,15 @@ class NavigationEnv:
         self.robot_obs_space = (5,)
         # Action space:
         # forward flight speed, range: [0.0, 2.0], leftward flight speed, range: [-2.0, 2.0], left turn speed, range: [-1.5, 1.5]
-        self.linear_spd_range_x = linear_spd_range_x
-        self.linear_spd_range_y = linear_spd_range_y
-        self.angular_spd_range = angular_spd_range
+        self.linear_spd_limit_x = args.linear_spd_limit_x
+        self.linear_spd_limit_y = args.linear_spd_limit_y
+        self.angular_spd_limit = args.angular_spd_limit
         self.action_space = (3,)
-        self.action_range = np.array([[0.0, -linear_spd_range_y, -angular_spd_range],
-                                      [linear_spd_range_x, linear_spd_range_y, angular_spd_range]])
+        self.action_range = np.array([[0.1, -self.linear_spd_limit_y, -self.angular_spd_limit],
+                                      [self.linear_spd_limit_x, self.linear_spd_limit_y, self.angular_spd_limit]])
+        # [left_spd, right_spd, linear_spd_y]
+        # self.policy_act_range = np.array([[0.0, 0.0, -linear_spd_limit_y],
+        #                                   [1.0, 1.0, linear_spd_limit_y]])
 
         # get initial robot and goal pose list in training_worlds.world
         self.init_robot_array, self.init_goal_array = self._get_init_robot_goal("Rand_R1")
@@ -83,8 +85,9 @@ class NavigationEnv:
         self.goal_position = None
         self.goal_reward = goal_reward
         self.collision_reward = collision_reward
-        self.goal_near_th = goal_near_th
         self.goal_dis_amp = goal_dis_amp
+        self.step_penalty_reward = step_penalty
+        self.goal_near_th = goal_near_th
         self.goal_dis_dir_pre = None
         self.goal_dis_dir_cur = None
         self.env_height_range = env_height_range
@@ -124,7 +127,7 @@ class NavigationEnv:
         Reset funtion to start a new episode of the single robot navigation environment
         :param ita: iteration variable of ended episodes
         :return:
-        next_img_obs: np-array (1, 10, 480, 640),
+        next_img_obs: np-array (1, 10, 480, 640)
         next_robot_obs: np-array (1, 5)
         """
         assert self.init_robot_array is not None
@@ -196,10 +199,10 @@ class NavigationEnv:
         next_img_obs, robot_obs = self._robot_state_2_policy_obs(cv_img, robot_state)
         return next_img_obs, robot_obs
 
-    def step(self, action):
+    def step(self, action_raw):
         """
-        Step funtion of single robot navigation environment
-        :param action: tensor
+        Step function of single robot navigation environment
+        :param action_raw: tensor
         :return:
         next_img_obs: np-array (1, 10, 480, 640),
         next_robot_obs: np-array (1, 5),
@@ -211,8 +214,9 @@ class NavigationEnv:
         assert self.stacked_imgs is not None
         assert self.ita_in_episode is not None
         self.ita_in_episode += 1
-        action = np.squeeze(_t2n(action))
-        action_clip = action.clip(self.action_range[0], self.action_range[1])
+        action_raw = np.squeeze(_t2n(action_raw))  # shape: (3,), dtype: float32
+        # action = self._policy_action_2_robot_action(action_raw)
+        action_clip = action_raw.clip(self.action_range[0], self.action_range[1])
 
         rospy.wait_for_service('gazebo/unpause_physics')
         try:
@@ -280,7 +284,7 @@ class NavigationEnv:
         cv_img = self.bridge.imgmsg_to_cv2(self.depth_img, desired_encoding='passthrough')
         # cv_img = np.array(cv_img, dtype=np.int8)
         cv_img = np.array(cv_img)
-        cv_img[np.isnan(cv_img)] = 0
+        cv_img[np.isnan(cv_img)] = self.max_depth
         return cv_img
 
     def _compute_dis_dir_2_goal(self, robot_pose):
@@ -359,13 +363,22 @@ class NavigationEnv:
                     tmp_goal_dis = 1
                 tmp_goal_dis = tmp_goal_dis * self.goal_dis_scale
             policy_obs[0, 1] = tmp_goal_dis
-            policy_obs[0, 2] = state[1][0] / self.linear_spd_range_x
-            policy_obs[0, 3] = state[1][1] / self.linear_spd_range_y
-            policy_obs[0, 4] = state[1][2] / self.angular_spd_range
+            policy_obs[0, 2] = state[1][0] / self.linear_spd_limit_x
+            policy_obs[0, 3] = state[1][1] / self.linear_spd_limit_y
+            policy_obs[0, 4] = state[1][2] / self.angular_spd_limit
 
         stacked_imgs = np.expand_dims(stacked_imgs, axis=0)  # stacked image size: (1, 10, 480, 640)
 
         return stacked_imgs, policy_obs
+
+    def _policy_action_2_robot_action(self, action_raw, diff=0.5):
+        action_clip = action_raw.clip(self.policy_act_range[0], self.policy_act_range[1])
+        left_spd = action_clip[0] * (self.linear_spd_limit_x - 0.)
+        right_spd = action_clip[1] * (self.linear_spd_limit_x - 0.)
+        linear_spd_x = (right_spd + left_spd) / 2
+        angular_spd_z = (right_spd - left_spd) / diff
+        action = np.array([linear_spd_x, action_clip[2], angular_spd_z])
+        return action
 
     def _compute_reward(self, robot_pose):
         """
@@ -405,6 +418,7 @@ class NavigationEnv:
             print("Navigation timeout!")
         else:
             reward = self.goal_dis_amp * (self.goal_dis_dir_pre[0] - self.goal_dis_dir_cur[0])
+        reward -= self.step_penalty_reward
         return reward, done
 
     @staticmethod

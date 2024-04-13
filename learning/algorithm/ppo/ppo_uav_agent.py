@@ -34,11 +34,12 @@ class PPOUAVAgent:
 
         self.action_shape = envs.action_space
         self.action_dim = np.prod(self.action_shape)
+        self.action_scale = torch.Tensor([[args.linear_spd_limit_x, args.linear_spd_limit_y, args.angular_spd_limit]]).to(self.device)
 
         self.buffer = RolloutBuffer(args.num_steps, args.num_envs, self.img_obs_shape, self.robot_obs_shape, self.action_shape, device)
 
         # actor-critic neural network
-        self.ac_net = CNNPPONets(self.img_obs_shape, self.robot_obs_dim, self.action_dim).to(self.device)
+        self.ac_net = CNNPPONets(self.img_obs_shape, self.robot_obs_dim, self.action_dim, self.action_scale).to(self.device)
         self.optimizer = optim.Adam(self.ac_net.parameters(), lr=self.args.learning_rate, eps=1e-5)
 
     def anneal_lr(self, iteration, num_iterations):
@@ -84,7 +85,7 @@ class PPOUAVAgent:
                 end = start + self.args.minibatch_size
                 mb_inds = b_inds[start:end]
 
-                _, newlogprob, entropy, newvalue = self.ac_net.get_action_and_value(b_img_obs[mb_inds], b_robot_obs[mb_inds], b_actions[mb_inds])
+                _, newlogprob, entropy, newvalue, _, _ = self.ac_net.get_action_and_value(b_img_obs[mb_inds], b_robot_obs[mb_inds], b_actions[mb_inds])
                 logratio = newlogprob - b_logprobs[mb_inds]
                 ratio = logratio.exp()
 

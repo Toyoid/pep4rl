@@ -37,19 +37,19 @@ class Args:
     """total timesteps of the experiments"""
     num_episodes: int = 1000
     """total episodes of the experiments"""
-    learning_rate: float = 3e-4  # isaacgym: 0.0026   mujoco: 3e-4
+    learning_rate: float = 1e-4  # isaacgym: 0.0026   mujoco: 3e-4
     """the learning rate of the optimizer"""
     num_envs: int = 1  # isaacgym: 4096   mujoco: 1
     """the number of parallel game environments"""
-    num_steps: int = 512
+    num_steps: int = 256
     """the number of steps to run in each environment per policy rollout"""
-    anneal_lr: lambda x: bool(strtobool(x)) = True
+    anneal_lr: lambda x: bool(strtobool(x)) = False
     """Toggle learning rate annealing for policy and value networks"""
     gamma: float = 0.99
     """the discount factor gamma"""
     gae_lambda: float = 0.95
     """the lambda for the general advantage estimation"""
-    num_minibatches: int = 8
+    num_minibatches: int = 4
     """the number of mini-batches"""
     update_epochs: int = 10
     """the K epochs to update the policy"""
@@ -59,7 +59,7 @@ class Args:
     """the surrogate clipping coefficient"""
     clip_vloss: lambda x: bool(strtobool(x)) = False
     """Toggles whether or not to use a clipped loss for the value function, as per the paper."""
-    ent_coef: float = 0.5
+    ent_coef: float = 0.1
     """coefficient of the entropy"""
     vf_coef: float = 2
     """coefficient of the value function"""
@@ -67,6 +67,14 @@ class Args:
     """the maximum norm for the gradient clipping"""
     target_kl: float = None
     """the target KL divergence threshold"""
+
+    # UAV specific parameters
+    linear_spd_limit_x: float = 2.0
+    """forward linear speed limit of UAV"""
+    linear_spd_limit_y: float = 0.3
+    """left/right linear speed limit of UAV"""
+    angular_spd_limit: float = 1.5
+    """left/right angular speed limit of UAV"""
 
     # to be filled in runtime
     batch_size: int = 0
