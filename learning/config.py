@@ -59,7 +59,7 @@ class Args:
     """the surrogate clipping coefficient"""
     clip_vloss: lambda x: bool(strtobool(x)) = False
     """Toggles whether or not to use a clipped loss for the value function, as per the paper."""
-    ent_coef: float = 0.1
+    ent_coef: float = 0
     """coefficient of the entropy"""
     vf_coef: float = 2
     """coefficient of the value function"""
@@ -69,12 +69,15 @@ class Args:
     """the target KL divergence threshold"""
 
     # UAV specific parameters
+    step_time: float = 0.05
+    """step time duration for executing a command from policy network"""
     linear_spd_limit_x: float = 2.0
     """forward linear speed limit of UAV"""
     linear_spd_limit_y: float = 0.3
     """left/right linear speed limit of UAV"""
     angular_spd_limit: float = 1.5
     """left/right angular speed limit of UAV"""
+
 
     # to be filled in runtime
     batch_size: int = 0

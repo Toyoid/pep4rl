@@ -25,7 +25,6 @@ class NavigationEnv:
     def __init__(self,
                  args,
                  frame_stack_num=10,
-                 step_time=0.05,
                  max_episode_steps=1000,
                  goal_reward=30,
                  collision_reward=-20,
@@ -48,7 +47,7 @@ class NavigationEnv:
         self.linear_spd_limit_y = args.linear_spd_limit_y
         self.angular_spd_limit = args.angular_spd_limit
         self.action_space = (3,)
-        self.action_range = np.array([[0.1, -self.linear_spd_limit_y, -self.angular_spd_limit],
+        self.action_range = np.array([[0.05, -self.linear_spd_limit_y, -self.angular_spd_limit],
                                       [self.linear_spd_limit_x, self.linear_spd_limit_y, self.angular_spd_limit]])
         # [left_spd, right_spd, linear_spd_y]
         # self.policy_act_range = np.array([[0.0, 0.0, -linear_spd_limit_y],
@@ -80,7 +79,7 @@ class NavigationEnv:
         self.set_model_pose = rospy.ServiceProxy('gazebo/set_model_state', SetModelState)
 
         # Training environment setup
-        self.step_time = step_time
+        self.step_time = args.step_time
         self.max_episode_steps = max_episode_steps
         self.goal_position = None
         self.goal_reward = goal_reward
