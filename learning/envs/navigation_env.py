@@ -1,6 +1,7 @@
 import math
 import pickle
 import numpy as np
+from copy import deepcopy
 # import sys
 # sys.path.append('/opt/ros/noetic/lib/python3/dist-packages')
 import rospy
@@ -57,8 +58,10 @@ class NavigationEnv:
         self.init_robot_array, self.init_goal_array = self._get_init_robot_goal("Rand_R1")
 
         # Robot messages
-        self.odom = None
-        self.depth_img = None
+        # self.odom = None
+        self.robot_pose = None
+        self.robot_speed = None
+        self.cv_depth_img = None
         self.stacked_imgs = None
         self.robot_odom_init = False
         self.depth_img_init = False
@@ -179,7 +182,7 @@ class NavigationEnv:
         except rospy.ServiceException as e:
             print("Set Target Service Failed: %s" % e)
         rospy.loginfo("set new quadcopter state...")
-        rospy.sleep(0.1)
+        rospy.sleep(self.step_time)
         cv_img, robot_state = self._get_next_state()
         '''
         pause gazebo simulation and transform robot poses to robot observations
@@ -257,30 +260,39 @@ class NavigationEnv:
 
     def _get_next_state(self):
         # get depth image
-        cv_img = self._ros_img_2_cv_img()  # single image size: (480, 640)
+        # cv_img = self._ros_img_2_cv_img()  # single image size: (480, 640)
+        cv_img = deepcopy(self.cv_depth_img)
+
         # get robot pose and speed
-        # compute yaw from quaternion
-        quat = [self.odom.pose.pose.orientation.x,
-                self.odom.pose.pose.orientation.y,
-                self.odom.pose.pose.orientation.z,
-                self.odom.pose.pose.orientation.w]
-        siny_cosp = 2. * (quat[0] * quat[1] + quat[2] * quat[3])
-        cosy_cosp = 1. - 2. * (quat[1] ** 2 + quat[2] ** 2)
-        yaw = math.atan2(siny_cosp, cosy_cosp)  # range from -pi to pi
-        robot_pose = np.array([self.odom.pose.pose.position.x,
-                               self.odom.pose.pose.position.y,
-                               self.odom.pose.pose.position.z, yaw])
-        robot_speed = np.array([self.odom.twist.twist.linear.x,
-                                self.odom.twist.twist.linear.y,
-                                # self.odom.twist.twist.linear.z,
-                                self.odom.twist.twist.angular.z])
-        robot_state = [robot_pose, robot_speed]
+        # # compute yaw from quaternion
+        # quat = [self.odom.pose.pose.orientation.x,
+        #         self.odom.pose.pose.orientation.y,
+        #         self.odom.pose.pose.orientation.z,
+        #         self.odom.pose.pose.orientation.w]
+        # siny_cosp = 2. * (quat[0] * quat[1] + quat[2] * quat[3])
+        # cosy_cosp = 1. - 2. * (quat[1] ** 2 + quat[2] ** 2)
+        # yaw = math.atan2(siny_cosp, cosy_cosp)  # range from -pi to pi
+        # robot_pose = np.array([self.odom.pose.pose.position.x,
+        #                        self.odom.pose.pose.position.y,
+        #                        self.odom.pose.pose.position.z, yaw])
+        # robot_speed = np.array([self.odom.twist.twist.linear.x,
+        #                         self.odom.twist.twist.linear.y,
+        #                         # self.odom.twist.twist.linear.z,
+        #                         self.odom.twist.twist.angular.z])
+        robot_pose_tmp = deepcopy(self.robot_pose)
+        robot_spd_tmp = deepcopy(self.robot_speed)
+        robot_state = [robot_pose_tmp, robot_spd_tmp]
+
+        # check collision
+        collision_info = deepcopy(self.contact_info)
+        if collision_info:
+            self.robot_collision = True
 
         return cv_img, robot_state
 
-    def _ros_img_2_cv_img(self):
+    def _ros_img_2_cv_img(self, ros_img):
         # cv_img = self.bridge.imgmsg_to_cv2(self.depth_img, desired_encoding='32FC1')
-        cv_img = self.bridge.imgmsg_to_cv2(self.depth_img, desired_encoding='passthrough')
+        cv_img = self.bridge.imgmsg_to_cv2(ros_img, desired_encoding='passthrough')
         # cv_img = np.array(cv_img, dtype=np.int8)
         cv_img = np.array(cv_img)
         cv_img[np.isnan(cv_img)] = self.max_depth
@@ -330,9 +342,9 @@ class NavigationEnv:
 
     def _robot_state_2_policy_obs(self, img, state, scale=True, goal_dir_range=math.pi):
         """
-        Transform CV image and robot state to observation for the policy network, and scale the observation value
+        Transform depth image and robot state to observation for the policy network, and scale the observation value
         Robot observation to policy network: [Direction to goal, Distance to goal, Linear speed x, Linear speed y, Angular speed]
-        :param img: CV image
+        :param img: depth image
         :param state: Robot State [robot_pose, robot_spd]
         :param scale: Whether to scale the observation value
         :param goal_dir_range: Scale range of direction to goal
@@ -387,9 +399,9 @@ class NavigationEnv:
         3. a * (Last step distance to goal - current step distance to goal)
         """
         done = False
-        # update rate of contact sensor callback does not align with the action rate of agent
-        if self.contact_info:
-            self.robot_collision = True
+        # # update rate of contact sensor callback does not align with the action rate of agent
+        # if self.contact_info:
+        #     self.robot_collision = True
 
         if self.goal_dis_dir_cur[0] < self.goal_near_th:
             reward = self.goal_reward
@@ -473,12 +485,28 @@ class NavigationEnv:
     def _odom_callback(self, odom):
         if self.robot_odom_init is False:
             self.robot_odom_init = True
-        self.odom = odom
+
+        # compute yaw from quaternion
+        quat = [odom.pose.pose.orientation.x,
+                odom.pose.pose.orientation.y,
+                odom.pose.pose.orientation.z,
+                odom.pose.pose.orientation.w]
+        siny_cosp = 2. * (quat[0] * quat[1] + quat[2] * quat[3])
+        cosy_cosp = 1. - 2. * (quat[1] ** 2 + quat[2] ** 2)
+        yaw = math.atan2(siny_cosp, cosy_cosp)  # range from -pi to pi
+        self.robot_pose = np.array([odom.pose.pose.position.x,
+                                    odom.pose.pose.position.y,
+                                    odom.pose.pose.position.z, yaw])
+        self.robot_speed = np.array([odom.twist.twist.linear.x,
+                                     odom.twist.twist.linear.y,
+                                     # odom.twist.twist.linear.z,
+                                     odom.twist.twist.angular.z])
 
     def _depth_img_callback(self, img):
         if self.depth_img_init is False:
             self.depth_img_init = True
-        self.depth_img = img
+        # transform ros image to cv image
+        self.cv_depth_img = self._ros_img_2_cv_img(img)
 
     def _collision_callback(self, contact_msg):
         if self.contact_sensor_init is False:

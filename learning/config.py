@@ -73,7 +73,7 @@ class Args:
     """step time duration for executing a command from policy network"""
     linear_spd_limit_x: float = 2.0
     """forward linear speed limit of UAV"""
-    linear_spd_limit_y: float = 0.3
+    linear_spd_limit_y: float = 0.05
     """left/right linear speed limit of UAV"""
     angular_spd_limit: float = 1.5
     """left/right angular speed limit of UAV"""
