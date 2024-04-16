@@ -31,7 +31,7 @@ if __name__ == '__main__':
         cv_img = bridge.imgmsg_to_cv2(depth_img, desired_encoding='passthrough')
         # cv_img = np.array(cv_img, dtype=np.int8)
         cv_img = np.array(cv_img)
-        cv_img[np.isnan(cv_img)] = 0
+        # cv_img[np.isnan(cv_img)] = 99
         print("************************************************")
         print(f"Converted Depth Image: \n"
               f"dtype: {cv_img.dtype} \n"
@@ -55,13 +55,13 @@ if __name__ == '__main__':
         #       f"max: {stacked_imgs.max()}, min: {stacked_imgs.min()} \n"
         #       f"data: {stacked_imgs} \n")
 
-        scaled_stacked_imgs = stacked_imgs / 5.0
-        print("************************************************")
-        print(f"Scaled Stacked Image: \n"
-              f"dtype: {scaled_stacked_imgs.dtype} \n"
-              f"shape: {scaled_stacked_imgs.shape} \n"
-              f"max: {scaled_stacked_imgs.max()}, min: {scaled_stacked_imgs.min()} \n"
-              f"data: {scaled_stacked_imgs} \n")
+        # scaled_stacked_imgs = stacked_imgs / 5.0
+        # print("************************************************")
+        # print(f"Scaled Stacked Image: \n"
+        #       f"dtype: {scaled_stacked_imgs.dtype} \n"
+        #       f"shape: {scaled_stacked_imgs.shape} \n"
+        #       f"max: {scaled_stacked_imgs.max()}, min: {scaled_stacked_imgs.min()} \n"
+        #       f"data: {scaled_stacked_imgs} \n")
         print("************************************************")
         print(" ")
 
