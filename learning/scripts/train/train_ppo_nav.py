@@ -67,8 +67,9 @@ def main():
     Is GAZEBO ABLE TO PARALLEL?
     '''
     rospy.init_node("uav_agent")
-    envs = NavigationEnv()
+    envs = NavigationEnv(args=args)
     agent = PPOUAVAgent(envs, device, args)
+    np.set_printoptions(precision=3)
 
     # run the experiment
     global_step = 0
@@ -92,7 +93,14 @@ def main():
             agent.buffer.dones[step] = next_done
             # ALGO LOGIC: action logic
             with torch.no_grad():
-                action, logprob, _, value = agent.ac_net.get_action_and_value(next_img_obs, next_robot_obs)
+                action, logprob, _, value, act_mean, act_std = agent.ac_net.get_action_and_value(next_img_obs, next_robot_obs)
+                # for debugging
+                if step % 20 == 0:
+                    print("{:<30} {}".format("[ACTION INFO] Action Mean: ", act_mean.cpu().numpy()))
+                    print("{:<30} {}".format("[ACTION INFO] Action Sampled: ", action.cpu().numpy()))
+                    print("{:<30} {}".format("[ACTION INFO] Action Std: ", act_std.cpu().numpy()))
+                    print("\n")
+
                 agent.buffer.values[step] = value.flatten()
             agent.buffer.actions[step] = action  # action shape: (1, 3)
             agent.buffer.logprobs[step] = logprob
