@@ -118,7 +118,7 @@ namespace globalPlanner{
 		std::shared_ptr<PRM::Node> extendNode(const std::shared_ptr<PRM::Node>& n, const std::shared_ptr<PRM::Node>& target);
 
 		// visualization functions
-		void publishRoadmap();
+		visualization_msgs::MarkerArray buildRoadmapMarkers();
 		void publishCandidatePaths();
 		void publishBestPath();
 		void publishFrontier();

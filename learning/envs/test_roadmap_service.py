@@ -1,6 +1,5 @@
 import rospy
 from nav_msgs.msg import Odometry
-from visualization_msgs.msg import MarkerArray
 from global_planner.srv import GetRoadmap
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -35,7 +34,6 @@ if __name__ == "__main__":
     rospy.init_node('test_roadmap_service_node')
     odom_sub = rospy.Subscriber("/CERLAB/quadcopter/odom", Odometry, odom_callback)
     get_roadmap = rospy.ServiceProxy('/dep/get_roadmap', GetRoadmap)
-    roadmap_pub = rospy.Publisher("/dep/roadmap", MarkerArray, queue_size=10)
 
     fig, ax = plt.subplots(figsize=(12, 12))
     ax.set_xlim(-10, 10)
@@ -51,13 +49,10 @@ if __name__ == "__main__":
         except rospy.ServiceException as e:
             print("Get Roadmap Service Failed: %s" % e)
 
-        # publish for rviz visualization
-        roadmap_pub.publish(roadmap_resp)
-
         # PRM data processing
         nodes = []
         edges = []
-        for marker in roadmap_resp.markers:
+        for marker in roadmap_resp.roadmapMarkers.markers:
             if marker.ns == 'prm_point':
                 node = PRMNode(marker.pose.position.x, marker.pose.position.y, marker.pose.position.z)
                 nodes.append(node)
@@ -94,7 +89,7 @@ if __name__ == "__main__":
         plot_patch_list.append(robot)
 
         # rate.sleep()
-        plt.pause(5)
+        plt.pause(10)
 
         # clear figure
         [line.pop(0).remove() for line in plot_line_list]

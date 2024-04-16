@@ -9,6 +9,7 @@
 #include <global_planner/dep.h>
 #include <map_manager/dynamicMap.h>
 #include <onboard_detector/fakeDetector.h>
+#include <global_planner/GetRoadmap.h>
 
 
 namespace AutoFlight{
@@ -19,6 +20,7 @@ namespace AutoFlight{
 		std::shared_ptr<globalPlanner::DEP> expPlanner_;
 
 		ros::Timer freeMapTimer_;
+		ros::ServiceServer roadmapServer_;
 		
 		// parameters
 		bool useFakeDetector_;
@@ -41,7 +43,7 @@ namespace AutoFlight{
 		ros::Time lastDynamicObstacleTime_;
 	
 	public:
-		std::thread exploreReplanWorker_;
+		// std::thread exploreReplanWorker_;
 		dynamicPRM();
 		dynamicPRM(const ros::NodeHandle& nh);
 
@@ -50,15 +52,12 @@ namespace AutoFlight{
 	
 
 	
-		void exploreReplan();
+		// void exploreReplan();
 		void freeMapCB(const ros::TimerEvent&); // using fake detector
+		bool roadmapServiceCB(global_planner::GetRoadmap::Request& req, global_planner::GetRoadmap::Response& resp);
 
 		void run();
 		void initExplore();
-	
-
-	
-	
 	};
 }
 #endif

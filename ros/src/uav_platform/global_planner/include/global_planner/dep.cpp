@@ -887,7 +887,8 @@ namespace globalPlanner{
 
 	void DEP::visCB(const ros::TimerEvent&){
 		if (this->prmNodeVec_.size() != 0){
-			this->publishRoadmap();
+			visualization_msgs::MarkerArray roadmapMarkers = this->buildRoadmapMarkers();
+			this->roadmapPub_.publish(roadmapMarkers);
 		}
 
 		if (this->candidatePaths_.size() != 0){
@@ -1019,6 +1020,7 @@ namespace globalPlanner{
 		}
 		return countTotalUnknown;
 	}
+
 	double DEP::calculatePathLength(const std::vector<shared_ptr<PRM::Node>>& path){
 		int idx1 = 0;
 		double length = 0;
@@ -1121,7 +1123,7 @@ namespace globalPlanner{
 		return extendedNode;
 	}
 
-	void DEP::publishRoadmap(){
+	visualization_msgs::MarkerArray DEP::buildRoadmapMarkers(){  
 		visualization_msgs::MarkerArray roadmapMarkers;
 
 		// PRM nodes and edges
@@ -1231,7 +1233,7 @@ namespace globalPlanner{
 			roadmapMarkers.markers.push_back(goalCandidatePoint);
 		}
 
-		this->roadmapPub_.publish(roadmapMarkers);
+		return roadmapMarkers;
 	}
 
 	void DEP::publishCandidatePaths(){

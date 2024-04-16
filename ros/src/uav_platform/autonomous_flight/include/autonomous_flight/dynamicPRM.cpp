@@ -10,6 +10,9 @@ namespace AutoFlight{
     dynamicPRM::dynamicPRM(const ros::NodeHandle& nh) : flightBase(nh){
 		this->initParam();
 		this->initModules();
+		// roadmap service server	
+		this->roadmapServer_ = this->nh_.advertiseService("/dep/get_roadmap", &dynamicPRM::roadmapServiceCB, this);
+
 		if (this->useFakeDetector_){
 			// free map callback
 			this->freeMapTimer_ = this->nh_.createTimer(ros::Duration(0.01), &dynamicPRM::freeMapCB, this);
@@ -142,6 +145,20 @@ namespace AutoFlight{
 		this->map_->freeRegions(freeRegions);
 	}
 
+	bool dynamicPRM::roadmapServiceCB(global_planner::GetRoadmap::Request& req, global_planner::GetRoadmap::Response& resp){
+		this->expPlanner_->setMap(this->map_);
+		bool replanSuccess = this->expPlanner_->makePlan();
+		if (replanSuccess){
+			std::cout << "\033[1;32m[AutoFlight]: Roadmap Generation Succeed!" << endl;
+			resp.roadmapMarkers = this->expPlanner_->buildRoadmapMarkers();
+		}
+		else{
+			std::cout << "\033[1;32m[AutoFlight]: Roadmap Generation failed!" << endl;
+		}		
+
+		return true;
+	}
+
 	void dynamicPRM::run(){
 		cout << "\033[1;32m[AutoFlight]: Please double check all parameters. Then PRESS ENTER to continue or PRESS CTRL+C to stop.\033[0m" << endl;
 		std::cin.clear();
@@ -165,8 +182,8 @@ namespace AutoFlight{
 		std::cin.get();
 
 		// this->registerCallback();
-		this->exploreReplanWorker_ = std::thread(&dynamicPRM::exploreReplan, this);
-		this->exploreReplanWorker_.detach();
+		// this->exploreReplanWorker_ = std::thread(&dynamicPRM::exploreReplan, this);
+		// this->exploreReplanWorker_.detach();
 	}
 
 	void dynamicPRM::initExplore(){
@@ -203,24 +220,24 @@ namespace AutoFlight{
 		}		
 	}
 
-	void dynamicPRM::exploreReplan(){
-		ros::Rate r (1);
-		while (ros::ok()){
-			this->expPlanner_->setMap(this->map_);
-			// ros::Time startTime = ros::Time::now();
-			bool replanSuccess = this->expPlanner_->makePlan();
-			r.sleep();
-			// if (replanSuccess){
-			// 	this->waypoints_ = this->expPlanner_->getBestPath();
-			// 	this->newWaypoints_ = true;
-			// 	this->waypointIdx_ = 1;
-			// }
-			// ros::Time endTime = ros::Time::now();
-			// std::cin.clear();
-			// fflush(stdin);
-			// std::cin.get();		
-			// cout << "[AutoFlight]: DEP planning time: " << (endTime - startTime).toSec() << "s." << endl;
+	// void dynamicPRM::exploreReplan(){
+	// 	ros::Rate r (1);
+	// 	while (ros::ok()){
+	// 		this->expPlanner_->setMap(this->map_);
+	// 		// ros::Time startTime = ros::Time::now();
+	// 		bool replanSuccess = this->expPlanner_->makePlan();
+	// 		r.sleep();
+	// 		// if (replanSuccess){
+	// 		// 	this->waypoints_ = this->expPlanner_->getBestPath();
+	// 		// 	this->newWaypoints_ = true;
+	// 		// 	this->waypointIdx_ = 1;
+	// 		// }
+	// 		// ros::Time endTime = ros::Time::now();
+	// 		// std::cin.clear();
+	// 		// fflush(stdin);
+	// 		// std::cin.get();		
+	// 		// cout << "[AutoFlight]: DEP planning time: " << (endTime - startTime).toSec() << "s." << endl;
 
-		}
-	}
+	// 	}
+	// }
 }
