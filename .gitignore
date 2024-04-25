@@ -37,3 +37,8 @@ pip-delete-this-directory.txt
 # vscode project config
 .vscode/
 
+# in falco planner
+correspondences.txt
+pathList.ply
+paths.ply
+startPaths.ply
