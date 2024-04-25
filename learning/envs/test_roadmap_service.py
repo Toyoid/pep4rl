@@ -1,5 +1,6 @@
 import rospy
 from nav_msgs.msg import Odometry
+from geometry_msgs.msg import PointStamped
 from global_planner.srv import GetRoadmap
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -34,12 +35,24 @@ if __name__ == "__main__":
     rospy.init_node('test_roadmap_service_node')
     odom_sub = rospy.Subscriber("/CERLAB/quadcopter/odom", Odometry, odom_callback)
     get_roadmap = rospy.ServiceProxy('/dep/get_roadmap', GetRoadmap)
+    # current_goal_pub = rospy.Publisher("/falco_planner/way_point", PointStamped, queue_size=5)
+    current_goal_pub = rospy.Publisher("/agent/current_goal", PointStamped, queue_size=5)
 
     fig, ax = plt.subplots(figsize=(12, 12))
     ax.set_xlim(-10, 10)
     ax.set_ylim(-10, 10)
     plot_line_list = []
     plot_patch_list = []
+
+    goal = PointStamped()
+    goal.header.frame_id = "/map"
+    # goal.header.stamp = rospy.Time.now()
+    # goal.point.x = odom_.pose.pose.position.x - 2.0
+    # goal.point.y = odom_.pose.pose.position.y
+    # goal.point.z = odom_.pose.pose.position.z
+
+    # current_goal_pub.publish(goal)
+    # rospy.sleep(1)
 
     while not rospy.is_shutdown():
         # get PRM data
@@ -73,6 +86,35 @@ if __name__ == "__main__":
 
         prm = {'nodes': nodes, 'edges': edges}
 
+        # find the node with highest utility
+        best_node = max(prm["nodes"], key=lambda node: node.utility)
+        # publish the node
+        # goal = Marker()
+        # goal.header.frame_id = "map"
+        # goal.header.stamp = rospy.Time.now()
+        # goal.ns = "agent_viewpoint"
+        # # viewpoint.id = countPointNum
+        # goal.type = Marker.SPHERE
+        # goal.action = Marker.ADD
+        # goal.pose.position.x = best_node.x
+        # goal.pose.position.y = best_node.y
+        # goal.pose.position.z = best_node.z
+        # goal.lifetime = rospy.Duration(8)
+        # goal.scale.x = 0.5
+        # goal.scale.y = 0.5
+        # goal.scale.z = 0.5
+        # goal.color.a = 1.0
+        # goal.color.r = 1.0
+        # goal.color.g = 0.0
+        # goal.color.b = 0.0
+
+        goal.header.stamp = rospy.Time.now()
+        goal.point.x = best_node.x
+        goal.point.y = best_node.y
+        goal.point.z = best_node.z
+
+        current_goal_pub.publish(goal)
+
         # plot
         for e in prm['edges']:
             plot_line_list.append(
@@ -89,7 +131,7 @@ if __name__ == "__main__":
         plot_patch_list.append(robot)
 
         # rate.sleep()
-        plt.pause(10)
+        plt.pause(5)
 
         # clear figure
         [line.pop(0).remove() for line in plot_line_list]

@@ -15,7 +15,7 @@ namespace AutoFlight{
 
 		if (this->useFakeDetector_){
 			// free map callback
-			this->freeMapTimer_ = this->nh_.createTimer(ros::Duration(0.01), &dynamicPRM::freeMapCB, this);
+			this->freeMapTimer_ = this->nh_.createTimer(ros::Duration(0.1), &dynamicPRM::freeMapCB, this);
 		}
 	}
 
@@ -161,15 +161,15 @@ namespace AutoFlight{
 
 	void dynamicPRM::run(){
 		cout << "\033[1;32m[AutoFlight]: Please double check all parameters. Then PRESS ENTER to continue or PRESS CTRL+C to stop.\033[0m" << endl;
-		std::cin.clear();
-		fflush(stdin);
-		std::cin.get();
+		// std::cin.clear();
+		// fflush(stdin);
+		// std::cin.get();
 		// this->takeoff();
 
 		cout << "\033[1;32m[AutoFlight]: Takeoff succeed. Then PRESS ENTER to continue or PRESS CTRL+C to land.\033[0m" << endl;
-		std::cin.clear();
-		fflush(stdin);
-		std::cin.get();
+		// std::cin.clear();
+		// fflush(stdin);
+		// std::cin.get();
 
 		// added by me
 		cout << "No map recording." << endl;
@@ -177,9 +177,9 @@ namespace AutoFlight{
 		this->initExplore();
 
 		cout << "\033[1;32m[AutoFlight]: PRESS ENTER to Start Planning.\033[0m" << endl;
-		std::cin.clear();
-		fflush(stdin);
-		std::cin.get();
+		// std::cin.clear();
+		// fflush(stdin);
+		// std::cin.get();
 
 		// this->registerCallback();
 		// this->exploreReplanWorker_ = std::thread(&dynamicPRM::exploreReplan, this);

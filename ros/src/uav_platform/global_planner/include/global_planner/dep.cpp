@@ -295,6 +295,9 @@ namespace globalPlanner{
 
 		// fronteir vis publisher
 		this->frontierVisPub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("/dep/frontier_regions", 10);
+
+		//added by me
+		this->wayPointPub_ = this->nh_.advertise<geometry_msgs::PointStamped>("/falco_planner/way_point", 5); 
 	}
 
 	void DEP::registerCallback(){
@@ -304,6 +307,11 @@ namespace globalPlanner{
 		// visualization timer
 		this->visTimer_ = this->nh_.createTimer(ros::Duration(0.1), &DEP::visCB, this);
 
+		//added by me waypoint publish timer
+		this->waypointTimer_ = this->nh_.createTimer(ros::Duration(1.0), &DEP::waypointUpdateCB, this);
+
+		//added by me
+		this->currGoalSub_ = this->nh_.subscribe("/agent/current_goal", 5, &DEP::currGoalCB, this); 
 	}
 
 	bool DEP::makePlan(){
@@ -340,14 +348,15 @@ namespace globalPlanner{
 
 		// cout << "finish candidate path with size: " << this->candidatePaths_.size() << endl;
 		if (not findCandidatePathSuccess){
-			// cout << "Find candidate paths fails. need generate more samples." << endl;
+			cout << "Find candidate paths fails. need generate more samples." << endl;
 			return false;
 		}
 
-		this->findBestPath(this->candidatePaths_, this->bestPath_);
+		// this->findBestPath(this->candidatePaths_, this->bestPath_);
 		// ros::Time pathEndTime = ros::Time::now();
 		// cout << "path time: " << (pathEndTime - pathStartTime).toSec() << endl;
 		// cout << "found best path with size: " << this->bestPath_.size() << endl;
+
 		return true;
 	}
 
@@ -632,8 +641,6 @@ namespace globalPlanner{
 				}
 			}
 		}
-
-
 		
 		// node connection
 		for (std::shared_ptr<PRM::Node>& n : newNodes){
@@ -795,7 +802,7 @@ namespace globalPlanner{
 
 		candidatePaths.clear();
 		for (std::shared_ptr<PRM::Node> goal : goalCandidates){
-			std::vector<std::shared_ptr<PRM::Node>> path = PRM::AStar(this->roadmap_, start, goal, this->map_);
+			std::vector<std::shared_ptr<PRM::Node>> path = PRM::AStar(this->roadmap_, start, goal, this->map_);  
 			if (int(path.size()) != 0){
 				findPath = true;
 			}
@@ -901,6 +908,65 @@ namespace globalPlanner{
 
 		if (this->frontierPointPairs_.size() != 0){
 			this->publishFrontier();
+		}
+	}
+
+	//added by me
+	void DEP::currGoalCB(const geometry_msgs::PointStamped::ConstPtr& goal){
+		Eigen::Vector3d p;
+		p(0) = goal->point.x;
+		p(1) = goal->point.y;
+		p(2) = goal->point.z;
+		this->currGoal_.reset(new PRM::Node(p));
+
+		std::cout << "\033[1;32m[AutoFlight]: Current goal \033[0m" 
+		<< " x: " << std::setw(2) << this->currGoal_->pos(0)
+		<< " y: " << std::setw(2) << this->currGoal_->pos(1)
+		<< " z: " << std::setw(2) << this->currGoal_->pos(2)
+		<< endl;
+
+		// find best path to current goal, judge currGoalChanged ??
+		this->bestPath_.clear();
+		// find nearest node of current location
+		std::shared_ptr<PRM::Node> currPos;
+		currPos.reset(new PRM::Node (this->position_));
+		std::shared_ptr<PRM::Node> start = this->roadmap_->nearestNeighbor(currPos);
+		std::shared_ptr<PRM::Node> currGoal = this->roadmap_->nearestNeighbor(this->currGoal_);  // this is important, or no path will be found!
+
+		std::vector<std::shared_ptr<PRM::Node>> path = PRM::AStar(this->roadmap_, start, currGoal, this->map_);
+		if (int(path.size()) != 0){
+			path.insert(path.begin(), currPos);
+			std::vector<std::shared_ptr<PRM::Node>> pathSc;
+			this->shortcutPath(path, pathSc);
+			this->bestPath_ = pathSc;
+			this->waypointIdx_ = 0;
+
+			cout << "Finding path success!" << endl;
+		}
+		else {
+			cout << "Finding path fails. need generate more samples." << endl;
+		}
+	}
+
+	//added by me
+	void DEP::waypointUpdateCB(const ros::TimerEvent&){
+		if (this->bestPath_.size() != 0){
+			if (((this->position_ - this->bestPath_[this->waypointIdx_]->pos).norm() <= 0.7) && (this->waypointIdx_ < (this->bestPath_.size() - 1))){
+				this->waypointIdx_ += 1;
+			}  // while or if ??
+			
+			if (this->waypointIdx_ > (this->bestPath_.size() - 1)){   // is it possible??
+				std::cout << "\033[1;31mError in waypoint assignment!\033[0m" << std::endl;
+			}
+
+			geometry_msgs::PointStamped waypoint; 
+			waypoint.header.stamp = ros::Time::now();
+			waypoint.header.frame_id = "/map";
+			waypoint.point.x = this->bestPath_[this->waypointIdx_]->pos(0);
+			waypoint.point.y = this->bestPath_[this->waypointIdx_]->pos(1);
+			waypoint.point.z = this->bestPath_[this->waypointIdx_]->pos(2);
+
+			this->wayPointPub_.publish(waypoint);
 		}
 	}
 
@@ -1206,32 +1272,32 @@ namespace globalPlanner{
 			}
 		}
 
-		int countGoalCandidateNum = 0;
-		for (size_t i=0; i<this->goalCandidates_.size(); ++i){
-			std::shared_ptr<PRM::Node> n = this->goalCandidates_[i];
+		// int countGoalCandidateNum = 0;
+		// for (size_t i=0; i<this->goalCandidates_.size(); ++i){
+		// 	std::shared_ptr<PRM::Node> n = this->goalCandidates_[i];
 
-			// Goal candidates
-			visualization_msgs::Marker goalCandidatePoint;
-			goalCandidatePoint.ns = "goal_candidate";
-			goalCandidatePoint.header.frame_id = "map";
-			goalCandidatePoint.header.stamp = ros::Time::now();
-			goalCandidatePoint.id = countGoalCandidateNum;
-			goalCandidatePoint.type = visualization_msgs::Marker::SPHERE;
-			goalCandidatePoint.action = visualization_msgs::Marker::ADD;
-			goalCandidatePoint.pose.position.x = n->pos(0);
-			goalCandidatePoint.pose.position.y = n->pos(1);
-			goalCandidatePoint.pose.position.z = n->pos(2);
-			goalCandidatePoint.lifetime = ros::Duration(0.5);
-			goalCandidatePoint.scale.x = 0.2;
-			goalCandidatePoint.scale.y = 0.2;
-			goalCandidatePoint.scale.z = 0.2;
-			goalCandidatePoint.color.a = 1.0;
-			goalCandidatePoint.color.r = 1.0;
-			goalCandidatePoint.color.g = 0.0;
-			goalCandidatePoint.color.b = 1.0;
-			++countGoalCandidateNum;
-			roadmapMarkers.markers.push_back(goalCandidatePoint);
-		}
+		// 	// Goal candidates
+		// 	visualization_msgs::Marker goalCandidatePoint;
+		// 	goalCandidatePoint.ns = "goal_candidate";
+		// 	goalCandidatePoint.header.frame_id = "map";
+		// 	goalCandidatePoint.header.stamp = ros::Time::now();
+		// 	goalCandidatePoint.id = countGoalCandidateNum;
+		// 	goalCandidatePoint.type = visualization_msgs::Marker::SPHERE;
+		// 	goalCandidatePoint.action = visualization_msgs::Marker::ADD;
+		// 	goalCandidatePoint.pose.position.x = n->pos(0);
+		// 	goalCandidatePoint.pose.position.y = n->pos(1);
+		// 	goalCandidatePoint.pose.position.z = n->pos(2);
+		// 	goalCandidatePoint.lifetime = ros::Duration(0.5);
+		// 	goalCandidatePoint.scale.x = 0.2;
+		// 	goalCandidatePoint.scale.y = 0.2;
+		// 	goalCandidatePoint.scale.z = 0.2;
+		// 	goalCandidatePoint.color.a = 1.0;
+		// 	goalCandidatePoint.color.r = 1.0;
+		// 	goalCandidatePoint.color.g = 0.0;
+		// 	goalCandidatePoint.color.b = 1.0;
+		// 	++countGoalCandidateNum;
+		// 	roadmapMarkers.markers.push_back(goalCandidatePoint);
+		// }
 
 		return roadmapMarkers;
 	}
