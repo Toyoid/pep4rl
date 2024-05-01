@@ -21,7 +21,6 @@ class NavigationEnv:
     Class for Single-Robot Navigation in Gazebo Environment
     """
     def __init__(self,
-                 frame_stack_num=10,
                  step_time=0.1,
                  max_episode_steps=1000,
                  goal_reward=30,
@@ -31,44 +30,25 @@ class NavigationEnv:
                  env_height_range=[0.5,2.5],
                  goal_dis_scale=1.0,
                  goal_dis_min_dis=0.3,
-                 linear_spd_range_x=1.5,
-                 linear_spd_range_y=0.1,
-                 angular_spd_range=2.0
                  ):
         # Observation space:
-        self.depth_img_size = (480, 640)
-        self.frame_stack_num = frame_stack_num
-        self.max_depth = 5.0
-        self.img_obs_space = (frame_stack_num,) + self.depth_img_size
         self.robot_obs_space = (5,)
         # Action space:
-        # forward flight speed, range: [0.0, 2.0], leftward flight speed, range: [-2.0, 2.0], left turn speed, range: [-1.5, 1.5]
-        self.linear_spd_range_x = linear_spd_range_x
-        self.linear_spd_range_y = linear_spd_range_y
-        self.angular_spd_range = angular_spd_range
         self.action_space = (3,)
-        self.action_range = np.array([[0.0, -linear_spd_range_y, -angular_spd_range],
-                                      [linear_spd_range_x, linear_spd_range_y, angular_spd_range]])
 
         # get initial robot and goal pose list in training_worlds.world
         self.init_robot_array, self.init_goal_array = self._get_init_robot_goal("Rand_R1")
 
         # Robot messages
         self.odom = None
-        self.depth_img = None
-        self.stacked_imgs = None
         self.robot_odom_init = False
-        self.depth_img_init = False
         self.contact_sensor_init = False
 
         # Subscriber
         self.odom_sub = rospy.Subscriber("/CERLAB/quadcopter/odom", Odometry, self._odom_callback)
         self.contact_state_sub = rospy.Subscriber("/quadcopter/bumper_states", ContactsState, self._collision_callback)
-        self.depth_img_sub = rospy.Subscriber("/camera/depth/image_raw", Image, self._depth_img_callback)
-        self.bridge = CvBridge()  # transform depth image from ROS Message to OpenCV format
         # Publisher
-        self.drone_pose_pub = rospy.Publisher("/CERLAB/quadcopter/setpoint_pose", PoseStamped,
-                                              queue_size=10)  # subscribed by /gazebo
+
         # Service
         self.pause_gazebo = rospy.ServiceProxy('gazebo/pause_physics', Empty)
         self.unpause_gazebo = rospy.ServiceProxy('gazebo/unpause_physics', Empty)

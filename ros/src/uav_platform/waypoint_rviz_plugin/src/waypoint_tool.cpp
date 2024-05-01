@@ -21,8 +21,8 @@ void WaypointTool::onInitialize()
 void WaypointTool::updateTopic()
 {
   sub_ = nh_.subscribe<nav_msgs::Odometry> ("/falco_planner/state_estimation", 5, &WaypointTool::odomHandler, this);
-  // pub_ = nh_.advertise<geometry_msgs::PointStamped>("/falco_planner/way_point", 5);
-  pub_ = nh_.advertise<geometry_msgs::PointStamped>("/agent/current_goal", 5);
+  pub_ = nh_.advertise<geometry_msgs::PointStamped>("/falco_planner/way_point", 5);
+  // pub_ = nh_.advertise<visualization_msgs::Marker>("/agent/current_goal", 5);
   pub_joy_ = nh_.advertise<sensor_msgs::Joy>("/falco_planner/joy", 5);
 }
 

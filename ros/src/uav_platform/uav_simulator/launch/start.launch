@@ -12,6 +12,7 @@
 
   <!-- <arg name="world_name" value="$(find uav_simulator)/worlds/dense_world.world" /> -->
 <!--   <arg name="world_name" value="$(find uav_simulator)/worlds/training_worlds.world" /> -->
+  <arg name="world_name" value="$(find uav_simulator)/worlds/room.world" />
   <!-- <arg name="world_name" value="$(find uav_simulator)/worlds/square/square_box.world" /> -->
   <!-- <arg name="world_name" value="$(find uav_simulator)/worlds/square/square_static.world" /> -->
   <!-- <arg name="world_name" value="$(find uav_simulator)/worlds/square/square_test.world" /> -->
@@ -24,7 +25,7 @@
   <!-- <arg name="world_name" value="$(find uav_simulator)/worlds/floorplan1/floorplan1_dynamic_6.world" /> -->
   <!-- <arg name="world_name" value="$(find uav_simulator)/worlds/floorplan1/floorplan1_dynamic_16.world" /> -->
 
-  <arg name="world_name" value="$(find uav_simulator)/worlds/floorplan2/floorplan2_static.world" />
+  <!-- <arg name="world_name" value="$(find uav_simulator)/worlds/floorplan2/floorplan2_static.world" /> -->
   <!-- <arg name="world_name" value="$(find uav_simulator)/worlds/floorplan2/floorplan2_dynamic_5.world" /> -->
   <!-- <arg name="world_name" value="$(find uav_simulator)/worlds/floorplan2/floorplan2_dynamic_12.world" /> -->
 

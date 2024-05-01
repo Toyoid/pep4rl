@@ -10,6 +10,7 @@
 
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <gazebo_msgs/ModelState.h>
 
 #include <tf/transform_datatypes.h>
@@ -85,6 +86,9 @@ int main(int argc, char** argv)
   ros::Publisher pubModelState = nh.advertise<gazebo_msgs::ModelState> ("/gazebo/set_model_state", 5);
   gazebo_msgs::ModelState robotState;
   robotState.model_name = "quadcopter";
+  // ros::Publisher pubVehicleState = nh.advertise<geometry_msgs::PoseStamped> ("/CERLAB/quadcopter/setpoint_pose", 5);
+  // geometry_msgs::PoseStamped robotState;
+  // robotState.header.frame_id = "map";
 
   printf("\nSimulation started.\n\n");
 
@@ -154,11 +158,13 @@ int main(int argc, char** argv)
 
     geoQuat = tf::createQuaternionMsgFromRollPitchYaw(vehicleRoll, sensorPitch + vehiclePitch, vehicleYaw);
     
+    // robotState.header.stamp = timeNow;
     robotState.pose.orientation = geoQuat;
     robotState.pose.position.x = vehicleX;
     robotState.pose.position.y = vehicleY;
     robotState.pose.position.z = vehicleZ;
     pubModelState.publish(robotState);
+    // pubVehicleState.publish(robotState);
 
     status = ros::ok();
     rate.sleep();

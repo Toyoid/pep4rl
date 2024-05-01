@@ -3,7 +3,7 @@
 	<arg name="verbose" default="false"/>
     <arg name="use_sim_time" default="true"/>
     <arg name="debug" default="false" />
-    <arg name="gazebo_gui" default="false" />
+    <arg name="gazebo_gui" default="false"/>
     <arg name="use_keyboard" default="false"/>
 	<arg name="quadcopterX" default="0"/>
   	<arg name="quadcopterY" default="0"/>

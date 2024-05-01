@@ -14,7 +14,7 @@
   <arg name="trackingCamZOffset" default="0"/>
   <arg name="trackingCamScale" default="1.0"/>
   <!-- probably the stop distance to the waypoint, original: 0.5 -->
-  <arg name="stopDis" default="0.5"/>
+  <arg name="stopDis" default="0.8"/>
   <arg name="shiftGoalAtStart" default="false"/>
   <arg name="goalX" default="0"/>
   <arg name="goalY" default="0"/>
@@ -37,7 +37,7 @@
     <param name="trackingCamScale" value="$(arg trackingCamScale)" />
     <param name="scanVoxelSize" type="double" value="0.1" /> 
     <param name="pointPerPathThre" type="int" value="2" />
-    <param name="maxRange" type="double" value="4.0" />
+    <param name="maxRange" type="double" value="4.0" />  
     <param name="maxElev" type="double" value="5.0" />
     <param name="keepSurrCloud" type="bool" value="true" />
     <param name="keepHoriDis" type="double" value="1.0" />
@@ -50,7 +50,7 @@
     <param name="sensorMaxYaw" type="double" value="40.0" />
     <param name="yawDiffLimit" type="double" value="60.0" />
     <param name="yawWeight" type="double" value="0.015" />
-    <param name="pathScale" type="double" value="0.5" />
+    <param name="pathScale" type="double" value="0.25" />  <!-- 0.5 -->
     <param name="minPathScale" type="double" value="0.25" />
     <param name="pathScaleStep" type="double" value="0.125" />
     <param name="pathScaleBySpeed" type="bool" value="true" />
@@ -82,8 +82,8 @@
     <param name="trackPitch" type="double" value="0" />
     <param name="lookAheadScale" type="double" value="0.2" />
     <param name="minLookAheadDis" type="double" value="0.2" />
-    <param name="minSpeed" type="double" value="2.0" />
-    <param name="maxSpeed" type="double" value="2.0" /> 
+    <param name="minSpeed" type="double" value="1.7" />
+    <param name="maxSpeed" type="double" value="1.7" /> 
     <param name="accXYGain" type="double" value="0.05" />
     <param name="velXYGain" type="double" value="0.4" />
     <param name="posXYGain" type="double" value="0.05" />

@@ -4,6 +4,7 @@ from geometry_msgs.msg import PointStamped
 from global_planner.srv import GetRoadmap
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import random
 
 
 class PRMNode:
@@ -45,14 +46,7 @@ if __name__ == "__main__":
     plot_patch_list = []
 
     goal = PointStamped()
-    goal.header.frame_id = "/map"
-    # goal.header.stamp = rospy.Time.now()
-    # goal.point.x = odom_.pose.pose.position.x - 2.0
-    # goal.point.y = odom_.pose.pose.position.y
-    # goal.point.z = odom_.pose.pose.position.z
-
-    # current_goal_pub.publish(goal)
-    # rospy.sleep(1)
+    goal.header.frame_id = "map"
 
     while not rospy.is_shutdown():
         # get PRM data
@@ -87,32 +81,15 @@ if __name__ == "__main__":
         prm = {'nodes': nodes, 'edges': edges}
 
         # find the node with highest utility
-        best_node = max(prm["nodes"], key=lambda node: node.utility)
-        # publish the node
-        # goal = Marker()
-        # goal.header.frame_id = "map"
-        # goal.header.stamp = rospy.Time.now()
-        # goal.ns = "agent_viewpoint"
-        # # viewpoint.id = countPointNum
-        # goal.type = Marker.SPHERE
-        # goal.action = Marker.ADD
-        # goal.pose.position.x = best_node.x
-        # goal.pose.position.y = best_node.y
-        # goal.pose.position.z = best_node.z
-        # goal.lifetime = rospy.Duration(8)
-        # goal.scale.x = 0.5
-        # goal.scale.y = 0.5
-        # goal.scale.z = 0.5
-        # goal.color.a = 1.0
-        # goal.color.r = 1.0
-        # goal.color.g = 0.0
-        # goal.color.b = 0.0
+        # best_node = max(prm["nodes"], key=lambda node: node.utility)
+        best_node = random.choice(prm["nodes"])
 
+        # visualization
         goal.header.stamp = rospy.Time.now()
         goal.point.x = best_node.x
         goal.point.y = best_node.y
         goal.point.z = best_node.z
-
+        
         current_goal_pub.publish(goal)
 
         # plot

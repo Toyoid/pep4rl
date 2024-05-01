@@ -28,7 +28,8 @@ namespace globalPlanner{
 		ros::Publisher candidatePathPub_;
 		ros::Publisher bestPathPub_;
 		ros::Publisher frontierVisPub_;
-		ros::Publisher wayPointPub_;  //added by me
+		ros::Publisher waypointPub_;  //added by me
+		ros::Publisher bestPathGoalPub_;
 		ros::Subscriber odomSub_;
 		ros::Subscriber currGoalSub_;  //added by me
 		ros::Timer visTimer_;
@@ -70,6 +71,7 @@ namespace globalPlanner{
 
 		// data
 		bool odomReceived_ = false;
+		bool currGoalReceived_ = false;  //added by me
 		Eigen::Vector3d position_;
 		std::shared_ptr<PRM::Node> currGoal_;  //added by me
 		unsigned int waypointIdx_ = 0;  //added by me
