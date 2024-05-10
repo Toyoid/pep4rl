@@ -84,7 +84,6 @@ if __name__ == "__main__":
         # best_node = max(prm["nodes"], key=lambda node: node.utility)
         best_node = random.choice(prm["nodes"])
 
-        # visualization
         goal.header.stamp = rospy.Time.now()
         goal.point.x = best_node.x
         goal.point.y = best_node.y

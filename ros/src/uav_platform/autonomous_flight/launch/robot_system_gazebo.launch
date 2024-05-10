@@ -35,7 +35,8 @@
 	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/exploration_param.yaml" ns="DEP"/>
 	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/planner_param.yaml" />
 	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/dynamic_detector_param.yaml" ns="/onboard_detector" />
-	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/mapping_param.yaml" ns="/dynamic_map" />
+	<!-- <rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/mapping_param.yaml" ns="/dynamic_map" /> -->
+	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/mapping_param.yaml" ns="/occupancy_map" />
 
 	<node pkg="autonomous_flight" type="throttle_topics.sh" name="throttle_topics" />
 	<node pkg="autonomous_flight" type="test_dynamic_prm_node" name="test_dynamic_prm_node" output="screen" />

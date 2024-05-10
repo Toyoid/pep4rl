@@ -23,7 +23,6 @@ namespace mapManager{
 	public:
 		dynamicMap();
 		dynamicMap(const ros::NodeHandle& nh, bool freeMap=true);
-
 		
 		void initMap(const ros::NodeHandle& nh, bool freeMap=true);
 

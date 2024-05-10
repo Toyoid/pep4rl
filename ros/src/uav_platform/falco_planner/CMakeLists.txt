@@ -17,6 +17,8 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   sensor_msgs
   pcl_ros
+  message_generation
+  gazebo_msgs
 )
 
 find_package(PCL REQUIRED)
@@ -61,12 +63,11 @@ find_package(PCL REQUIRED)
 #   Message2.msg
 # )
 
-## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+# Generate services in the 'srv' folder
+add_service_files(
+  FILES
+  SetRobotPose.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -75,11 +76,11 @@ find_package(PCL REQUIRED)
 #   Action2.action
 # )
 
-## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+# Generate added messages and services with any dependencies listed here
+generate_messages(
+  DEPENDENCIES
+  gazebo_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -120,6 +121,8 @@ catkin_package(
   std_msgs
   sensor_msgs
   pcl_ros
+  message_runtime
+  gazebo_msgs
 )
 
 ###########

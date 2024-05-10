@@ -5,29 +5,46 @@ import numpy as np
 # sys.path.append('/opt/ros/noetic/lib/python3/dist-packages')
 import rospy
 
-from geometry_msgs.msg import TwistStamped, PoseStamped
+from geometry_msgs.msg import PointStamped, PoseStamped
 from nav_msgs.msg import Odometry
 from gazebo_msgs.msg import ModelState, ContactsState
 from gazebo_msgs.srv import SetModelState
 from std_srvs.srv import Empty
+from global_planner.srv import GetRoadmap
+from falco_planner.srv import SetRobotPose
 
 
 def _t2n(x):
     return x.detach().cpu().numpy()
 
 
-class NavigationEnv:
+class PRMNode:
+    def __init__(self, x=0, y=0, z=0, utility=0):
+        self.x = x
+        self.y = y
+        self.z = z
+        self.utility = utility
+
+
+class PRMEdge:
+    def __init__(self, p1, p2):
+        # p1, p2: class p (p.x, p.y, p.z)
+        self.point1 = p1
+        self.point2 = p2
+
+
+class DecisionRoadmapNavEnv:
     """
-    Class for Single-Robot Navigation in Gazebo Environment
+    RL Environment Class for Single-Robot Navigation based on Decision Roadmap
     """
     def __init__(self,
-                 step_time=0.1,
-                 max_episode_steps=1000,
+                 max_execute_time=10.0,
+                 max_episode_steps=3,
                  goal_reward=30,
                  collision_reward=-20,
-                 goal_dis_amp=15,
+                 goal_dis_amp=1.5,
                  goal_near_th=0.4,
-                 env_height_range=[0.5,2.5],
+                 env_height_range=[0.2,2.5],
                  goal_dis_scale=1.0,
                  goal_dis_min_dis=0.3,
                  ):
@@ -37,7 +54,7 @@ class NavigationEnv:
         self.action_space = (3,)
 
         # get initial robot and goal pose list in training_worlds.world
-        self.init_robot_array, self.init_goal_array = self._get_init_robot_goal("Rand_R1")
+        self.init_robot_array, self.init_target_array = self._get_init_robot_goal("Rand_R1")
 
         # Robot messages
         self.odom = None
@@ -48,22 +65,27 @@ class NavigationEnv:
         self.odom_sub = rospy.Subscriber("/CERLAB/quadcopter/odom", Odometry, self._odom_callback)
         self.contact_state_sub = rospy.Subscriber("/quadcopter/bumper_states", ContactsState, self._collision_callback)
         # Publisher
+        # self.drone_pose_pub = rospy.Publisher("/CERLAB/quadcopter/setpoint_pose", PoseStamped, queue_size=10)  # subscribed by /gazebo
+        self.current_goal_pub = rospy.Publisher("/agent/current_goal", PointStamped, queue_size=5)
 
         # Service
-        self.pause_gazebo = rospy.ServiceProxy('gazebo/pause_physics', Empty)
-        self.unpause_gazebo = rospy.ServiceProxy('gazebo/unpause_physics', Empty)
-        self.set_model_pose = rospy.ServiceProxy('gazebo/set_model_state', SetModelState)
+        self.pause_gazebo = rospy.ServiceProxy('/gazebo/pause_physics', Empty)
+        self.unpause_gazebo = rospy.ServiceProxy('/gazebo/unpause_physics', Empty)
+        self.set_model_pose = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
+        self.get_roadmap = rospy.ServiceProxy('/dep/get_roadmap', GetRoadmap)
+        self.reset_roadmap = rospy.ServiceProxy('/dep/reset_roadmap', SetRobotPose)
+        self.set_robot_pose = rospy.ServiceProxy('/falco_planner/set_robot_pose', SetRobotPose)
 
         # Training environment setup
-        self.step_time = step_time
+        self.max_execute_time = max_execute_time
         self.max_episode_steps = max_episode_steps
-        self.goal_position = None
+        self.target_position = None
         self.goal_reward = goal_reward
         self.collision_reward = collision_reward
         self.goal_near_th = goal_near_th
         self.goal_dis_amp = goal_dis_amp
-        self.goal_dis_dir_pre = None
-        self.goal_dis_dir_cur = None
+        self.target_dis_dir_pre = None
+        self.target_dis_dir_cur = None
         self.env_height_range = env_height_range
         # state scaling parameter for distance to goal
         self.goal_dis_scale = goal_dis_scale
@@ -88,9 +110,6 @@ class NavigationEnv:
         while not self.robot_odom_init:
             continue
         rospy.loginfo("Finish Odom Subscriber Init...")
-        while not self.depth_img_init:
-            continue
-        rospy.loginfo("Finish Camera Subscriber Init...")
         while not self.contact_sensor_init:
             continue
         rospy.loginfo("Finish Contact Sensor Subscriber Init...")
@@ -103,9 +122,13 @@ class NavigationEnv:
         :return:
         next_img_obs: np-array (1, 10, 480, 640),
         next_robot_obs: np-array (1, 5)
+
+        1. initialize target and robot position
+        2. get the agent state: (relative target position, roadmap graph)
+            roadmap graph: (potential to complete the task, utility for expanding the graph, maybe additionally whether the node has been accessed)
         """
         assert self.init_robot_array is not None
-        assert self.init_goal_array is not None
+        assert self.init_target_array is not None
         assert ita < self.init_robot_array.shape[0]
         self.ita_in_episode = 0
         self.robot_collision = False  # initialize collision state at the start of an episode
@@ -115,21 +138,21 @@ class NavigationEnv:
         '''
         unpause gazebo simulation and set robot initial pose
         '''
-        rospy.wait_for_service('gazebo/unpause_physics')
+        rospy.wait_for_service('/gazebo/unpause_physics')
         try:
             self.unpause_gazebo()
         except rospy.ServiceException as e:
             print("Unpause Service Failed: %s" % e)
         # set goal position
-        self.goal_position = self.init_goal_array[ita]
-        goal_msg = ModelState()
-        goal_msg.model_name = 'navigation_target'
-        goal_msg.pose.position.x = self.goal_position[0]
-        goal_msg.pose.position.y = self.goal_position[1]
-        goal_msg.pose.position.z = self.goal_position[2]
-        rospy.wait_for_service('gazebo/set_model_state')
+        self.target_position = self.init_target_array[ita]
+        target_msg = ModelState()
+        target_msg.model_name = 'navigation_target'
+        target_msg.pose.position.x = self.target_position[0]
+        target_msg.pose.position.y = self.target_position[1]
+        target_msg.pose.position.z = self.target_position[2]
+        rospy.wait_for_service('/gazebo/set_model_state')
         try:
-            resp = self.set_model_pose(goal_msg)
+            resp = self.set_model_pose(target_msg)
         except rospy.ServiceException as e:
             print("Set Target Service Failed: %s" % e)
         # reset robot initial pose
@@ -144,34 +167,38 @@ class NavigationEnv:
         robot_msg.pose.orientation.y = robot_init_quat[2]
         robot_msg.pose.orientation.z = robot_init_quat[3]
         robot_msg.pose.orientation.w = robot_init_quat[0]
-        rospy.wait_for_service('gazebo/set_model_state')
+        # reset robot pose
+        rospy.wait_for_service('/falco_planner/set_robot_pose')
         try:
-            resp = self.set_model_pose(robot_msg)
-            ps = PoseStamped()
-            ps.header.frame_id = "map"
-            ps.pose = robot_msg.pose
-            self.drone_pose_pub.publish(ps)  # keep the drone hovering
+            resp = self.set_robot_pose(robot_msg)
         except rospy.ServiceException as e:
-            print("Set Target Service Failed: %s" % e)
-        rospy.loginfo("set new quadcopter state...")
-        rospy.sleep(0.1)
-        cv_img, robot_state = self._get_next_state()
+            print("Set Robot Pose Service Failed: %s" % e)
+        print("[ROS Service Request]: set new quadcopter state...")
+        # clear map and roadmap after reset
+        rospy.wait_for_service('/dep/reset_roadmap')
+        try:
+            resp = self.reset_roadmap(robot_msg)
+        except rospy.ServiceException as e:
+            print("Reset Roadmap Service Failed: %s" % e)
+
+        rospy.sleep(2)
+        robot_state, roadmap_state = self._get_next_state()
         '''
         pause gazebo simulation and transform robot poses to robot observations
         '''
-        rospy.wait_for_service('gazebo/pause_physics')
+        rospy.wait_for_service('/gazebo/pause_physics')
         try:
             self.pause_gazebo()
         except rospy.ServiceException as e:
             print("Pause Service Failed: %s" % e)
 
-        goal_dis, goal_dir = self._compute_dis_dir_2_goal(robot_state[0])
-        self.goal_dis_dir_pre = [goal_dis, goal_dir]
-        self.goal_dis_dir_cur = [goal_dis, goal_dir]
-        # initialize stacked_imgs in a new episode
-        self.stacked_imgs = np.dstack([cv_img] * self.frame_stack_num)
-        next_img_obs, robot_obs = self._robot_state_2_policy_obs(cv_img, robot_state)
-        return next_img_obs, robot_obs
+        target_dis, target_dir = self._compute_dis_dir_2_goal(robot_state[0])
+        self.target_dis_dir_pre = [target_dis, target_dir]
+        self.target_dis_dir_cur = [target_dis, target_dir]
+
+        '''state pre-processing'''
+
+        return roadmap_state
 
     def step(self, action):
         """
@@ -184,14 +211,15 @@ class NavigationEnv:
         done: list (1,),
         info: dict
         """
-        assert self.goal_position is not None
-        assert self.stacked_imgs is not None
+        assert self.target_position is not None
         assert self.ita_in_episode is not None
         self.ita_in_episode += 1
-        action = np.squeeze(_t2n(action))
-        action_clip = action.clip(self.action_range[0], self.action_range[1])
 
-        rospy.wait_for_service('gazebo/unpause_physics')
+        '''action decode'''
+        # action = np.squeeze(_t2n(action))
+        # action_clip = action.clip(self.action_range[0], self.action_range[1])
+
+        rospy.wait_for_service('/gazebo/unpause_physics')
         try:
             self.unpause_gazebo()
         except rospy.ServiceException as e:
@@ -199,39 +227,47 @@ class NavigationEnv:
         '''
         Give action to robot and let robot execute, then get next observation
         '''
-        twist_msg = TwistStamped()
-        twist_msg.header.frame_id = "base_link"
-        twist_msg.header.stamp = rospy.Time.now()
-        twist_msg.twist.linear.x = action_clip[0]
-        twist_msg.twist.linear.y = action_clip[1]
-        twist_msg.twist.angular.z = action_clip[2]
-        self.vel_cmd_pub.publish(twist_msg)
-        rospy.sleep(self.step_time)
-        cv_img, robot_state = self._get_next_state()
+        goal = PointStamped()
+        goal.header.frame_id = "map"
+        goal.header.stamp = rospy.Time.now()
+        goal.point.x = action.x
+        goal.point.y = action.y
+        goal.point.z = action.z
+        self.current_goal_pub.publish(goal)
+        execute_start_time = rospy.get_time()
+        goal_switch_flag = False
+        while not (goal_switch_flag or rospy.is_shutdown()):
+            dis = math.sqrt((self.odom.pose.pose.position.x - action.x) ** 2 +
+                            (self.odom.pose.pose.position.y - action.y) ** 2 +
+                            (self.odom.pose.pose.position.z - action.z) ** 2)
+            goal_switch_flag = (dis <= 0.9) or ((rospy.get_time() - execute_start_time) >= self.max_execute_time)
+                               # (self.odom.twist.twist.linear.x < 0.05 and self.odom.twist.twist.angular.z < 0.05)
+
+        robot_state, roadmap_state = self._get_next_state()
         '''
         Then pause the simulation
         1. Compute rewards of the actions
         2. Check if the episode is ended
         '''
-        rospy.wait_for_service('gazebo/pause_physics')
+        rospy.wait_for_service('/gazebo/pause_physics')
         try:
             self.pause_gazebo()
         except rospy.ServiceException as e:
             print("Pause Service Failed: %s" % e)
 
         goal_dis, goal_dir = self._compute_dis_dir_2_goal(robot_state[0])
-        self.goal_dis_dir_cur = [goal_dis, goal_dir]
+        self.target_dis_dir_cur = [goal_dis, goal_dir]
         reward, done = self._compute_reward(robot_state[0])
-        next_img_obs, next_robot_obs = self._robot_state_2_policy_obs(cv_img, robot_state)
-        self.goal_dis_dir_pre = [self.goal_dis_dir_cur[0], self.goal_dis_dir_cur[1]]
+
+        '''state pre-processing'''
+
+        self.target_dis_dir_pre = [self.target_dis_dir_cur[0], self.target_dis_dir_cur[1]]
         '''need info that contains episodic information '''
         self.info["episodic_return"] += reward
         self.info["episodic_length"] += 1
-        return next_img_obs, next_robot_obs, [reward], [done], self.info
+        return roadmap_state, [reward], [done], self.info
 
     def _get_next_state(self):
-        # get depth image
-        cv_img = self._ros_img_2_cv_img()  # single image size: (480, 640)
         # get robot pose and speed
         # compute yaw from quaternion
         quat = [self.odom.pose.pose.orientation.x,
@@ -250,23 +286,50 @@ class NavigationEnv:
                                 self.odom.twist.twist.angular.z])
         robot_state = [robot_pose, robot_speed]
 
-        return cv_img, robot_state
+        # get roadmap state
+        rospy.wait_for_service('/dep/get_roadmap')
+        try:
+            roadmap_resp = self.get_roadmap()
+        except rospy.ServiceException as e:
+            print("Get Roadmap Service Failed: %s" % e)
 
-    def _ros_img_2_cv_img(self):
-        # cv_img = self.bridge.imgmsg_to_cv2(self.depth_img, desired_encoding='32FC1')
-        cv_img = self.bridge.imgmsg_to_cv2(self.depth_img, desired_encoding='passthrough')
-        # cv_img = np.array(cv_img, dtype=np.int8)
-        cv_img = np.array(cv_img)
-        cv_img[np.isnan(cv_img)] = 0
-        return cv_img
+        # PRM data processing
+        nodes = []
+        edges = []
+        for marker in roadmap_resp.roadmapMarkers.markers:
+            if marker.ns == 'prm_point':
+                node = PRMNode(marker.pose.position.x, marker.pose.position.y, marker.pose.position.z)
+                nodes.append(node)
+            elif marker.ns == 'num_voxel_text':
+                assert len(nodes) > 0, "PRM node list is empty"
+                utility_match = round(marker.pose.position.x, 4) == round(nodes[-1].x, 4) \
+                                and round(marker.pose.position.y, 4) == round(nodes[-1].y, 4) \
+                                and round(marker.pose.position.z - 0.1, 4) == round(nodes[-1].z, 4)
+                assert utility_match, "Utility does not match with PRM node"
+                nodes[-1].utility = int(marker.text)
+            elif marker.ns == 'edge':
+                p1 = marker.points[0]
+                for i, p in enumerate(marker.points):
+                    if (i % 2) == 1:
+                        p2 = p
+                        edge = PRMEdge(p1, p2)
+                        edges.append(edge)
+
+        prm = {'nodes': nodes, 'edges': edges}
+
+        # get collision state
+        if self.contact_info:
+            self.robot_collision = True
+
+        return robot_state, prm
 
     def _compute_dis_dir_2_goal(self, robot_pose):
         """
         Compute relative distance and direction from robot pose to navigation goal
         """
-        delta_x = self.goal_position[0] - robot_pose[0]
-        delta_y = self.goal_position[1] - robot_pose[1]
-        delta_z = self.goal_position[2] - robot_pose[2]
+        delta_x = self.target_position[0] - robot_pose[0]
+        delta_y = self.target_position[1] - robot_pose[1]
+        delta_z = self.target_position[2] - robot_pose[2]
         distance = math.sqrt(delta_x ** 2 + delta_y ** 2 + delta_z ** 2)
 
         ego_direction = math.atan2(delta_y, delta_x)
@@ -302,48 +365,6 @@ class NavigationEnv:
             direction = math.copysign(neg_dir, -(ego_direction - robot_direction))
         return distance, direction
 
-    def _robot_state_2_policy_obs(self, img, state, scale=True, goal_dir_range=math.pi):
-        """
-        Transform CV image and robot state to observation for the policy network, and scale the observation value
-        Robot observation to policy network: [Direction to goal, Distance to goal, Linear speed x, Linear speed y, Angular speed]
-        :param img: CV image
-        :param state: Robot State [robot_pose, robot_spd]
-        :param scale: Whether to scale the observation value
-        :param goal_dir_range: Scale range of direction to goal
-        :param linear_spd_range: Scale range of linear speed
-        :param angular_spd_range: Scale range of angular speed
-        :return: Policy Observation
-        """
-        # stack depth image frames
-        self.stacked_imgs = np.dstack([self.stacked_imgs[:, :, -(self.frame_stack_num - 1):], img])  # stacked image size: (480, 640, 10)
-
-        if not scale:
-            policy_obs = np.array([self.goal_dis_dir_cur[1], self.goal_dis_dir_cur[0], state[1][0], state[1][1], state[1][2]])
-            stacked_imgs = np.transpose(self.stacked_imgs, (2, 0, 1)).copy()  # stacked image size: (10, 480, 640)
-        else:
-            # image scale
-            stacked_imgs = self.stacked_imgs / self.max_depth
-            stacked_imgs = np.transpose(stacked_imgs, (2, 0, 1))
-            # robot state scale
-            policy_obs = np.zeros((1, 5))  # (1,5) instead of 5 to align with torch.Tensor format transform in training
-            policy_obs[0, 0] = self.goal_dis_dir_cur[1] / goal_dir_range
-            tmp_goal_dis = self.goal_dis_dir_cur[0]
-            if tmp_goal_dis == 0:
-                tmp_goal_dis = self.goal_dis_scale  # goal_dis_scale = 1.0
-            else:
-                tmp_goal_dis = self.goal_dis_min_dis / tmp_goal_dis  # goal_dis_min_dis = 0.3
-                if tmp_goal_dis > 1:
-                    tmp_goal_dis = 1
-                tmp_goal_dis = tmp_goal_dis * self.goal_dis_scale
-            policy_obs[0, 1] = tmp_goal_dis
-            policy_obs[0, 2] = state[1][0] / self.linear_spd_range_x
-            policy_obs[0, 3] = state[1][1] / self.linear_spd_range_y
-            policy_obs[0, 4] = state[1][2] / self.angular_spd_range
-
-        stacked_imgs = np.expand_dims(stacked_imgs, axis=0)  # stacked image size: (1, 10, 480, 640)
-
-        return stacked_imgs, policy_obs
-
     def _compute_reward(self, robot_pose):
         """
         Reward funtion:
@@ -352,36 +373,32 @@ class NavigationEnv:
         3. a * (Last step distance to goal - current step distance to goal)
         """
         done = False
-        # update rate of contact sensor callback does not align with the action rate of agent
-        if self.contact_info:
-            self.robot_collision = True
-
-        if self.goal_dis_dir_cur[0] < self.goal_near_th:
+        if self.target_dis_dir_cur[0] < self.goal_near_th:
             reward = self.goal_reward
             done = True
             self.info["episodic_outcome"] = "success"
             self.info["outcome_statistic"]["success"] += 1
-            print("Goal achieved!")
+            print("[Episodic Outcome]: Goal achieved!")
         elif self.robot_collision:
             reward = self.collision_reward
             done = True
             self.info["episodic_outcome"] = "collision"
             self.info["outcome_statistic"]["collision"] += 1
-            print("Collides with obstacles!")
+            print("[Episodic Outcome]: Collides with obstacles!")
         elif (robot_pose[2] <= self.env_height_range[0]) or (robot_pose[2] >= self.env_height_range[1]):
             reward = self.collision_reward
             done = True
             self.info["episodic_outcome"] = "collision"
             self.info["outcome_statistic"]["collision"] += 1
-            print("Out of flying range!")
+            print("[Episodic Outcome]: Out of flying range!")
         elif self.ita_in_episode >= self.max_episode_steps:
-            reward = self.goal_dis_amp * (self.goal_dis_dir_pre[0] - self.goal_dis_dir_cur[0])
+            reward = self.goal_dis_amp * (self.target_dis_dir_pre[0] - self.target_dis_dir_cur[0])
             done = True
             self.info["episodic_outcome"] = "timeout"
             self.info["outcome_statistic"]["timeout"] += 1
-            print("Navigation timeout!")
+            print("[Episodic Outcome]: Navigation timeout!")
         else:
-            reward = self.goal_dis_amp * (self.goal_dis_dir_pre[0] - self.goal_dis_dir_cur[0])
+            reward = self.goal_dis_amp * (self.target_dis_dir_pre[0] - self.target_dis_dir_cur[0])
         return reward, done
 
     @staticmethod
@@ -394,7 +411,7 @@ class NavigationEnv:
         overall_goal_list_xy = overall_list_xy[1]
         print(f"Use Random Start and Goal Positions [{rand_name}] for training...")
 
-        overall_init_z = np.array([1.5] * 1000)
+        overall_init_z = np.array([1.0] * 1000)
         overall_robot_array = np.zeros((1000, 4))
         overall_goal_array = np.zeros((1000, 3))
         env_idx = 0

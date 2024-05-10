@@ -11,7 +11,8 @@ namespace AutoFlight{
 		this->initParam();
 		this->initModules();
 		// roadmap service server	
-		this->roadmapServer_ = this->nh_.advertiseService("/dep/get_roadmap", &dynamicPRM::roadmapServiceCB, this);
+		this->getRoadmapServer_ = this->nh_.advertiseService("/dep/get_roadmap", &dynamicPRM::getRoadmapServiceCB, this);
+		this->resetRoadmapServer_ = this->nh_.advertiseService("/dep/reset_roadmap", &dynamicPRM::resetRoadmapServiceCB, this);
 
 		if (this->useFakeDetector_){
 			// free map callback
@@ -111,10 +112,11 @@ namespace AutoFlight{
 		if (this->useFakeDetector_){
 			// initialize fake detector
 			this->detector_.reset(new onboardDetector::fakeDetector (this->nh_));	
-			this->map_.reset(new mapManager::dynamicMap (this->nh_, false));
+			// this->map_.reset(new mapManager::occMap (this->nh_, false));
+			this->map_.reset(new mapManager::occMap (this->nh_));
 		}
 		else{
-			this->map_.reset(new mapManager::dynamicMap (this->nh_));
+			this->map_.reset(new mapManager::occMap (this->nh_));
 		}
 
 		// initialize exploration planner
@@ -145,7 +147,7 @@ namespace AutoFlight{
 		this->map_->freeRegions(freeRegions);
 	}
 
-	bool dynamicPRM::roadmapServiceCB(global_planner::GetRoadmap::Request& req, global_planner::GetRoadmap::Response& resp){
+	bool dynamicPRM::getRoadmapServiceCB(global_planner::GetRoadmap::Request& req, global_planner::GetRoadmap::Response& resp){
 		this->expPlanner_->setMap(this->map_);
 		bool replanSuccess = this->expPlanner_->makePlan();
 		if (replanSuccess){
@@ -155,6 +157,34 @@ namespace AutoFlight{
 		else{
 			std::cout << "\033[1;32m[AutoFlight]: Roadmap Generation failed!" << endl;
 		}		
+
+		return true;
+	}
+
+	bool dynamicPRM::resetRoadmapServiceCB(falco_planner::SetRobotPose::Request& req, falco_planner::SetRobotPose::Response& resp){
+		// if (this->useFakeDetector_){
+		// 	// reset fake detector
+		// 	// this->detector_.reset(new onboardDetector::fakeDetector (this->nh_));	
+	    //     this->map_.reset(new mapManager::dynamicMap (this->nh_, false));
+		// }
+		// else{
+		// 	this->map_.reset(new mapManager::dynamicMap (this->nh_));
+		// }
+
+
+		// two ways to clear the map data
+		// way 1: call member funtion in occMap to clear (but the last scan from previous episode will remain, the timers' frequecy should set lower, like 1/0.2)
+		// this->map_->clearMapData();
+
+		// way 2: create a new map object every time after reset (the registered service should be shutdown before that)  
+		this->map_->collisionCheckServer_.shutdown();
+		this->map_.reset(new mapManager::occMap (this->nh_));
+
+		// reset roadmap
+		this->expPlanner_->resetRoadmap(req.robotPose);
+		this->expPlanner_->setMap(this->map_);
+
+		cout << "\033[1;32m[Roadmap]: Successfully reset map and roadmap.\033[0m" << endl;
 
 		return true;
 	}
@@ -195,6 +225,7 @@ namespace AutoFlight{
 		this->map_->freeRegion(c1, c2);
 		cout << "[AutoFlight]: Robot nearby region is set to free. Range: " << this->freeRange_.transpose() << endl;
 
+		// maybe this fragment of code can be used for suck situations
 		if (this->initialScan_){
 			cout << "[AutoFlight]: Start initial scan..." << endl;
 			this->moveToOrientation(-PI_const/2, this->desiredAngularVel_);

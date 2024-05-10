@@ -722,7 +722,7 @@ void speedHandler(const std_msgs::Float32::ConstPtr& speed)
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "pathFollower");
+  ros::init(argc, argv, "path_follower");
   ros::NodeHandle nh;
   ros::NodeHandle nhPrivate = ros::NodeHandle("~");
 
@@ -809,10 +809,10 @@ int main(int argc, char** argv)
 
   ros::Subscriber subSpeed = nh.subscribe<std_msgs::Float32> ("/falco_planner/speed", 5, speedHandler);
 
-  ros::Publisher pubMarker = nh.advertise<visualization_msgs::Marker> ("/falco_planner/track_point_marker", 5);
+  ros::Publisher pubMarker = nh.advertise<visualization_msgs::Marker> ("/falco_planner/track_point_marker", 0);  // change to 0 for RL reset
   pubMarkerPointer = &pubMarker;
 
-  ros::Publisher pubOdometry = nh.advertise<nav_msgs::Odometry> ("/falco_planner/track_point_odom", 5);
+  ros::Publisher pubOdometry = nh.advertise<nav_msgs::Odometry> ("/falco_planner/track_point_odom", 0);  // change to 0 for RL reset
   pubOdometryPointer = &pubOdometry;
 
   ros::Publisher pubPath = nh.advertise<nav_msgs::Path> ("/falco_planner/track_path", 5);

@@ -15,7 +15,7 @@ namespace mapManager{
 		this->ns_ = "occupancy_map";
 		this->hint_ = "[OccMap]";
 		this->initParam();
-		this->initPrebuiltMap();
+		// this->initPrebuiltMap();
 		this->registerPub();
 		this->registerCallback();
 	}
@@ -26,6 +26,42 @@ namespace mapManager{
 		this->initPrebuiltMap();
 		this->registerPub();
 		this->registerCallback();
+	}
+
+	void occMap::clearMapData(){
+		// MAP DATA
+		this->projPointsNum_ = 0;
+		this->projPoints_.clear(); // projected points from depth image
+		this->countHitMiss_.clear();
+		this->countHit_.clear();
+		while (!this->updateVoxelCache_.empty()) {
+    		this->updateVoxelCache_.pop();
+		}
+		this->occupancy_.clear();
+		this->occupancyInflated_.clear();
+		this->flagTraverse_.clear();
+		this->flagRayend_.clear();
+		this->freeRegions_.clear();
+		this->histFreeRegions_.clear();
+		this->currMapRangeMin_ = Eigen::Vector3d (0, 0, 0); 
+		this->currMapRangeMax_ = Eigen::Vector3d (0, 0, 0);
+		this->useFreeRegions_ = false;
+		this->projPointsNum_ = 0;
+		this->raycastNum_ = 0;
+
+		// STATUS
+		this->occNeedUpdate_ = false;
+		this->mapNeedInflate_ = false;
+		this->esdfNeedUpdate_ = false; // only used in ESDFMap
+
+		// reserve vector for variables
+		int reservedSize = this->mapVoxelMax_(0) * this->mapVoxelMax_(1) * this->mapVoxelMax_(2);
+		this->countHitMiss_.resize(reservedSize, 0);
+		this->countHit_.resize(reservedSize, 0);
+		this->occupancy_.resize(reservedSize, this->pMinLog_-this->UNKNOWN_FLAG_);
+		this->occupancyInflated_.resize(reservedSize, false);
+		this->flagTraverse_.resize(reservedSize, -1);
+		this->flagRayend_.resize(reservedSize, -1);
 	}
 
 	void occMap::initParam(){
@@ -513,10 +549,10 @@ namespace mapManager{
 		}
 
 		// occupancy update callback
-		this->occTimer_ = this->nh_.createTimer(ros::Duration(0.05), &occMap::updateOccupancyCB, this);
+		this->occTimer_ = this->nh_.createTimer(ros::Duration(0.1), &occMap::updateOccupancyCB, this);  // ros::Duration(0.05)
 
 		// map inflation callback
-		this->inflateTimer_ = this->nh_.createTimer(ros::Duration(0.05), &occMap::inflateMapCB, this);
+		this->inflateTimer_ = this->nh_.createTimer(ros::Duration(0.1), &occMap::inflateMapCB, this);  // ros::Duration(0.05)
 
 		// visualization callback
 		this->visTimer_ = this->nh_.createTimer(ros::Duration(0.1), &occMap::visCB, this);
@@ -525,7 +561,7 @@ namespace mapManager{
 	}
 
 	void occMap::registerPub(){
-		this->depthCloudPub_ = this->nh_.advertise<sensor_msgs::PointCloud2>(this->ns_ + "/depth_cloud", 10);
+		this->depthCloudPub_ = this->nh_.advertise<sensor_msgs::PointCloud2>(this->ns_ + "/depth_cloud", 10);  
 		this->mapVisPub_ = this->nh_.advertise<sensor_msgs::PointCloud2>(this->ns_ + "/voxel_map", 10);
 		this->inflatedMapVisPub_ = this->nh_.advertise<sensor_msgs::PointCloud2>(this->ns_ + "/inflated_voxel_map", 10);
 		this->map2DPub_ = this->nh_.advertise<nav_msgs::OccupancyGrid>(this->ns_ + "/2D_occupancy_map", 10);

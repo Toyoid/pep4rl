@@ -12,6 +12,7 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <gazebo_msgs/ModelState.h>
+#include <falco_planner/SetRobotPose.h>
 
 #include <tf/transform_datatypes.h>
 #include <tf/transform_broadcaster.h>
@@ -51,17 +52,64 @@ float vehicleRollCmd = 0;
 float vehiclePitchCmd = 0;
 float vehicleYawRate = 0;
 
-void controlHandler(const geometry_msgs::TwistStamped::ConstPtr& controlIn)
+ros::Publisher pubModelState;
+ros::Publisher pubVehicleOdom;
+nav_msgs::Odometry odomData;
+
+void controlHandler(const geometry_msgs::TwistStamped::ConstPtr& controlCmd)
 {
-  vehicleRollCmd = controlIn->twist.linear.x;
-  vehiclePitchCmd = controlIn->twist.linear.y;
-  vehicleYawRate = controlIn->twist.angular.z;
-  vehicleVelZG = controlIn->twist.linear.z;
+  vehicleRollCmd = controlCmd->twist.linear.x;
+  vehiclePitchCmd = controlCmd->twist.linear.y;
+  vehicleYawRate = controlCmd->twist.angular.z;
+  vehicleVelZG = controlCmd->twist.linear.z;
+}
+
+bool setRobotPoseServiceHandler(falco_planner::SetRobotPose::Request& req, falco_planner::SetRobotPose::Response& resp)
+{
+  vehicleX = req.robotPose.pose.position.x;
+  vehicleY = req.robotPose.pose.position.y;
+  vehicleZ = req.robotPose.pose.position.z;
+
+  vehicleRoll = 0;
+  vehiclePitch = 0;
+  vehicleYaw = tf::getYaw(req.robotPose.pose.orientation);
+
+  vehicleVelX = 0;
+  vehicleVelY = 0;
+  vehicleVelZ = 0;
+  vehicleVelXG = 0;
+  vehicleVelYG = 0;
+  vehicleVelZG = 0;
+
+  vehicleRollCmd = 0;
+  vehiclePitchCmd = 0;
+  vehicleYawRate = 0;
+
+  odomData.header.frame_id = "map";
+  odomData.child_frame_id = "base_link";  
+  odomData.header.stamp = ros::Time::now();
+  odomData.pose.pose.orientation = req.robotPose.pose.orientation;
+  odomData.pose.pose.position.x = vehicleX;
+  odomData.pose.pose.position.y = vehicleY;
+  odomData.pose.pose.position.z = vehicleZ;
+  odomData.twist.twist.angular.x = 0;
+  odomData.twist.twist.angular.y = 0;
+  odomData.twist.twist.angular.z = 0;
+  odomData.twist.twist.linear.x = 0;
+  odomData.twist.twist.linear.y = 0;
+  odomData.twist.twist.linear.z = 0;
+  pubVehicleOdom.publish(odomData);  
+
+  pubModelState.publish(req.robotPose);
+  
+  printf("\n[Vehicle Simulator]: Successfully reset quadcopter pose!\n");
+  
+  return true;
 }
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "vehicleSimulator");
+  ros::init(argc, argv, "vehicle_simulator");
   ros::NodeHandle nh;
   ros::NodeHandle nhPrivate = ros::NodeHandle("~");
 
@@ -77,11 +125,13 @@ int main(int argc, char** argv)
 
   ros::Subscriber subControl = nh.subscribe<geometry_msgs::TwistStamped> ("/falco_planner/attitude_control", 5, controlHandler);
 
-  ros::Publisher pubVehicleOdom = nh.advertise<nav_msgs::Odometry> ("/falco_planner/state_estimation", 5);
+  //added by me
+  ros::ServiceServer setRobotPoseServer = nh.advertiseService("/falco_planner/set_robot_pose", setRobotPoseServiceHandler);
 
-  nav_msgs::Odometry odomData;
+  ros::Publisher pubVehicleOdom = nh.advertise<nav_msgs::Odometry> ("/falco_planner/state_estimation", 5);
+  // nav_msgs::Odometry odomData;
   odomData.header.frame_id = "map";
-  odomData.child_frame_id = "base_link";  // this name should change to the frame of your_robot?
+  odomData.child_frame_id = "base_link";  // this name should change to the frame of your_robot
 
   ros::Publisher pubModelState = nh.advertise<gazebo_msgs::ModelState> ("/gazebo/set_model_state", 5);
   gazebo_msgs::ModelState robotState;

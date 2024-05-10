@@ -554,7 +554,7 @@ void clearSurrCloudHandler(const std_msgs::Empty::ConstPtr& clear)
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "localPlanner");
+  ros::init(argc, argv, "local_planner");
   ros::NodeHandle nh;
   ros::NodeHandle nhPrivate = ros::NodeHandle("~");
 

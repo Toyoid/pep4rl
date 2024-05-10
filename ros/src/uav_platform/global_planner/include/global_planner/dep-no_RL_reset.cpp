@@ -283,27 +283,9 @@ namespace globalPlanner{
 		this->roadmap_.reset(new PRM::KDTree ());
 	}
 
-	void DEP::resetRoadmap(const gazebo_msgs::ModelState& resetRobotPos){
-		this->prmNodeVec_.clear();
-		this->roadmap_->clear();
-		
-		this->currGoalReceived_ = false;
-		this->resettingRLEnv_ = true;
-		Eigen::Vector3d p;
-		p(0) = resetRobotPos.pose.position.x;
-		p(1) = resetRobotPos.pose.position.y;
-		p(2) = resetRobotPos.pose.position.z;
-		this->currGoal_.reset(new PRM::Node(p));
-		
-		this->waypointIdx_ = 0;  
-		this->histTraj_.clear();  
-		this->bestPath_.clear();
-		this->frontierPointPairs_.clear();
-	}
-
 	void DEP::registerPub(){
 		// roadmap visualization publisher
-		this->roadmapPub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("/dep/roadmap", 5);
+		this->roadmapPub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("/dep/roadmap", 10);
 
 		// candidate paths publisher
 		this->candidatePathPub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("/dep/candidate_paths", 10);
@@ -326,10 +308,10 @@ namespace globalPlanner{
 		// this->odomSub_ = this->nh_.subscribe("/falco_planner/state_estimation", 1000, &DEP::odomCB, this);
 	
 		// visualization timer
-		this->visTimer_ = this->nh_.createTimer(ros::Duration(0.2), &DEP::visCB, this);
+		this->visTimer_ = this->nh_.createTimer(ros::Duration(0.1), &DEP::visCB, this);
 
 		//added by me waypoint publish timer
-		this->waypointTimer_ = this->nh_.createTimer(ros::Duration(0.25), &DEP::waypointUpdateCB, this);
+		this->waypointTimer_ = this->nh_.createTimer(ros::Duration(0.1), &DEP::waypointUpdateCB, this);
 
 		//added by me
 		this->currGoalSub_ = this->nh_.subscribe("/agent/current_goal", 5, &DEP::currGoalCB, this); 
@@ -956,8 +938,9 @@ namespace globalPlanner{
 
 	//added by me
 	void DEP::currGoalCB(const geometry_msgs::PointStamped::ConstPtr& goal){
-		this->currGoalReceived_ = true;
-		this->resettingRLEnv_ = false;
+		if (!this->currGoalReceived_){
+			this->currGoalReceived_ = true;
+		}
 
 		Eigen::Vector3d p;
 		p(0) = goal->point.x;
@@ -970,7 +953,6 @@ namespace globalPlanner{
 		<< " y: " << std::setw(2) << this->currGoal_->pos(1)
 		<< " z: " << std::setw(2) << this->currGoal_->pos(2)
 		<< endl;
-
 
 		// find best path to current goal, judge currGoalChanged ??
 		this->bestPath_.clear();
@@ -997,20 +979,8 @@ namespace globalPlanner{
 
 	//added by me
 	void DEP::waypointUpdateCB(const ros::TimerEvent&){
-		if (this->resettingRLEnv_) {
-			geometry_msgs::PointStamped waypoint;
-			waypoint.header.stamp = ros::Time::now();
-			waypoint.header.frame_id = "map";
-			waypoint.point.x = this->currGoal_->pos(0);
-			waypoint.point.y = this->currGoal_->pos(1);
-			waypoint.point.z = this->currGoal_->pos(2);
-			this->waypointPub_.publish(waypoint);
-			std::cout << "\033[1;32m[Debug]: Publishing robot initial position as waypoint to reset RL Env... \033[0m" << std::endl;
-		}
-		else if (this->currGoalReceived_){
-			this->resettingRLEnv_ = false;
-
-			geometry_msgs::PointStamped waypoint;
+		if (this->currGoalReceived_){
+			geometry_msgs::PointStamped waypoint; 
 			waypoint.header.stamp = ros::Time::now();
 			waypoint.header.frame_id = "map";
 			if (this->bestPath_.size() != 0){
@@ -1025,6 +995,7 @@ namespace globalPlanner{
 					// std::cin.clear();
 					// fflush(stdin);
 					// std::cin.get();
+
 				}  
 
 				if (this->waypointIdx_ > (this->bestPath_.size() - 1)){   // is it possible??
@@ -1290,7 +1261,7 @@ namespace globalPlanner{
 			point.pose.position.x = n->pos(0);
 			point.pose.position.y = n->pos(1);
 			point.pose.position.z = n->pos(2);
-			point.lifetime = ros::Duration(0.2); //5
+			point.lifetime = ros::Duration(0.5);
 			point.scale.x = 0.05;
 			point.scale.y = 0.05;
 			point.scale.z = 0.05;
@@ -1317,7 +1288,7 @@ namespace globalPlanner{
 			voxelNumText.scale.z = 0.1;
 			voxelNumText.color.a = 1.0;
 			voxelNumText.text = std::to_string(n->numVoxels);
-			voxelNumText.lifetime = ros::Duration(0.2); //5
+			voxelNumText.lifetime = ros::Duration(5);
 			++countVoxelNumText;
 			roadmapMarkers.markers.push_back(voxelNumText);
 
@@ -1346,7 +1317,7 @@ namespace globalPlanner{
 				line.color.g = 1.0;
 				line.color.b = 0.0;
 				line.color.a = 1.0;
-				line.lifetime = ros::Duration(0.2); //5
+				line.lifetime = ros::Duration(5);
 				++countEdgeNum;
 				roadmapMarkers.markers.push_back(line);
 			}
@@ -1367,7 +1338,7 @@ namespace globalPlanner{
 			goalCandidatePoint.pose.position.x = n->pos(0);
 			goalCandidatePoint.pose.position.y = n->pos(1);
 			goalCandidatePoint.pose.position.z = n->pos(2);
-			goalCandidatePoint.lifetime = ros::Duration(0.2); //5			
+			goalCandidatePoint.lifetime = ros::Duration(5);
 			goalCandidatePoint.scale.x = 0.3;
 			goalCandidatePoint.scale.y = 0.3;
 			goalCandidatePoint.scale.z = 0.3;

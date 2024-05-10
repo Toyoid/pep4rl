@@ -11,7 +11,6 @@
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
 #include <geometry_msgs/PointStamped.h>  //added by me
-#include <gazebo_msgs/ModelState.h>  //added
 #include <global_planner/PRMKDTree.h>
 #include <global_planner/PRMAstar.h>
 #include <global_planner/utils.h>
@@ -73,7 +72,6 @@ namespace globalPlanner{
 		// data
 		bool odomReceived_ = false;
 		bool currGoalReceived_ = false;  //added by me
-		bool resettingRLEnv_ = false; //added
 		Eigen::Vector3d position_;
 		std::shared_ptr<PRM::Node> currGoal_;  //added by me
 		unsigned int waypointIdx_ = 0;  //added by me
@@ -132,9 +130,6 @@ namespace globalPlanner{
 		void publishCandidatePaths();
 		void publishBestPath();
 		void publishFrontier();
-
-		// clear function for RL training
-		void resetRoadmap(const gazebo_msgs::ModelState& resetRobotPos);
 	};
 }
 
