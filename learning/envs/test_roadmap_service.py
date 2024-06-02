@@ -62,12 +62,14 @@ if __name__ == "__main__":
         for marker in roadmap_resp.roadmapMarkers.markers:
             if marker.ns == 'prm_point':
                 node = PRMNode(marker.pose.position.x, marker.pose.position.y, marker.pose.position.z)
+                node_id = marker.id
                 nodes.append(node)
             elif marker.ns == 'num_voxel_text':
                 assert len(nodes) > 0, "PRM node list is empty"
-                utility_match = round(marker.pose.position.x, 4) == round(nodes[-1].x, 4) \
-                                and round(marker.pose.position.y, 4) == round(nodes[-1].y, 4) \
-                                and round(marker.pose.position.z - 0.1, 4) == round(nodes[-1].z, 4)
+                # utility_match = round(marker.pose.position.x, 4) == round(nodes[-1].x, 4) \
+                #                 and round(marker.pose.position.y, 4) == round(nodes[-1].y, 4) \
+                #                 and round(marker.pose.position.z - 0.1, 4) == round(nodes[-1].z, 4)
+                utility_match = marker.id == node_id
                 assert utility_match, "Utility does not match with PRM node"
                 nodes[-1].utility = int(marker.text)
             elif marker.ns == 'edge':

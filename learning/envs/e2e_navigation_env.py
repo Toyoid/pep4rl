@@ -253,9 +253,10 @@ class NavigationEnv:
         reward, done = self._compute_reward(robot_state[0])
         next_img_obs, next_robot_obs = self._robot_state_2_policy_obs(cv_img, robot_state)
         self.goal_dis_dir_pre = [self.goal_dis_dir_cur[0], self.goal_dis_dir_cur[1]]
-        '''need info that contains episodic information '''
+
         self.info["episodic_return"] += reward
         self.info["episodic_length"] += 1
+
         return next_img_obs, next_robot_obs, [reward], [done], self.info
 
     def _get_next_state(self):

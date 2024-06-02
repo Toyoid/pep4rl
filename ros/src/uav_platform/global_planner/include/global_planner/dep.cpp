@@ -1321,8 +1321,7 @@ namespace globalPlanner{
 			++countVoxelNumText;
 			roadmapMarkers.markers.push_back(voxelNumText);
 
-
-			// Edges
+			// Edges 
 			visualization_msgs::Marker line;
 			line.ns = "edge";
 			line.header.frame_id = "map";
@@ -1348,8 +1347,16 @@ namespace globalPlanner{
 				line.color.a = 1.0;
 				line.lifetime = ros::Duration(0.2); //5
 				++countEdgeNum;
-				roadmapMarkers.markers.push_back(line);
+				// roadmapMarkers.markers.push_back(line);
 			}
+			if(n->adjNodes.empty()) {
+				geometry_msgs::Point p1;
+				p1.x = n->pos(0);
+				p1.y = n->pos(1);
+				p1.z = n->pos(2);
+				line.points.push_back(p1);
+			}
+			roadmapMarkers.markers.push_back(line);
 		}
 
 		int countGoalCandidateNum = 0;

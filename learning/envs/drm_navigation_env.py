@@ -1,6 +1,9 @@
 import math
 import pickle
+from copy import deepcopy
 import numpy as np
+from scipy.spatial import KDTree
+import torch
 # import sys
 # sys.path.append('/opt/ros/noetic/lib/python3/dist-packages')
 import rospy
@@ -18,27 +21,12 @@ def _t2n(x):
     return x.detach().cpu().numpy()
 
 
-class PRMNode:
-    def __init__(self, x=0, y=0, z=0, utility=0):
-        self.x = x
-        self.y = y
-        self.z = z
-        self.utility = utility
-
-
-class PRMEdge:
-    def __init__(self, p1, p2):
-        # p1, p2: class p (p.x, p.y, p.z)
-        self.point1 = p1
-        self.point2 = p2
-
-
 class DecisionRoadmapNavEnv:
     """
     RL Environment Class for Single-Robot Navigation based on Decision Roadmap
     """
-    def __init__(self,
-                 max_execute_time=10.0,
+    def __init__(self, args, device,
+                 is_train=False,
                  max_episode_steps=3,
                  goal_reward=30,
                  collision_reward=-20,
@@ -77,8 +65,8 @@ class DecisionRoadmapNavEnv:
         self.set_robot_pose = rospy.ServiceProxy('/falco_planner/set_robot_pose', SetRobotPose)
 
         # Training environment setup
-        self.max_execute_time = max_execute_time
-        self.max_episode_steps = max_episode_steps
+        self.step_time = args.step_time
+        self.max_episode_steps = args.max_episode_steps
         self.target_position = None
         self.goal_reward = goal_reward
         self.collision_reward = collision_reward
@@ -90,6 +78,17 @@ class DecisionRoadmapNavEnv:
         # state scaling parameter for distance to goal
         self.goal_dis_scale = goal_dis_scale
         self.goal_dis_min_dis = goal_dis_min_dis
+
+        # roadmap specific data
+        self.edge_inputs = None
+        self.node_coords = None
+        self.route_node = []
+        self.is_train = is_train
+        self.device = device
+        self.k_neighbor_size = args.k_neighbor_size
+        self.coords_norm_coef_ = args.coords_norm_coef_
+        self.utility_norm_coef_ = args.utility_norm_coef_
+        self.node_padding_size = args.node_padding_size
 
         # information of interaction between agent and environment
         self.ita_in_episode = None
@@ -181,8 +180,8 @@ class DecisionRoadmapNavEnv:
         except rospy.ServiceException as e:
             print("Reset Roadmap Service Failed: %s" % e)
 
-        rospy.sleep(2)
-        robot_state, roadmap_state = self._get_next_state()
+        rospy.sleep(0.5)
+        robot_pose, roadmap_state = self._get_next_state()
         '''
         pause gazebo simulation and transform robot poses to robot observations
         '''
@@ -192,15 +191,13 @@ class DecisionRoadmapNavEnv:
         except rospy.ServiceException as e:
             print("Pause Service Failed: %s" % e)
 
-        target_dis, target_dir = self._compute_dis_dir_2_goal(robot_state[0])
+        target_dis, target_dir = self._compute_dis_dir_2_goal(robot_pose)
         self.target_dis_dir_pre = [target_dis, target_dir]
         self.target_dis_dir_cur = [target_dis, target_dir]
 
-        '''state pre-processing'''
-
         return roadmap_state
 
-    def step(self, action):
+    def step(self, action_index):
         """
         Step funtion of single robot navigation environment
         :param action: tensor
@@ -215,9 +212,12 @@ class DecisionRoadmapNavEnv:
         assert self.ita_in_episode is not None
         self.ita_in_episode += 1
 
-        '''action decode'''
-        # action = np.squeeze(_t2n(action))
-        # action_clip = action.clip(self.action_range[0], self.action_range[1])
+        '''
+        action decode
+        '''
+        selected_node_idx = self.edge_inputs[0, 0, action_index.item()]  # tensor(scalar)
+        selected_node_pos = self.node_coords[selected_node_idx]  # np.array(2,)
+        self.route_node.append(selected_node_pos)
 
         rospy.wait_for_service('/gazebo/unpause_physics')
         try:
@@ -230,20 +230,20 @@ class DecisionRoadmapNavEnv:
         goal = PointStamped()
         goal.header.frame_id = "map"
         goal.header.stamp = rospy.Time.now()
-        goal.point.x = action.x
-        goal.point.y = action.y
-        goal.point.z = action.z
+        goal.point.x = selected_node_pos[0]
+        goal.point.y = selected_node_pos[1]
+        goal.point.z = 1.0
         self.current_goal_pub.publish(goal)
         execute_start_time = rospy.get_time()
         goal_switch_flag = False
         while not (goal_switch_flag or rospy.is_shutdown()):
-            dis = math.sqrt((self.odom.pose.pose.position.x - action.x) ** 2 +
-                            (self.odom.pose.pose.position.y - action.y) ** 2 +
-                            (self.odom.pose.pose.position.z - action.z) ** 2)
-            goal_switch_flag = (dis <= 0.9) or ((rospy.get_time() - execute_start_time) >= self.max_execute_time)
+            dis = math.sqrt((self.odom.pose.pose.position.x - goal.point.x) ** 2 +
+                            (self.odom.pose.pose.position.y - goal.point.y) ** 2 +
+                            (self.odom.pose.pose.position.z - goal.point.z) ** 2)
+            goal_switch_flag = (dis <= 0.9) or ((rospy.get_time() - execute_start_time) >= self.step_time)
                                # (self.odom.twist.twist.linear.x < 0.05 and self.odom.twist.twist.angular.z < 0.05)
 
-        robot_state, roadmap_state = self._get_next_state()
+        robot_pose, roadmap_state = self._get_next_state()
         '''
         Then pause the simulation
         1. Compute rewards of the actions
@@ -255,20 +255,26 @@ class DecisionRoadmapNavEnv:
         except rospy.ServiceException as e:
             print("Pause Service Failed: %s" % e)
 
-        goal_dis, goal_dir = self._compute_dis_dir_2_goal(robot_state[0])
+        goal_dis, goal_dir = self._compute_dis_dir_2_goal(robot_pose)
         self.target_dis_dir_cur = [goal_dis, goal_dir]
-        reward, done = self._compute_reward(robot_state[0])
-
-        '''state pre-processing'''
+        reward, done = self._compute_reward(robot_pose)
 
         self.target_dis_dir_pre = [self.target_dis_dir_cur[0], self.target_dis_dir_cur[1]]
-        '''need info that contains episodic information '''
+
         self.info["episodic_return"] += reward
         self.info["episodic_length"] += 1
-        return roadmap_state, [reward], [done], self.info
+
+        reward = torch.tensor(reward).view(1, 1, 1).to(self.device)
+        done = torch.tensor(done, dtype=torch.int32).view(1, 1, 1).to(self.device)
+
+        return roadmap_state, reward, done, self.info
 
     def _get_next_state(self):
-        # get robot pose and speed
+        # Get Collision State
+        if self.contact_info:
+            self.robot_collision = True
+
+        # Get Robot Pose
         # compute yaw from quaternion
         quat = [self.odom.pose.pose.orientation.x,
                 self.odom.pose.pose.orientation.y,
@@ -280,48 +286,145 @@ class DecisionRoadmapNavEnv:
         robot_pose = np.array([self.odom.pose.pose.position.x,
                                self.odom.pose.pose.position.y,
                                self.odom.pose.pose.position.z, yaw])
-        robot_speed = np.array([self.odom.twist.twist.linear.x,
-                                self.odom.twist.twist.linear.y,
-                                # self.odom.twist.twist.linear.z,
-                                self.odom.twist.twist.angular.z])
-        robot_state = [robot_pose, robot_speed]
 
-        # get roadmap state
+        # Get Roadmap State
         rospy.wait_for_service('/dep/get_roadmap')
         try:
             roadmap_resp = self.get_roadmap()
         except rospy.ServiceException as e:
             print("Get Roadmap Service Failed: %s" % e)
 
-        # PRM data processing
-        nodes = []
-        edges = []
+        # 1. acquire node position, node utility, edges
+        node_pos = []
+        node_utility = []
+        edges_adj_pos = []  # (num_nodes, adjacent_node_positions)
+        edges_adj_idx = []  # (num_nodes, adjacent_node_indexes)
         for marker in roadmap_resp.roadmapMarkers.markers:
             if marker.ns == 'prm_point':
-                node = PRMNode(marker.pose.position.x, marker.pose.position.y, marker.pose.position.z)
-                nodes.append(node)
+                # pos = [marker.pose.position.x, marker.pose.position.y, marker.pose.position.z]
+                pos = [marker.pose.position.x, marker.pose.position.y]
+                node_id = marker.id
+                node_pos.append(pos)
             elif marker.ns == 'num_voxel_text':
-                assert len(nodes) > 0, "PRM node list is empty"
-                utility_match = round(marker.pose.position.x, 4) == round(nodes[-1].x, 4) \
-                                and round(marker.pose.position.y, 4) == round(nodes[-1].y, 4) \
-                                and round(marker.pose.position.z - 0.1, 4) == round(nodes[-1].z, 4)
+                assert len(node_pos) > 0, "PRM node list is empty"
+                utility_match = marker.id == node_id
                 assert utility_match, "Utility does not match with PRM node"
-                nodes[-1].utility = int(marker.text)
+                node_utility.append(float(marker.text))
             elif marker.ns == 'edge':
-                p1 = marker.points[0]
+                edges_from_current_node = [marker.points[0]]
                 for i, p in enumerate(marker.points):
                     if (i % 2) == 1:
-                        p2 = p
-                        edge = PRMEdge(p1, p2)
-                        edges.append(edge)
+                        edges_from_current_node.append(p)
+                edges_adj_pos.append(edges_from_current_node)
 
-        prm = {'nodes': nodes, 'edges': edges}
+        # 2. compute direction_vector
+        self.node_coords = np.round(node_pos, 4)
+        n_nodes = self.node_coords.shape[0]
+        dis_vector = [self.target_position[0], self.target_position[1]] - self.node_coords
+        dis = np.sqrt(np.sum(dis_vector**2, axis=1))
+        # normalize direction vector
+        non_zero_indices = dis != 0
+        dis = np.expand_dims(dis, axis=1)
+        dis_vector[non_zero_indices] = dis_vector[non_zero_indices] / dis[non_zero_indices]
+        dis /= self.coords_norm_coef_
+        direction_vector = np.concatenate((dis_vector, dis), axis=1)
 
-        # get collision state
-        if self.contact_info:
-            self.robot_collision = True
+        # 3. compute guidepost
+        guidepost = np.zeros((n_nodes, 1))
+        x = self.node_coords[:, 0] + self.node_coords[:, 1] * 1j
+        for node in self.route_node:
+            index = np.argwhere(x == node[0] + node[1] * 1j)
+            guidepost[index] = 1
 
-        return robot_state, prm
+        # 4. formulate node_inputs tensor
+        # normalize node observations
+        node_coords_norm = self.node_coords / self.coords_norm_coef_
+        node_utility_inputs = np.array(node_utility).reshape(n_nodes, 1)
+        node_utility_inputs = node_utility_inputs / self.utility_norm_coef_
+        # concatenate
+        node_inputs = np.concatenate((node_coords_norm, node_utility_inputs, guidepost, direction_vector), axis=1)
+        node_inputs = torch.FloatTensor(node_inputs).unsqueeze(0).to(self.device)
+
+        # 5. calculate a mask for padded node
+        if self.is_train:
+            assert n_nodes < self.node_padding_size
+            padding = torch.nn.ZeroPad2d((0, 0, 0, self.node_padding_size - n_nodes))
+            node_inputs = padding(node_inputs)
+            # calculate a mask to padded nodes
+            node_padding_mask = torch.zeros((1, 1, n_nodes), dtype=torch.int64).to(self.device)
+            node_padding = torch.ones((1, 1, self.node_padding_size - n_nodes), dtype=torch.int64).to(self.device)
+            node_padding_mask = torch.cat((node_padding_mask, node_padding), dim=-1)
+        else:
+            node_padding_mask = None
+
+        # 6. compute current node index
+        current_node_idx = np.argmin(np.linalg.norm(self.node_coords - robot_pose[:2], axis=1))
+        current_index = torch.tensor([current_node_idx]).unsqueeze(0).unsqueeze(0).to(self.device)
+
+        # 7. compute edge_inputs
+        for adj_nodes in edges_adj_pos:
+            adj_node_idxs = []
+            for adj_node_pos in adj_nodes:
+                assert len(pos) == self.node_coords.shape[1], "Wrong dimension on node coordinates"
+                # pos = [adj_node_pos.x, adj_node_pos.y, adj_node_pos.z]
+                pos = np.round([adj_node_pos.x, adj_node_pos.y], 4)
+                idx = np.argwhere((self.node_coords == pos).all(axis=1)).item()
+                adj_node_idxs.append(idx)
+            edges_adj_idx.append(adj_node_idxs)
+
+        adjacent_matrix = self.calculate_edge_mask(edges_adj_idx)
+        edge_mask = torch.from_numpy(adjacent_matrix).float().unsqueeze(0).to(self.device)
+        # pad edge mask to node_padding_size while training
+        if self.is_train:
+            assert n_nodes < self.node_padding_size
+            padding = torch.nn.ConstantPad2d(
+                (0, self.node_padding_size - n_nodes, 0, self.node_padding_size - n_nodes), 1)
+            edge_mask = padding(edge_mask)
+
+        # pad edge_inputs with k-nearest neighbors
+        current_node_pos = self.node_coords[current_node_idx]
+        # build kd-tree to search k-nearest neighbors
+        kdtree = KDTree(self.node_coords)
+        k = min(self.k_neighbor_size, n_nodes)
+        _, nearest_indices = kdtree.query(current_node_pos, k=k)
+
+        # # padding option 1: pad edge_inputs to k_nearest_size with 0, this will filter node_0 as unconnected node
+        # edge = np.pad(nearest_indices, (0, self.k_neighbor_size - k), mode='constant', constant_values=0)
+        # self.edge_inputs = torch.tensor(edge).unsqueeze(0).unsqueeze(0).to(self.device)  # (1, 1, k_neighbor_size)
+        #
+        # edge_padding_mask = torch.zeros((1, 1, self.k_neighbor_size), dtype=torch.int64).to(self.device)
+        # one = torch.ones_like(edge_padding_mask, dtype=torch.int64).to(self.device)
+        # edge_padding_mask = torch.where(self.edge_inputs == 0, one, edge_padding_mask)
+
+        # padding option 2: pad edge_inputs to k_nearest_size with -1 first, this keeps node_0 if it is connected
+        edge = np.pad(nearest_indices, (0, self.k_neighbor_size - k), mode='constant', constant_values=-1)
+        self.edge_inputs = torch.tensor(edge).unsqueeze(0).unsqueeze(0).to(self.device)  # (1, 1, k_neighbor_size)
+
+        edge_padding_mask = torch.zeros((1, 1, self.k_neighbor_size), dtype=torch.int64).to(self.device)
+        one = torch.ones_like(edge_padding_mask, dtype=torch.int64).to(self.device)
+        edge_padding_mask = torch.where(self.edge_inputs == -1, one, edge_padding_mask)
+        zero = torch.zeros_like(edge_padding_mask, dtype=torch.int64).to(self.device)
+        self.edge_inputs = torch.where(self.edge_inputs == -1, zero, self.edge_inputs)  # change the unconnected node idxs from -1 back to 0 for attetion network
+
+        roadmap_state = node_inputs, self.edge_inputs, current_index, node_padding_mask, edge_padding_mask, edge_mask
+        '''
+        Required Inputs:
+        node_inputs, edge_inputs, current_index, node_padding_mask, edge_padding_mask, edge_mask
+        
+        Need to Provide:
+            (x, y)
+            utility
+            guidepost
+            (dx, dy, dis) -> node_inputs, node_padding_mask
+            
+            current_node_index (scalar: idx) -> current_index (tensor: (1,1,1))
+            
+            edges -> edges_inputs, edge_padding_mask, edge_mask
+            
+        NEXT:
+        train SAC
+        '''
+        return robot_pose, roadmap_state
 
     def _compute_dis_dir_2_goal(self, robot_pose):
         """
@@ -429,6 +532,16 @@ class DecisionRoadmapNavEnv:
             env_idx += init_goal_xy.shape[0]
 
         return overall_robot_array, overall_goal_array
+
+    @staticmethod
+    def calculate_edge_mask(edge_inputs):
+        size = len(edge_inputs)
+        bias_matrix = np.ones((size, size))
+        for i in range(size):
+            for j in range(size):
+                if j in edge_inputs[i]:
+                    bias_matrix[i][j] = 0
+        return bias_matrix
 
     @staticmethod
     def _euler_2_quat(yaw=0, pitch=0, roll=0):
