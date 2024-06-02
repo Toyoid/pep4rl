@@ -283,9 +283,27 @@ namespace globalPlanner{
 		this->roadmap_.reset(new PRM::KDTree ());
 	}
 
+	void DEP::resetRoadmap(const gazebo_msgs::ModelState& resetRobotPos){
+		this->prmNodeVec_.clear();
+		this->roadmap_->clear();
+		
+		this->currGoalReceived_ = false;
+		this->resettingRLEnv_ = true;
+		Eigen::Vector3d p;
+		p(0) = resetRobotPos.pose.position.x;
+		p(1) = resetRobotPos.pose.position.y;
+		p(2) = resetRobotPos.pose.position.z;
+		this->currGoal_.reset(new PRM::Node(p));
+		
+		this->waypointIdx_ = 0;  
+		this->histTraj_.clear();  
+		this->bestPath_.clear();
+		this->frontierPointPairs_.clear();
+	}
+
 	void DEP::registerPub(){
 		// roadmap visualization publisher
-		this->roadmapPub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("/dep/roadmap", 10);
+		this->roadmapPub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("/dep/roadmap", 5);
 
 		// candidate paths publisher
 		this->candidatePathPub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("/dep/candidate_paths", 10);
@@ -295,15 +313,26 @@ namespace globalPlanner{
 
 		// fronteir vis publisher
 		this->frontierVisPub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("/dep/frontier_regions", 10);
+
+		//added by me
+		this->waypointPub_ = this->nh_.advertise<geometry_msgs::PointStamped>("/falco_planner/way_point", 5); 
+		// this->bestPathGoalPub_ = this->nh_.advertise<geometry_msgs::PointStamped>("/agent/current_goal", 5); 
+
 	}
 
 	void DEP::registerCallback(){
 		// odom subscriber
 		this->odomSub_ = this->nh_.subscribe(this->odomTopic_, 1000, &DEP::odomCB, this);
+		// this->odomSub_ = this->nh_.subscribe("/falco_planner/state_estimation", 1000, &DEP::odomCB, this);
 	
 		// visualization timer
-		this->visTimer_ = this->nh_.createTimer(ros::Duration(0.1), &DEP::visCB, this);
+		this->visTimer_ = this->nh_.createTimer(ros::Duration(0.2), &DEP::visCB, this);
 
+		//added by me waypoint publish timer
+		this->waypointTimer_ = this->nh_.createTimer(ros::Duration(0.25), &DEP::waypointUpdateCB, this);
+
+		//added by me
+		this->currGoalSub_ = this->nh_.subscribe("/agent/current_goal", 5, &DEP::currGoalCB, this); 
 	}
 
 	bool DEP::makePlan(){
@@ -332,22 +361,45 @@ namespace globalPlanner{
 
 		// cout << "start get goal candidates" << endl;
 		// ros::Time pathStartTime = ros::Time::now();
-		this->getBestViewCandidates(this->goalCandidates_);
+		// this->getBestViewCandidates(this->goalCandidates_);
 
 		// cout << "finish best view candidate with size: " << this->goalCandidates_.size() << endl;
 
-		bool findCandidatePathSuccess = this->findCandidatePath(this->goalCandidates_, this->candidatePaths_);
+		// bool findCandidatePathSuccess = this->findCandidatePath(this->goalCandidates_, this->candidatePaths_);
 
 		// cout << "finish candidate path with size: " << this->candidatePaths_.size() << endl;
-		if (not findCandidatePathSuccess){
-			// cout << "Find candidate paths fails. need generate more samples." << endl;
-			return false;
-		}
+		// this->waypointIdx_ = 0; 
+		// geometry_msgs::PointStamped bestGoal;	
+		// bestGoal.header.frame_id = "map";
+		// if (not findCandidatePathSuccess){
+		// 	// cout << "Find candidate paths fails. need generate more samples." << endl;
+		// 	// std::cout << "\033[1;31m[Debug]: Find candidate paths fails. Please carefully check the candidate points. \033[0m" << std::endl;
+		// 	std::cout << "\033[1;31m[Debug]: Find candidate paths fails. Directly using local planner... \033[0m" << std::endl;
+		// 	std::shared_ptr<PRM::Node> bestNode = this->goalCandidates_.back();
+		// 	bestGoal.header.stamp = ros::Time::now();
+		// 	bestGoal.point.x = bestNode->pos(0);
+		// 	bestGoal.point.y = bestNode->pos(1);
+		// 	bestGoal.point.z = bestNode->pos(2);
+		// 	this->waypointPub_.publish(bestGoal);
+		// 	// std::cin.clear();
+		// 	// fflush(stdin);
+		// 	// std::cin.get();
+		// 	// return false;
+		// }
+		// else {
+		// 	this->findBestPath(this->candidatePaths_, this->bestPath_);
 
-		this->findBestPath(this->candidatePaths_, this->bestPath_);
+		// 	std::shared_ptr<PRM::Node> bestNode = this->bestPath_.back();
+		// 	bestGoal.header.stamp = ros::Time::now();
+		// 	bestGoal.point.x = bestNode->pos(0);
+		// 	bestGoal.point.y = bestNode->pos(1);
+		// 	bestGoal.point.z = bestNode->pos(2);
+		// 	this->bestPathGoalPub_.publish(bestGoal);
+		// }
 		// ros::Time pathEndTime = ros::Time::now();
 		// cout << "path time: " << (pathEndTime - pathStartTime).toSec() << endl;
 		// cout << "found best path with size: " << this->bestPath_.size() << endl;
+
 		return true;
 	}
 
@@ -632,8 +684,6 @@ namespace globalPlanner{
 				}
 			}
 		}
-
-
 		
 		// node connection
 		for (std::shared_ptr<PRM::Node>& n : newNodes){
@@ -795,7 +845,7 @@ namespace globalPlanner{
 
 		candidatePaths.clear();
 		for (std::shared_ptr<PRM::Node> goal : goalCandidates){
-			std::vector<std::shared_ptr<PRM::Node>> path = PRM::AStar(this->roadmap_, start, goal, this->map_);
+			std::vector<std::shared_ptr<PRM::Node>> path = PRM::AStar(this->roadmap_, start, goal, this->map_);  
 			if (int(path.size()) != 0){
 				findPath = true;
 			}
@@ -887,7 +937,8 @@ namespace globalPlanner{
 
 	void DEP::visCB(const ros::TimerEvent&){
 		if (this->prmNodeVec_.size() != 0){
-			this->publishRoadmap();
+			visualization_msgs::MarkerArray roadmapMarkers = this->buildRoadmapMarkers();
+			this->roadmapPub_.publish(roadmapMarkers);
 		}
 
 		if (this->candidatePaths_.size() != 0){
@@ -900,6 +951,102 @@ namespace globalPlanner{
 
 		if (this->frontierPointPairs_.size() != 0){
 			this->publishFrontier();
+		}
+	}
+
+	//added by me
+	void DEP::currGoalCB(const geometry_msgs::PointStamped::ConstPtr& goal){
+		this->currGoalReceived_ = true;
+		this->resettingRLEnv_ = false;
+
+		Eigen::Vector3d p;
+		p(0) = goal->point.x;
+		p(1) = goal->point.y;
+		p(2) = goal->point.z;
+		this->currGoal_.reset(new PRM::Node(p));
+
+		std::cout << "\033[1;32m[Agent]: Current goal \033[0m" 
+		<< " x: " << std::setw(2) << this->currGoal_->pos(0)
+		<< " y: " << std::setw(2) << this->currGoal_->pos(1)
+		<< " z: " << std::setw(2) << this->currGoal_->pos(2)
+		<< endl;
+
+
+		// find best path to current goal, judge currGoalChanged ??
+		this->bestPath_.clear();
+		// find nearest node of current location
+		std::shared_ptr<PRM::Node> currPos;
+		currPos.reset(new PRM::Node (this->position_));
+		std::shared_ptr<PRM::Node> start = this->roadmap_->nearestNeighbor(currPos);
+		std::shared_ptr<PRM::Node> currGoal = this->roadmap_->nearestNeighbor(this->currGoal_);  // this is important, or no path will be found!
+
+		std::vector<std::shared_ptr<PRM::Node>> path = PRM::AStar(this->roadmap_, start, currGoal, this->map_);
+		if (int(path.size()) != 0){
+			path.insert(path.begin(), currPos);
+			std::vector<std::shared_ptr<PRM::Node>> pathSc;
+			this->shortcutPath(path, pathSc);
+			this->bestPath_ = pathSc;
+			this->waypointIdx_ = 0;
+
+			cout << "Finding path success!" << endl;
+		}
+		else {
+			cout << "Finding path fails. need generate more samples." << endl;
+		}
+	}
+
+	//added by me
+	void DEP::waypointUpdateCB(const ros::TimerEvent&){
+		if (this->resettingRLEnv_) {
+			geometry_msgs::PointStamped waypoint;
+			waypoint.header.stamp = ros::Time::now();
+			waypoint.header.frame_id = "map";
+			waypoint.point.x = this->currGoal_->pos(0);
+			waypoint.point.y = this->currGoal_->pos(1);
+			waypoint.point.z = this->currGoal_->pos(2);
+			this->waypointPub_.publish(waypoint);
+			std::cout << "\033[1;32m[Debug]: Publishing robot initial position as waypoint to reset RL Env... \033[0m" << std::endl;
+		}
+		else if (this->currGoalReceived_){
+			this->resettingRLEnv_ = false;
+
+			geometry_msgs::PointStamped waypoint;
+			waypoint.header.stamp = ros::Time::now();
+			waypoint.header.frame_id = "map";
+			if (this->bestPath_.size() != 0){
+				// std::cout << "\033[1;31m[Debug]: Enter waypoint assignment\033[0m" << std::endl;
+				// std::cin.clear();
+				// fflush(stdin);
+				// std::cin.get();
+
+				if (((this->position_ - this->bestPath_[this->waypointIdx_]->pos).norm() <= 0.6) && (this->waypointIdx_ < (this->bestPath_.size() - 1))){
+					this->waypointIdx_ += 1;
+					// std::cout << "\033[1;31m[Debug]: Increase waypoint idx\033[0m" << std::endl;
+					// std::cin.clear();
+					// fflush(stdin);
+					// std::cin.get();
+				}  
+
+				if (this->waypointIdx_ > (this->bestPath_.size() - 1)){   // is it possible??
+					std::cout << "\033[1;31mError in waypoint assignment!\033[0m" << std::endl;
+				}
+
+				// std::cout << "\033[1;31m[Debug]: Ready to publish waypoint\033[0m" << std::endl;
+				// std::cin.clear();
+				// fflush(stdin);
+				// std::cin.get();
+				
+				waypoint.point.x = this->bestPath_[this->waypointIdx_]->pos(0);
+				waypoint.point.y = this->bestPath_[this->waypointIdx_]->pos(1);
+				waypoint.point.z = this->bestPath_[this->waypointIdx_]->pos(2);			
+			}
+			else{
+				std::cout << "\033[1;31m[Debug]: Find global paths fails. Directly using local planner... \033[0m" << std::endl;
+				waypoint.point.x = this->currGoal_->pos(0);
+				waypoint.point.y = this->currGoal_->pos(1);
+				waypoint.point.z = this->currGoal_->pos(2);
+			}
+			this->waypointPub_.publish(waypoint);
 		}
 	}
 
@@ -1019,6 +1166,7 @@ namespace globalPlanner{
 		}
 		return countTotalUnknown;
 	}
+
 	double DEP::calculatePathLength(const std::vector<shared_ptr<PRM::Node>>& path){
 		int idx1 = 0;
 		double length = 0;
@@ -1121,7 +1269,7 @@ namespace globalPlanner{
 		return extendedNode;
 	}
 
-	void DEP::publishRoadmap(){
+	visualization_msgs::MarkerArray DEP::buildRoadmapMarkers(){  
 		visualization_msgs::MarkerArray roadmapMarkers;
 
 		// PRM nodes and edges
@@ -1142,13 +1290,13 @@ namespace globalPlanner{
 			point.pose.position.x = n->pos(0);
 			point.pose.position.y = n->pos(1);
 			point.pose.position.z = n->pos(2);
-			point.lifetime = ros::Duration(0.5);
-			point.scale.x = 0.1;
-			point.scale.y = 0.1;
-			point.scale.z = 0.1;
+			point.lifetime = ros::Duration(0.2); //5
+			point.scale.x = 0.05;
+			point.scale.y = 0.05;
+			point.scale.z = 0.05;
 			point.color.a = 1.0;
 			point.color.r = 1.0;
-			point.color.g = 0.0;
+			point.color.g = 1.0;
 			point.color.b = 0.0;
 			++countPointNum;
 			roadmapMarkers.markers.push_back(point);
@@ -1169,7 +1317,7 @@ namespace globalPlanner{
 			voxelNumText.scale.z = 0.1;
 			voxelNumText.color.a = 1.0;
 			voxelNumText.text = std::to_string(n->numVoxels);
-			voxelNumText.lifetime = ros::Duration(0.5);
+			voxelNumText.lifetime = ros::Duration(0.2); //5
 			++countVoxelNumText;
 			roadmapMarkers.markers.push_back(voxelNumText);
 
@@ -1191,14 +1339,14 @@ namespace globalPlanner{
 				line.points.push_back(p1);
 				line.points.push_back(p2);
 				line.id = countEdgeNum;
-				line.scale.x = 0.05;
-				line.scale.y = 0.05;
-				line.scale.z = 0.05;
-				line.color.r = 0.0;
+				line.scale.x = 0.02;
+				line.scale.y = 0.02;
+				line.scale.z = 0.02;
+				line.color.r = 1.0;
 				line.color.g = 1.0;
 				line.color.b = 0.0;
 				line.color.a = 1.0;
-				line.lifetime = ros::Duration(0.5);
+				line.lifetime = ros::Duration(0.2); //5
 				++countEdgeNum;
 				roadmapMarkers.markers.push_back(line);
 			}
@@ -1219,10 +1367,10 @@ namespace globalPlanner{
 			goalCandidatePoint.pose.position.x = n->pos(0);
 			goalCandidatePoint.pose.position.y = n->pos(1);
 			goalCandidatePoint.pose.position.z = n->pos(2);
-			goalCandidatePoint.lifetime = ros::Duration(0.5);
-			goalCandidatePoint.scale.x = 0.2;
-			goalCandidatePoint.scale.y = 0.2;
-			goalCandidatePoint.scale.z = 0.2;
+			goalCandidatePoint.lifetime = ros::Duration(0.2); //5			
+			goalCandidatePoint.scale.x = 0.3;
+			goalCandidatePoint.scale.y = 0.3;
+			goalCandidatePoint.scale.z = 0.3;
 			goalCandidatePoint.color.a = 1.0;
 			goalCandidatePoint.color.r = 1.0;
 			goalCandidatePoint.color.g = 0.0;
@@ -1231,7 +1379,7 @@ namespace globalPlanner{
 			roadmapMarkers.markers.push_back(goalCandidatePoint);
 		}
 
-		this->roadmapPub_.publish(roadmapMarkers);
+		return roadmapMarkers;
 	}
 
 	void DEP::publishCandidatePaths(){
@@ -1282,9 +1430,9 @@ namespace globalPlanner{
 					line.scale.x = 0.1;
 					line.scale.y = 0.1;
 					line.scale.z = 0.1;
-					line.color.r = 0.0;
-					line.color.g = 0.0;
-					line.color.b = 0.0;
+					line.color.r = 1.0;
+					line.color.g = 1.0;
+					line.color.b = 1.0;
 					line.color.a = 1.0;
 					line.lifetime = ros::Duration(0.5);
 					++countLineNum;
@@ -1339,9 +1487,9 @@ namespace globalPlanner{
 				line.points.push_back(p1);
 				line.points.push_back(p2);
 				line.id = countLineNum;
-				line.scale.x = 0.2;
-				line.scale.y = 0.2;
-				line.scale.z = 0.2;
+				line.scale.x = 0.1;
+				line.scale.y = 0.1;
+				line.scale.z = 0.1;
 				line.color.r = 1.0;
 				line.color.g = 0.0;
 				line.color.b = 0.0;

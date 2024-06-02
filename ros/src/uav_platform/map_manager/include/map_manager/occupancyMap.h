@@ -56,7 +56,6 @@ namespace mapManager{
 		ros::Publisher inflatedMapVisPub_;
 		ros::Publisher map2DPub_;
 		ros::Publisher mapExploredPub_;
-		ros::ServiceServer collisionCheckServer_;
 
 		int sensorInputMode_;
 		int localizationMode_;
@@ -129,7 +128,6 @@ namespace mapManager{
 		Eigen::Vector3d currMapRangeMax_ = Eigen::Vector3d (0, 0, 0);
 		bool useFreeRegions_ = false;
 
-		
 
 		// STATUS
 		bool occNeedUpdate_ = false;
@@ -142,6 +140,9 @@ namespace mapManager{
 		// ------------------------------------------------------------------
 
 	public:
+		ros::ServiceServer collisionCheckServer_;
+		void clearMapData();
+
 		std::thread visWorker_;
 
 		occMap(); // empty constructor

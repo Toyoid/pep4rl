@@ -10,6 +10,8 @@
 #include <map_manager/dynamicMap.h>
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
+#include <geometry_msgs/PointStamped.h>  //added by me
+#include <gazebo_msgs/ModelState.h>  //added
 #include <global_planner/PRMKDTree.h>
 #include <global_planner/PRMAstar.h>
 #include <global_planner/utils.h>
@@ -27,8 +29,12 @@ namespace globalPlanner{
 		ros::Publisher candidatePathPub_;
 		ros::Publisher bestPathPub_;
 		ros::Publisher frontierVisPub_;
+		ros::Publisher waypointPub_;  //added by me
+		ros::Publisher bestPathGoalPub_;
 		ros::Subscriber odomSub_;
+		ros::Subscriber currGoalSub_;  //added by me
 		ros::Timer visTimer_;
+		ros::Timer waypointTimer_;  //added by me
 
 		nav_msgs::Odometry odom_;
 		std::shared_ptr<mapManager::occMap> map_; 
@@ -66,7 +72,11 @@ namespace globalPlanner{
 
 		// data
 		bool odomReceived_ = false;
+		bool currGoalReceived_ = false;  //added by me
+		bool resettingRLEnv_ = false; //added
 		Eigen::Vector3d position_;
+		std::shared_ptr<PRM::Node> currGoal_;  //added by me
+		unsigned int waypointIdx_ = 0;  //added by me
 		double currYaw_;
 		std::deque<Eigen::Vector3d> histTraj_; // historic trajectory for information gain update 
 		// std::vector<std::shared_ptr<PRM::Node>> prmNodeVec_; // all nodes		
@@ -101,8 +111,8 @@ namespace globalPlanner{
 		// callback functions
 		void odomCB(const nav_msgs::OdometryConstPtr& odom);
 		void visCB(const ros::TimerEvent&);
-
-
+		void currGoalCB(const geometry_msgs::PointStamped::ConstPtr& goal);  //added by me
+ 		void waypointUpdateCB(const ros::TimerEvent&);  //added by me
 
 		// help function
 		bool isPosValid(const Eigen::Vector3d& p);
@@ -118,10 +128,13 @@ namespace globalPlanner{
 		std::shared_ptr<PRM::Node> extendNode(const std::shared_ptr<PRM::Node>& n, const std::shared_ptr<PRM::Node>& target);
 
 		// visualization functions
-		void publishRoadmap();
+		visualization_msgs::MarkerArray buildRoadmapMarkers();
 		void publishCandidatePaths();
 		void publishBestPath();
 		void publishFrontier();
+
+		// clear function for RL training
+		void resetRoadmap(const gazebo_msgs::ModelState& resetRobotPos);
 	};
 }
 

@@ -59,7 +59,7 @@ def _roadmap_callback(roadmap_msg):
 
 
 if __name__ == "__main__":
-    rospy.init_node('test_roadmap_node')
+    rospy.init_node('test_roadmap_subscribe_node')
     roadmap_sub = rospy.Subscriber("/dep/roadmap", MarkerArray, _roadmap_callback)
     odom_sub = rospy.Subscriber("/CERLAB/quadcopter/odom", Odometry, odom_callback)
     # rate = rospy.Rate(1)

@@ -11,7 +11,7 @@ import torch
 from torch.utils.tensorboard import SummaryWriter
 
 from config import get_config
-from envs.navigation_env import NavigationEnv
+from envs.e2e_navigation_env import NavigationEnv
 from algorithm.ppo.ppo_uav_agent import PPOUAVAgent
 
 

@@ -100,7 +100,7 @@
               <format>R8G8B8</format>
             </image>
             <clip>
-              <near>0.05</near>
+              <near>0.18</near>
               <far>7.0</far>
             </clip>
           </camera>

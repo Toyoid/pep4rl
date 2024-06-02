@@ -1,0 +1,58 @@
+<launch>
+    <!-- arguments -->
+	<arg name="verbose" default="false"/>
+    <arg name="use_sim_time" default="true"/>
+    <arg name="debug" default="false" />
+    <arg name="gazebo_gui" default="false"/>
+    <arg name="use_keyboard" default="false"/>
+	<arg name="quadcopterX" default="0"/>
+  	<arg name="quadcopterY" default="0"/>
+  	<arg name="quadcopterZ" default="1.0"/>
+  	<arg name="quadcopterYaw" default="0"/>
+	<arg name="realtime_factor_falco" default="1.0"/>
+    <!-- <arg name="world_name" default="false" /> -->
+
+
+	<!-- start gazebo world -->
+	<include file="$(find uav_simulator)/launch/start.launch" >
+        <!-- <arg name="world_name" value="$(arg world_name)"/> -->
+        <arg name="verbose" value="$(arg verbose)"/>
+        <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+        <arg name="debug" value="$(arg debug)" />
+        <arg name="gazebo_gui" value="$(arg gazebo_gui)" />
+	    <arg name="use_keyboard" value="$(arg use_keyboard)"/>
+		<arg name="quadcopterX" value="$(arg quadcopterX)"/>
+  	    <arg name="quadcopterY" value="$(arg quadcopterY)"/>
+  	    <arg name="quadcopterYaw" value="$(arg quadcopterYaw)"/>
+    </include> 
+	
+	
+	<!-- start dynamic PRM generator -->
+	<remap from="/mavros/local_position/odom" to="CERLAB/quadcopter/odom" />
+	<remap from="/mavros/setpoint_raw/local" to="CERLAB/quadcopter/cmd_acc" />
+	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/fake_detector_param.yaml" />
+	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/flight_base.yaml" ns="autonomous_flight"/>
+	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/exploration_param.yaml" ns="DEP"/>
+	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/planner_param.yaml" />
+	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/dynamic_detector_param.yaml" ns="/onboard_detector" />
+	<!-- <rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/mapping_param.yaml" ns="/dynamic_map" /> -->
+	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/mapping_param.yaml" ns="/occupancy_map" />
+
+	<node pkg="autonomous_flight" type="throttle_topics.sh" name="throttle_topics" />
+	<node pkg="autonomous_flight" type="test_dynamic_prm_node" name="test_dynamic_prm_node" output="screen" />
+	
+	
+	<!-- start local planner -->
+	<include file="$(find falco_planner)/launch/run_falco_planner.launch" >
+		<arg name="realtime_factor" value="$(arg realtime_factor_falco)"/>
+		<arg name="use_builtin_rviz" value="false"/>
+        <arg name="vehicleX" value="$(arg quadcopterX)"/>
+        <arg name="vehicleY" value="$(arg quadcopterY)"/>
+        <arg name="vehicleZ" value="$(arg quadcopterZ)"/>
+        <arg name="vehicleYaw" value="$(arg quadcopterYaw)"/>
+    </include> 
+
+	
+	<!-- start rviz visualizer -->
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find rviz_visualize)/rviz/decision_graph.rviz" required="true"/>
+</launch> 

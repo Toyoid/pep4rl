@@ -10,9 +10,13 @@ namespace AutoFlight{
     dynamicPRM::dynamicPRM(const ros::NodeHandle& nh) : flightBase(nh){
 		this->initParam();
 		this->initModules();
+		// roadmap service server	
+		this->getRoadmapServer_ = this->nh_.advertiseService("/dep/get_roadmap", &dynamicPRM::getRoadmapServiceCB, this);
+		this->resetRoadmapServer_ = this->nh_.advertiseService("/dep/reset_roadmap", &dynamicPRM::resetRoadmapServiceCB, this);
+
 		if (this->useFakeDetector_){
 			// free map callback
-			this->freeMapTimer_ = this->nh_.createTimer(ros::Duration(0.01), &dynamicPRM::freeMapCB, this);
+			this->freeMapTimer_ = this->nh_.createTimer(ros::Duration(0.1), &dynamicPRM::freeMapCB, this);
 		}
 	}
 
@@ -108,10 +112,11 @@ namespace AutoFlight{
 		if (this->useFakeDetector_){
 			// initialize fake detector
 			this->detector_.reset(new onboardDetector::fakeDetector (this->nh_));	
-			this->map_.reset(new mapManager::dynamicMap (this->nh_, false));
+			// this->map_.reset(new mapManager::occMap (this->nh_, false));
+			this->map_.reset(new mapManager::occMap (this->nh_));
 		}
 		else{
-			this->map_.reset(new mapManager::dynamicMap (this->nh_));
+			this->map_.reset(new mapManager::occMap (this->nh_));
 		}
 
 		// initialize exploration planner
@@ -142,17 +147,59 @@ namespace AutoFlight{
 		this->map_->freeRegions(freeRegions);
 	}
 
+	bool dynamicPRM::getRoadmapServiceCB(global_planner::GetRoadmap::Request& req, global_planner::GetRoadmap::Response& resp){
+		this->expPlanner_->setMap(this->map_);
+		bool replanSuccess = this->expPlanner_->makePlan();
+		if (replanSuccess){
+			std::cout << "\033[1;32m[AutoFlight]: Roadmap Generation Succeed!" << endl;
+			resp.roadmapMarkers = this->expPlanner_->buildRoadmapMarkers();
+		}
+		else{
+			std::cout << "\033[1;32m[AutoFlight]: Roadmap Generation failed!" << endl;
+		}		
+
+		return true;
+	}
+
+	bool dynamicPRM::resetRoadmapServiceCB(falco_planner::SetRobotPose::Request& req, falco_planner::SetRobotPose::Response& resp){
+		// if (this->useFakeDetector_){
+		// 	// reset fake detector
+		// 	// this->detector_.reset(new onboardDetector::fakeDetector (this->nh_));	
+	    //     this->map_.reset(new mapManager::dynamicMap (this->nh_, false));
+		// }
+		// else{
+		// 	this->map_.reset(new mapManager::dynamicMap (this->nh_));
+		// }
+
+
+		// two ways to clear the map data
+		// way 1: call member funtion in occMap to clear (but the last scan from previous episode will remain, the timers' frequecy should set lower, like 1/0.2)
+		// this->map_->clearMapData();
+
+		// way 2: create a new map object every time after reset (the registered service should be shutdown before that)  
+		this->map_->collisionCheckServer_.shutdown();
+		this->map_.reset(new mapManager::occMap (this->nh_));
+
+		// reset roadmap
+		this->expPlanner_->resetRoadmap(req.robotPose);
+		this->expPlanner_->setMap(this->map_);
+
+		cout << "\033[1;32m[Roadmap]: Successfully reset map and roadmap.\033[0m" << endl;
+
+		return true;
+	}
+
 	void dynamicPRM::run(){
 		cout << "\033[1;32m[AutoFlight]: Please double check all parameters. Then PRESS ENTER to continue or PRESS CTRL+C to stop.\033[0m" << endl;
-		std::cin.clear();
-		fflush(stdin);
-		std::cin.get();
+		// std::cin.clear();
+		// fflush(stdin);
+		// std::cin.get();
 		// this->takeoff();
 
 		cout << "\033[1;32m[AutoFlight]: Takeoff succeed. Then PRESS ENTER to continue or PRESS CTRL+C to land.\033[0m" << endl;
-		std::cin.clear();
-		fflush(stdin);
-		std::cin.get();
+		// std::cin.clear();
+		// fflush(stdin);
+		// std::cin.get();
 
 		// added by me
 		cout << "No map recording." << endl;
@@ -160,13 +207,13 @@ namespace AutoFlight{
 		this->initExplore();
 
 		cout << "\033[1;32m[AutoFlight]: PRESS ENTER to Start Planning.\033[0m" << endl;
-		std::cin.clear();
-		fflush(stdin);
-		std::cin.get();
+		// std::cin.clear();
+		// fflush(stdin);
+		// std::cin.get();
 
 		// this->registerCallback();
-		this->exploreReplanWorker_ = std::thread(&dynamicPRM::exploreReplan, this);
-		this->exploreReplanWorker_.detach();
+		// this->exploreReplanWorker_ = std::thread(&dynamicPRM::exploreReplan, this);
+		// this->exploreReplanWorker_.detach();
 	}
 
 	void dynamicPRM::initExplore(){
@@ -178,6 +225,7 @@ namespace AutoFlight{
 		this->map_->freeRegion(c1, c2);
 		cout << "[AutoFlight]: Robot nearby region is set to free. Range: " << this->freeRange_.transpose() << endl;
 
+		// maybe this fragment of code can be used for suck situations
 		if (this->initialScan_){
 			cout << "[AutoFlight]: Start initial scan..." << endl;
 			this->moveToOrientation(-PI_const/2, this->desiredAngularVel_);
@@ -203,24 +251,24 @@ namespace AutoFlight{
 		}		
 	}
 
-	void dynamicPRM::exploreReplan(){
-		ros::Rate r (1);
-		while (ros::ok()){
-			this->expPlanner_->setMap(this->map_);
-			// ros::Time startTime = ros::Time::now();
-			bool replanSuccess = this->expPlanner_->makePlan();
-			r.sleep();
-			// if (replanSuccess){
-			// 	this->waypoints_ = this->expPlanner_->getBestPath();
-			// 	this->newWaypoints_ = true;
-			// 	this->waypointIdx_ = 1;
-			// }
-			// ros::Time endTime = ros::Time::now();
-			// std::cin.clear();
-			// fflush(stdin);
-			// std::cin.get();		
-			// cout << "[AutoFlight]: DEP planning time: " << (endTime - startTime).toSec() << "s." << endl;
+	// void dynamicPRM::exploreReplan(){
+	// 	ros::Rate r (1);
+	// 	while (ros::ok()){
+	// 		this->expPlanner_->setMap(this->map_);
+	// 		// ros::Time startTime = ros::Time::now();
+	// 		bool replanSuccess = this->expPlanner_->makePlan();
+	// 		r.sleep();
+	// 		// if (replanSuccess){
+	// 		// 	this->waypoints_ = this->expPlanner_->getBestPath();
+	// 		// 	this->newWaypoints_ = true;
+	// 		// 	this->waypointIdx_ = 1;
+	// 		// }
+	// 		// ros::Time endTime = ros::Time::now();
+	// 		// std::cin.clear();
+	// 		// fflush(stdin);
+	// 		// std::cin.get();		
+	// 		// cout << "[AutoFlight]: DEP planning time: " << (endTime - startTime).toSec() << "s." << endl;
 
-		}
-	}
+	// 	}
+	// }
 }
