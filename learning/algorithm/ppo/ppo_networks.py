@@ -74,11 +74,11 @@ class CNNPPONets(nn.Module):
         # good architecture 1: CNN + CNN + Maxpool + flatten + linear, actor & critic (256)
 
         self.fcn = nn.Sequential(
-            layer_init(nn.Linear(robot_obs_dim, 256)),
+            layer_init(nn.Linear(robot_obs_dim, 128)),
             nn.ReLU(),
         )
         self.critic = nn.Sequential(     # whether to share AC networks?
-            layer_init(nn.Linear(512+256, 256)),  # need wider layers (256)
+            layer_init(nn.Linear(512+128, 256)),  # need wider layers (256)
             # nn.Tanh(),
             nn.ReLU(),
             layer_init(nn.Linear(256, 256)),
@@ -87,7 +87,7 @@ class CNNPPONets(nn.Module):
             layer_init(nn.Linear(256, 1), std=1.0),
         )
         self.actor_mean = nn.Sequential(
-            layer_init(nn.Linear(512+256, 256)),
+            layer_init(nn.Linear(512+128, 256)),
             # nn.Tanh(),
             nn.ReLU(),
             layer_init(nn.Linear(256, 256)),

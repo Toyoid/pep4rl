@@ -26,9 +26,9 @@ class NavigationEnv:
     def __init__(self,
                  args,
                  frame_stack_num=10,
-                 max_episode_steps=1000,
-                 goal_reward=30,
-                 collision_reward=-20,
+                 max_episode_steps=2000,
+                 goal_reward=90,
+                 collision_reward=-80,
                  goal_dis_amp=10,
                  step_penalty=0.05,
                  goal_near_th=0.4,
@@ -48,7 +48,7 @@ class NavigationEnv:
         self.linear_spd_limit_y = args.linear_spd_limit_y
         self.angular_spd_limit = args.angular_spd_limit
         self.action_space = (3,)
-        self.action_range = np.array([[0.05, -self.linear_spd_limit_y, -self.angular_spd_limit],
+        self.action_range = np.array([[0.0, -self.linear_spd_limit_y, -self.angular_spd_limit],
                                       [self.linear_spd_limit_x, self.linear_spd_limit_y, self.angular_spd_limit]])
         # [left_spd, right_spd, linear_spd_y]
         # self.policy_act_range = np.array([[0.0, 0.0, -linear_spd_limit_y],
@@ -280,9 +280,7 @@ class NavigationEnv:
         #                         self.odom.twist.twist.linear.y,
         #                         # self.odom.twist.twist.linear.z,
         #                         self.odom.twist.twist.angular.z])
-        robot_pose_tmp = deepcopy(self.robot_pose)
-        robot_spd_tmp = deepcopy(self.robot_speed)
-        robot_state = [robot_pose_tmp, robot_spd_tmp]
+        robot_state = [deepcopy(self.robot_pose), deepcopy(self.robot_speed)]
 
         # check collision
         collision_info = deepcopy(self.contact_info)
