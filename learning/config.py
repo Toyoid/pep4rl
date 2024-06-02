@@ -41,7 +41,7 @@ class Args:
     """the learning rate of the optimizer"""
     num_envs: int = 1  # isaacgym: 4096   mujoco: 1
     """the number of parallel game environments"""
-    num_steps: int = 256
+    num_steps: int = 512
     """the number of steps to run in each environment per policy rollout"""
     anneal_lr: lambda x: bool(strtobool(x)) = False
     """Toggle learning rate annealing for policy and value networks"""
@@ -49,7 +49,7 @@ class Args:
     """the discount factor gamma"""
     gae_lambda: float = 0.95
     """the lambda for the general advantage estimation"""
-    num_minibatches: int = 4
+    num_minibatches: int = 8
     """the number of mini-batches"""
     update_epochs: int = 10
     """the K epochs to update the policy"""
@@ -68,7 +68,7 @@ class Args:
     target_kl: float = None
     """the target KL divergence threshold"""
 
-    # UAV specific parameters
+    # UAV end-to-end navigation specific parameters
     step_time: float = 0.05
     """step time duration for executing a command from policy network"""
     linear_spd_limit_x: float = 2.0
