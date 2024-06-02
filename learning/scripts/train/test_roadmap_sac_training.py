@@ -288,16 +288,17 @@ def main():
                         target_param.data.copy_(args.tau * param.data + (1 - args.tau) * target_param.data)
 
                 # save net parameters
-                if global_step % args.model_save_frequency == 0:
-                    print('Saving model', end='\n')
-                    checkpoint = {"actor_network": actor.state_dict(),
-                                  "qf1_network": qf1.state_dict(),
-                                  "qf2_network": qf2.state_dict(),
-                                  "log_alpha": log_alpha,
-                                  }
-                    path_checkpoint = "./" + args.model_path + "/drm/checkpoint_" + str{episode_ita} + ".pth"
-                    torch.save(checkpoint, path_checkpoint)
-                    print('Saved model', end='\n')
+                if args.save_model:
+                    if global_step % args.model_save_frequency == 0:
+                        print('Saving model', end='\n')
+                        checkpoint = {"actor_network": actor.state_dict(),
+                                      "qf1_network": qf1.state_dict(),
+                                      "qf2_network": qf2.state_dict(),
+                                      "log_alpha": log_alpha,
+                                      }
+                        path_checkpoint = f"{args.model_path}/drm/checkpoint_{episode_ita}.pth"
+                        torch.save(checkpoint, path_checkpoint)
+                        print('Saved model', end='\n')
 
                 # record training data
                 if global_step % 100 == 0:
