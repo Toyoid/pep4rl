@@ -123,17 +123,17 @@ int main(int argc, char** argv)
   nhPrivate.getParam("vehicleZ", vehicleZ);
   nhPrivate.getParam("vehicleYaw", vehicleYaw);
 
-  ros::Subscriber subControl = nh.subscribe<geometry_msgs::TwistStamped> ("/falco_planner/attitude_control", 5, controlHandler);
+  ros::Subscriber subControl = nh.subscribe<geometry_msgs::TwistStamped> ("/falco_planner/attitude_control", 0, controlHandler);  // change to 0 for RL reset
 
   //added by me
   ros::ServiceServer setRobotPoseServer = nh.advertiseService("/falco_planner/set_robot_pose", setRobotPoseServiceHandler);
 
-  ros::Publisher pubVehicleOdom = nh.advertise<nav_msgs::Odometry> ("/falco_planner/state_estimation", 5);
+  ros::Publisher pubVehicleOdom = nh.advertise<nav_msgs::Odometry> ("/falco_planner/state_estimation", 0);
   // nav_msgs::Odometry odomData;
   odomData.header.frame_id = "map";
   odomData.child_frame_id = "base_link";  // this name should change to the frame of your_robot
 
-  ros::Publisher pubModelState = nh.advertise<gazebo_msgs::ModelState> ("/gazebo/set_model_state", 5);
+  ros::Publisher pubModelState = nh.advertise<gazebo_msgs::ModelState> ("/gazebo/set_model_state", 0);  // change to 0 for RL reset
   gazebo_msgs::ModelState robotState;
   robotState.model_name = "quadcopter";
   // ros::Publisher pubVehicleState = nh.advertise<geometry_msgs::PoseStamped> ("/CERLAB/quadcopter/setpoint_pose", 5);

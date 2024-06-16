@@ -603,27 +603,27 @@ int main(int argc, char** argv)
     joyFwd = 1.0;
   }
 
-  ros::Subscriber subStateEstimation = nh.subscribe<nav_msgs::Odometry> (stateEstimationTopic, 5, stateEstimationHandler);
+  ros::Subscriber subStateEstimation = nh.subscribe<nav_msgs::Odometry> (stateEstimationTopic, 0, stateEstimationHandler);
 
-  ros::Subscriber subLaserCloud = nh.subscribe<sensor_msgs::PointCloud2> (depthCloudTopic, 5, laserCloudHandler);
+  ros::Subscriber subLaserCloud = nh.subscribe<sensor_msgs::PointCloud2> (depthCloudTopic, 0, laserCloudHandler);
 
-  ros::Subscriber subTrackPoint = nh.subscribe<nav_msgs::Odometry> ("/falco_planner/track_point_odom", 5, trackPointHandler);
+  ros::Subscriber subTrackPoint = nh.subscribe<nav_msgs::Odometry> ("/falco_planner/track_point_odom", 0, trackPointHandler);   // change to 0 for RL reset
 
-  ros::Subscriber subJoystick = nh.subscribe<sensor_msgs::Joy> ("/falco_planner/joy", 5, joystickHandler);
+  ros::Subscriber subJoystick = nh.subscribe<sensor_msgs::Joy> ("/falco_planner/joy", 0, joystickHandler);
 
-  ros::Subscriber subGoal = nh.subscribe<geometry_msgs::PointStamped> ("/falco_planner/way_point", 5, goalHandler);
+  ros::Subscriber subGoal = nh.subscribe<geometry_msgs::PointStamped> ("/falco_planner/way_point", 0, goalHandler);  // change to 0 for RL reset
 
-  ros::Subscriber subAutoMode = nh.subscribe<std_msgs::Float32> ("/falco_planner/auto_mode", 5, autoModeHandler);
+  ros::Subscriber subAutoMode = nh.subscribe<std_msgs::Float32> ("/falco_planner/auto_mode", 0, autoModeHandler);
 
-  ros::Subscriber subClearSurrCloud = nh.subscribe<std_msgs::Empty> ("/falco_planner/clear_surr_cloud", 5, clearSurrCloudHandler);
+  ros::Subscriber subClearSurrCloud = nh.subscribe<std_msgs::Empty> ("/falco_planner/clear_surr_cloud", 0, clearSurrCloudHandler);
 
-  ros::Publisher pubPath = nh.advertise<nav_msgs::Path> ("/falco_planner/path", 5);
+  ros::Publisher pubPath = nh.advertise<nav_msgs::Path> ("/falco_planner/path", 0);  // change to 0 for RL reset
   nav_msgs::Path path;
 
   #if PLOTPATHSET == 1
-  ros::Publisher pubFreePaths = nh.advertise<sensor_msgs::PointCloud2> ("/falco_planner/free_paths", 2);
+  ros::Publisher pubFreePaths = nh.advertise<sensor_msgs::PointCloud2> ("/falco_planner/free_paths", 0);  // original: 2
 
-  ros::Publisher pubLaserCloud = nh.advertise<sensor_msgs::PointCloud2> ("/falco_planner/collision_avoidance_cloud", 2);
+  ros::Publisher pubLaserCloud = nh.advertise<sensor_msgs::PointCloud2> ("/falco_planner/collision_avoidance_cloud", 0);  // original: 2
   #endif
 
   printf ("\nReading path files.\n");

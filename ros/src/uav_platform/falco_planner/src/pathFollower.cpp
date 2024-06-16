@@ -265,8 +265,8 @@ void stateEstimationHandler(const nav_msgs::Odometry::ConstPtr& odom)
         joyFwd = 0;
         joyLeft = 0;
         joyUp = 0;
-        if (dirToGoal < 0) joyYaw = -1.0;
-        else joyYaw = 1.0;
+        if (dirToGoal < 0) joyYaw = -2.8;  // The stop rotate velocity, original: -1.0
+        else joyYaw = 2.8;  // The stop rotate velocity, original: 1.0
       } else {
         joyFwd = 1.0;
         joyLeft = 0;
@@ -799,15 +799,15 @@ int main(int argc, char** argv)
     executedTrajFilePtr = fopen(executedTrajFile.c_str(), "w");
   }
 
-  ros::Subscriber subStateEstimation = nh.subscribe<nav_msgs::Odometry> (stateEstimationTopic, 5, stateEstimationHandler);
+  ros::Subscriber subStateEstimation = nh.subscribe<nav_msgs::Odometry> (stateEstimationTopic, 0, stateEstimationHandler);
 
-  ros::Subscriber subPath = nh.subscribe<nav_msgs::Path> ("/falco_planner/path", 5, pathHandler);
+  ros::Subscriber subPath = nh.subscribe<nav_msgs::Path> ("/falco_planner/path", 0, pathHandler);  // change to 0 for RL reset
 
-  ros::Subscriber subJoystick = nh.subscribe<sensor_msgs::Joy> ("/falco_planner/joy", 5, joystickHandler);
+  ros::Subscriber subJoystick = nh.subscribe<sensor_msgs::Joy> ("/falco_planner/joy", 0, joystickHandler);
 
-  ros::Subscriber subGoal = nh.subscribe<geometry_msgs::PointStamped> ("/falco_planner/way_point", 5, goalHandler);
+  ros::Subscriber subGoal = nh.subscribe<geometry_msgs::PointStamped> ("/falco_planner/way_point", 0, goalHandler);
 
-  ros::Subscriber subSpeed = nh.subscribe<std_msgs::Float32> ("/falco_planner/speed", 5, speedHandler);
+  ros::Subscriber subSpeed = nh.subscribe<std_msgs::Float32> ("/falco_planner/speed", 0, speedHandler);
 
   ros::Publisher pubMarker = nh.advertise<visualization_msgs::Marker> ("/falco_planner/track_point_marker", 0);  // change to 0 for RL reset
   pubMarkerPointer = &pubMarker;
@@ -815,16 +815,16 @@ int main(int argc, char** argv)
   ros::Publisher pubOdometry = nh.advertise<nav_msgs::Odometry> ("/falco_planner/track_point_odom", 0);  // change to 0 for RL reset
   pubOdometryPointer = &pubOdometry;
 
-  ros::Publisher pubPath = nh.advertise<nav_msgs::Path> ("/falco_planner/track_path", 5);
+  ros::Publisher pubPath = nh.advertise<nav_msgs::Path> ("/falco_planner/track_path", 0);  // change to 0 for RL reset
   pubPathPointer = &pubPath;
 
-  ros::Publisher pubControl = nh.advertise<geometry_msgs::TwistStamped> ("/falco_planner/attitude_control", 5);
+  ros::Publisher pubControl = nh.advertise<geometry_msgs::TwistStamped> ("/falco_planner/attitude_control", 0);  // change to 0 for RL reset
   pubControlPointer = &pubControl;
 
-  ros::Publisher pubAutoMode = nh.advertise<std_msgs::Float32> ("/falco_planner/auto_mode", 5);
+  ros::Publisher pubAutoMode = nh.advertise<std_msgs::Float32> ("/falco_planner/auto_mode", 0);
   pubAutoModePointer = &pubAutoMode;
 
-  ros::Publisher pubWaypoint = nh.advertise<geometry_msgs::PointStamped> ("/falco_planner/way_point", 5);
+  ros::Publisher pubWaypoint = nh.advertise<geometry_msgs::PointStamped> ("/falco_planner/way_point", 0);  
   pubWaypointPointer = &pubWaypoint;
 
   tf::TransformBroadcaster tfBroadcaster; 

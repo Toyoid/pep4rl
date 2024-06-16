@@ -27,19 +27,19 @@ class DecisionRoadmapNavEnv:
     """
     def __init__(self, args, device,
                  is_train=False,
-                 max_episode_steps=3,
-                 goal_reward=30,
+                 goal_reward=20,
                  collision_reward=-20,
-                 goal_dis_amp=1.5,
+                 step_penalty_reward=-0.5,
+                 goal_dis_amp=1/64.,
                  goal_near_th=0.4,
                  env_height_range=[0.2,2.5],
                  goal_dis_scale=1.0,
                  goal_dis_min_dis=0.3,
                  ):
-        # Observation space:
-        self.robot_obs_space = (5,)
-        # Action space:
-        self.action_space = (3,)
+        # # Observation space:
+        # self.robot_obs_space = (5,)
+        # # Action space:
+        # self.action_space = (3,)
 
         # get initial robot and goal pose list in training_worlds.world
         self.init_robot_array, self.init_target_array = self._get_init_robot_goal("Rand_R1")
@@ -70,6 +70,7 @@ class DecisionRoadmapNavEnv:
         self.target_position = None
         self.goal_reward = goal_reward
         self.collision_reward = collision_reward
+        self.step_penalty = step_penalty_reward
         self.goal_near_th = goal_near_th
         self.goal_dis_amp = goal_dis_amp
         self.target_dis_dir_pre = None
@@ -180,7 +181,8 @@ class DecisionRoadmapNavEnv:
         except rospy.ServiceException as e:
             print("Reset Roadmap Service Failed: %s" % e)
 
-        rospy.sleep(0.5)
+        # IMPORTANT: sleep for enough time (1.0s) for the robot to scan and gain enough free range to build the roadmap
+        rospy.sleep(1.2)
         robot_pose, roadmap_state = self._get_next_state()
         '''
         pause gazebo simulation and transform robot poses to robot observations
@@ -502,6 +504,9 @@ class DecisionRoadmapNavEnv:
             print("[Episodic Outcome]: Navigation timeout!")
         else:
             reward = self.goal_dis_amp * (self.target_dis_dir_pre[0] - self.target_dis_dir_cur[0])
+
+        reward += self.step_penalty
+
         return reward, done
 
     @staticmethod

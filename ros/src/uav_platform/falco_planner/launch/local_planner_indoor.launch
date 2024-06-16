@@ -82,8 +82,8 @@
     <param name="trackPitch" type="double" value="0" />
     <param name="lookAheadScale" type="double" value="0.2" />
     <param name="minLookAheadDis" type="double" value="0.2" />
-    <param name="minSpeed" type="double" value="1.7" />
-    <param name="maxSpeed" type="double" value="1.7" /> 
+    <param name="minSpeed" type="double" value="2.2" />   <!--1.7-->
+    <param name="maxSpeed" type="double" value="2.2" />   <!--1.7-->
     <param name="accXYGain" type="double" value="0.05" />
     <param name="velXYGain" type="double" value="0.4" />
     <param name="posXYGain" type="double" value="0.05" />
@@ -102,14 +102,14 @@
     <param name="manualSpeedXY" type="double" value="2.0" />
     <param name="manualSpeedZ" type="double" value="1.0" />
     <param name="manualYawRate" type="double" value="60.0" />
-    <param name="slowTurnRate" type="double" value="0.75" />
-    <param name="minSlowTurnCurv" type="double" value="0.9" />
-    <param name="minSlowTurnInterval" type="double" value="1.0" />
-    <param name="minStopRotInterval" type="double" value="1.0" />
+    <param name="slowTurnRate" type="double" value="0.75" />  <!--0.75-->
+    <param name="minSlowTurnCurv" type="double" value="0.9" />  <!---->
+    <param name="minSlowTurnInterval" type="double" value="1.0" />  <!---->
+    <param name="minStopRotInterval" type="double" value="1.0" />  <!---->
     <param name="stopRotDelayTime" type="double" value="0" />
     <param name="stopRotDis" type="double" value="1.0" />
-    <param name="stopRotYaw1" type="double" value="90.0" />
-    <param name="stopRotYaw2" type="double" value="10.0" />
+    <param name="stopRotYaw1" type="double" value="160.0" />  <!-- which direction difference will trigger stop-rotate , original: 90 -->  
+    <param name="stopRotYaw2" type="double" value="10.0" />  <!---->
     <param name="stopDis" value="$(arg stopDis)" />
     <param name="slowDis" type="double" value="2.0" />
     <param name="joyDeadband" type="double" value="0.1" />

@@ -36,17 +36,17 @@ class Args:
     """the name of the environment"""
     num_episodes: int = 1000
     """total episodes of the experiments"""
-    max_episode_steps: int = 128
+    max_episode_steps: int = 64
     """the number of steps in one episode"""
-    buffer_size: int = int(1e6)
+    buffer_size: int = int(1e4)
     """the replay memory buffer size"""
-    gamma: float = 0.99
+    gamma: float = 1
     """the discount factor gamma"""
     tau: float = 0.005
     """target smoothing coefficient"""
-    batch_size: int = 256
+    batch_size: int = 48
     """the batch size of sample from the reply memory"""
-    learning_starts: int = 5e3
+    learning_starts: int = 2000
     """timestep to start learning"""
     policy_lr: float = 1e-5
     """the learning rate of the policy network optimizer"""
@@ -72,9 +72,9 @@ class Args:
     """embedding dimension of the attention network"""
 
     # Roadmap env specific parameters
-    k_neighbor_size: int = 25  # 15 in dep.cpp
+    k_neighbor_size: int = 30  # 15 in dep.cpp
     """number of k-nearest neighbors for edge connection"""
-    step_time: float = 4.0
+    step_time: float = 3.0
     """step time duration for executing a command from policy network"""
     coords_norm_coef_: float = 30.
     """coefficient for normalizing node coordinates"""
