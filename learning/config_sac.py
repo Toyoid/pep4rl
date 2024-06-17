@@ -44,7 +44,7 @@ class Args:
     """the discount factor gamma"""
     tau: float = 0.005
     """target smoothing coefficient"""
-    batch_size: int = 48
+    batch_size: int = 64  # 32 seems quite good
     """the batch size of sample from the reply memory"""
     learning_starts: int = 2000
     """timestep to start learning"""
@@ -74,7 +74,7 @@ class Args:
     # Roadmap env specific parameters
     k_neighbor_size: int = 30  # 15 in dep.cpp
     """number of k-nearest neighbors for edge connection"""
-    step_time: float = 3.0
+    step_time: float = 4.0
     """step time duration for executing a command from policy network"""
     coords_norm_coef_: float = 30.
     """coefficient for normalizing node coordinates"""
