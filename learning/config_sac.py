@@ -44,7 +44,7 @@ class Args:
     """the discount factor gamma"""
     tau: float = 0.005
     """target smoothing coefficient"""
-    batch_size: int = 48
+    batch_size: int = 64  # 32 seems quite good
     """the batch size of sample from the reply memory"""
     learning_starts: int = 2000
     """timestep to start learning"""
