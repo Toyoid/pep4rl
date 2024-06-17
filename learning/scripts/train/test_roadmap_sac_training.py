@@ -175,9 +175,11 @@ def main():
                       f"episodic_return={info['episodic_return']}, episodic_length={info['episodic_length']}, "
                       f"success: {info['outcome_statistic']['success']}, "
                       f"collision: {info['outcome_statistic']['collision']}, "
-                      f"timeout: {info['outcome_statistic']['timeout']}\n")
+                      f"timeout: {info['outcome_statistic']['timeout']}, "
+                      f"success rate: {info['outcome_statistic']['success'] / (episode_ita + 1)}%\n")
                 writer.add_scalar("charts/episodic_return", info["episodic_return"], global_step)
                 writer.add_scalar("charts/episodic_length", info["episodic_length"], global_step)
+                writer.add_scalar("charts/success_rate", info['outcome_statistic']['success'] / (episode_ita + 1), global_step)
                 episode_ita += 1
                 break
 
