@@ -63,6 +63,7 @@ class DecisionRoadmapNavEnv:
         self.get_roadmap = rospy.ServiceProxy('/dep/get_roadmap', GetRoadmap)
         self.reset_roadmap = rospy.ServiceProxy('/dep/reset_roadmap', SetRobotPose)
         self.set_robot_pose = rospy.ServiceProxy('/falco_planner/set_robot_pose', SetRobotPose)
+        self.init_rotate_scan = rospy.ServiceProxy('falco_planner/init_rotate_scan_service', Empty)
 
         # Training environment setup
         self.step_time = args.step_time
@@ -181,8 +182,16 @@ class DecisionRoadmapNavEnv:
         except rospy.ServiceException as e:
             print("Reset Roadmap Service Failed: %s" % e)
 
-        # IMPORTANT: sleep for enough time (1.5s) for the robot to scan and gain enough free range to build the roadmap
-        rospy.sleep(2.0)
+        # rotate the robot to get initial scan of the environment
+        rospy.wait_for_service('/falco_planner/init_rotate_scan_service')
+        try:
+            resp = self.init_rotate_scan()
+        except rospy.ServiceException as e:
+            print("Initial Rotate Scan Service Failed: %s" % e)
+        print("[ROS Service Request]: rotate to gain initial scan...")
+        # IMPORTANT: sleep for enough time (>2.0s) for the robot to rotate, scan and gain enough free range to build the roadmap
+        rospy.sleep(2.25)
+
         robot_pose, roadmap_state = self._get_next_state()
         '''
         pause gazebo simulation and transform robot poses to robot observations

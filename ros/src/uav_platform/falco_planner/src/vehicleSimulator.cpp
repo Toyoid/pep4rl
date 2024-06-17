@@ -12,6 +12,7 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <gazebo_msgs/ModelState.h>
+#include <gazebo_msgs/SetModelState.h>
 #include <falco_planner/SetRobotPose.h>
 
 #include <tf/transform_datatypes.h>
@@ -52,6 +53,7 @@ float vehicleRollCmd = 0;
 float vehiclePitchCmd = 0;
 float vehicleYawRate = 0;
 
+ros::ServiceClient setModelState;
 ros::Publisher pubModelState;
 ros::Publisher pubVehicleOdom;
 nav_msgs::Odometry odomData;
@@ -85,6 +87,21 @@ bool setRobotPoseServiceHandler(falco_planner::SetRobotPose::Request& req, falco
   vehiclePitchCmd = 0;
   vehicleYawRate = 0;
 
+  ros::NodeHandle nh;
+  ros::ServiceClient setModelState = nh.serviceClient<gazebo_msgs::SetModelState>("/gazebo/set_model_state");
+
+  // pubModelState.publish(req.robotPose);
+  ros::service::waitForService("/gazebo/set_model_state");
+  gazebo_msgs::SetModelState srv;
+  srv.request.model_state = req.robotPose;
+  if (setModelState.call(srv)) {
+      ROS_INFO("Reset Robot Pose Service Succeeded");
+  } else {
+      ROS_ERROR("Reset Robot Pose Service Failed");
+  }
+  
+  // printf("\n[Vehicle Simulator]: Successfully reset quadcopter pose!\n");
+
   odomData.header.frame_id = "map";
   odomData.child_frame_id = "base_link";  
   odomData.header.stamp = ros::Time::now();
@@ -99,10 +116,6 @@ bool setRobotPoseServiceHandler(falco_planner::SetRobotPose::Request& req, falco
   odomData.twist.twist.linear.y = 0;
   odomData.twist.twist.linear.z = 0;
   pubVehicleOdom.publish(odomData);  
-
-  pubModelState.publish(req.robotPose);
-  
-  printf("\n[Vehicle Simulator]: Successfully reset quadcopter pose!\n");
   
   return true;
 }

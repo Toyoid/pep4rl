@@ -9,6 +9,7 @@
 #include <message_filters/sync_policies/approximate_time.h>
 
 #include <std_msgs/Float32.h>
+#include <std_srvs/Empty.h>  // added by me
 #include <nav_msgs/Path.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/PointStamped.h>
@@ -95,8 +96,11 @@ float odomYawStack[stackNum];
 int odomSendIDPointer = -1;
 int odomRecIDPointer = 0;
 
+
 bool manualMode = true;
 bool autoAdjustMode = false;
+bool RLResetting = false;  // addded by me
+double rotateStartTime;  // added by me
 int stateInitDelay = 100;
 
 bool pathFound = true;
@@ -247,6 +251,26 @@ void stateEstimationHandler(const nav_msgs::Odometry::ConstPtr& odom)
   else if (dirToGoal < -PI) dirToGoal += 2 * PI;
 
   if (autonomyMode) {
+    // rotate to get initial scan of the env
+    if (RLResetting) {
+      double rotateTime = ros::Time::now().toSec();
+      autoAdjustMode = true;
+      if (rotateTime - rotateStartTime < 2.0) {
+        joyFwd = 0;
+        joyLeft = 0;
+        joyUp = 0;
+        joyYaw = 3.4; 
+      } else {
+        joyFwd = 1.0;
+        joyLeft = 0;
+        joyUp = 0;
+        joyYaw = 0;
+
+        RLResetting = false;
+        autoAdjustMode = false;
+      }
+    }
+
     if (odomTime > stopRotTime + minStopRotInterval && disToGoal > stopRotDis && (fabs(dirToGoal) > stopRotYaw1 * PI / 180.0 || 
         (fabs(dirToGoal) > stopRotYaw2 * PI / 180.0 && vehicleSpeed < minSpeed / 2.0)) && !autoAdjustMode) {
       joyFwd = 0;
@@ -720,6 +744,15 @@ void speedHandler(const std_msgs::Float32::ConstPtr& speed)
   }
 }
 
+bool initRotateScanHandler(std_srvs::Empty::Request& req, std_srvs::Empty::Response& resp) 
+{
+  // rotate for a circle to get initial scan of the env after the robot is spawned at a new place
+  RLResetting = true;
+  rotateStartTime = ros::Time::now().toSec();
+
+  return true;
+}
+
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "path_follower");
@@ -826,6 +859,8 @@ int main(int argc, char** argv)
 
   ros::Publisher pubWaypoint = nh.advertise<geometry_msgs::PointStamped> ("/falco_planner/way_point", 0);  
   pubWaypointPointer = &pubWaypoint;
+  
+  ros::ServiceServer initRotateScanService = nh.advertiseService("falco_planner/init_rotate_scan_service", initRotateScanHandler);
 
   tf::TransformBroadcaster tfBroadcaster; 
   tfBroadcasterPointer = &tfBroadcaster;  
