@@ -181,8 +181,8 @@ class DecisionRoadmapNavEnv:
         except rospy.ServiceException as e:
             print("Reset Roadmap Service Failed: %s" % e)
 
-        # IMPORTANT: sleep for enough time (1.0s) for the robot to scan and gain enough free range to build the roadmap
-        rospy.sleep(1.2)
+        # IMPORTANT: sleep for enough time (1.5s) for the robot to scan and gain enough free range to build the roadmap
+        rospy.sleep(2.0)
         robot_pose, roadmap_state = self._get_next_state()
         '''
         pause gazebo simulation and transform robot poses to robot observations
