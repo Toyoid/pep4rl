@@ -13,7 +13,7 @@ Panels:
         - /Marker1/Namespaces1
         - /Path1
       Splitter Ratio: 0.4770458936691284
-    Tree Height: 624
+    Tree Height: 303
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -318,9 +318,7 @@ Visualization Manager:
       Marker Topic: /dep/roadmap
       Name: roadmap
       Namespaces:
-        edge: true
-        num_voxel_text: true
-        prm_point: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -336,8 +334,7 @@ Visualization Manager:
       Marker Topic: /dep/best_paths
       Name: best path
       Namespaces:
-        best_path: true
-        best_path_node: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -564,7 +561,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 18.964561462402344
+      Distance: 35.42735290527344
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -572,17 +569,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 4.634866714477539
-        Y: 3.3903017044067383
-        Z: 4.780172824859619
+        X: 12.164649963378906
+        Y: -0.5560224056243896
+        Z: 5.683411121368408
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.0697968006134033
+      Pitch: 1.449796438217163
       Target Frame: <Fixed Frame>
-      Yaw: 4.716696739196777
+      Yaw: 3.166687250137329
     Saved: ~
 Window Geometry:
   Displays:
@@ -600,5 +597,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1048
-  X: 0
+  X: 72
   Y: 27

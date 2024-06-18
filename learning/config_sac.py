@@ -36,7 +36,7 @@ class Args:
     """the name of the environment"""
     num_episodes: int = 1000
     """total episodes of the experiments"""
-    max_episode_steps: int = 64
+    max_episode_steps: int = 2
     """the number of steps in one episode"""
     buffer_size: int = int(1e4)
     """the replay memory buffer size"""

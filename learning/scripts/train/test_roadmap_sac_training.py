@@ -142,7 +142,7 @@ def main():
 
     # run the experiment
     global_step = 0
-    episode_ita = 0
+    episode_ita = 139   # problematic episodes (cannot rotate): 139->140 (NO), 140 (OK),
     start_time = time.time()
     ''' record the total training time '''
     while episode_ita < args.num_episodes:

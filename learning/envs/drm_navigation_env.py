@@ -119,7 +119,7 @@ class DecisionRoadmapNavEnv:
     def reset(self, ita):
         """
         Reset funtion to start a new episode of the single robot navigation environment
-        :param ita: iteration variable of ended episodes
+        :param ita: iteration variable of current episode number
         :return:
         next_img_obs: np-array (1, 10, 480, 640),
         next_robot_obs: np-array (1, 5)
