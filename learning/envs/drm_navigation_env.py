@@ -181,7 +181,6 @@ class DecisionRoadmapNavEnv:
             resp = self.reset_roadmap(robot_msg)
         except rospy.ServiceException as e:
             print("Reset Roadmap Service Failed: %s" % e)
-
         # rotate the robot to get initial scan of the environment
         rospy.wait_for_service('/falco_planner/init_rotate_scan_service')
         try:
@@ -189,8 +188,8 @@ class DecisionRoadmapNavEnv:
         except rospy.ServiceException as e:
             print("Initial Rotate Scan Service Failed: %s" % e)
         print("[ROS Service Request]: rotate to gain initial scan...")
-        # IMPORTANT: sleep for enough time (>2.0s) for the robot to rotate, scan and gain enough free range to build the roadmap
-        rospy.sleep(2.25)
+        # IMPORTANT: sleep for enough time (>2.2s) for the robot to rotate, scan and gain enough free range to build the roadmap
+        rospy.sleep(2.2)
 
         robot_pose, roadmap_state = self._get_next_state()
         '''

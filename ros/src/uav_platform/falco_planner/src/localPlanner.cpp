@@ -621,9 +621,9 @@ int main(int argc, char** argv)
   nav_msgs::Path path;
 
   #if PLOTPATHSET == 1
-  ros::Publisher pubFreePaths = nh.advertise<sensor_msgs::PointCloud2> ("/falco_planner/free_paths", 0);  // original: 2
+  ros::Publisher pubFreePaths = nh.advertise<sensor_msgs::PointCloud2> ("/falco_planner/free_paths", 2);  
 
-  ros::Publisher pubLaserCloud = nh.advertise<sensor_msgs::PointCloud2> ("/falco_planner/collision_avoidance_cloud", 0);  // original: 2
+  ros::Publisher pubLaserCloud = nh.advertise<sensor_msgs::PointCloud2> ("/falco_planner/collision_avoidance_cloud", 2);  
   #endif
 
   printf ("\nReading path files.\n");

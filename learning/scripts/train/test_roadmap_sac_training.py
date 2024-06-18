@@ -142,7 +142,7 @@ def main():
 
     # run the experiment
     global_step = 0
-    episode_ita = 139   # problematic episodes (cannot rotate): 139->140 (NO), 140 (OK),
+    episode_ita = 299   # problematic episodes (cannot rotate): 139->140 (sometimes NO), 140 (OK)
     start_time = time.time()
     ''' record the total training time '''
     while episode_ita < args.num_episodes:
@@ -179,7 +179,7 @@ def main():
                       f"success rate: {info['outcome_statistic']['success'] / (episode_ita + 1)}%\n")
                 writer.add_scalar("charts/episodic_return", info["episodic_return"], global_step)
                 writer.add_scalar("charts/episodic_length", info["episodic_length"], global_step)
-                writer.add_scalar("charts/success_rate", info['outcome_statistic']['success'] / (episode_ita + 1), global_step)
+                writer.add_scalar("charts/success_rate", info['outcome_statistic']['success'] / (episode_ita - 299 + 1), global_step)
                 episode_ita += 1
                 break
 

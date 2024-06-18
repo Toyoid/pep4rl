@@ -254,53 +254,54 @@ void stateEstimationHandler(const nav_msgs::Odometry::ConstPtr& odom)
     // rotate to get initial scan of the env
     if (RLResetting) {
       double rotateTime = ros::Time::now().toSec();
-      autoAdjustMode = true;
-      if (rotateTime - rotateStartTime < 2.0) {
+      if (autoAdjustMode) {
+        if (rotateTime - rotateStartTime < 2.2) {
+          joyFwd = 0;
+          joyLeft = 0;
+          joyUp = 0;
+          joyYaw = 3.3;  
+        } else {
+          joyFwd = 1.0;
+          joyLeft = 0;
+          joyUp = 0;
+          joyYaw = 0;
+
+          RLResetting = false;
+          autoAdjustMode = false;
+        }
+      }
+    } else {
+      // if not RLResetting
+      if (odomTime > stopRotTime + minStopRotInterval && disToGoal > stopRotDis && (fabs(dirToGoal) > stopRotYaw1 * PI / 180.0 || 
+          (fabs(dirToGoal) > stopRotYaw2 * PI / 180.0 && vehicleSpeed < minSpeed / 2.0)) && !autoAdjustMode) {
         joyFwd = 0;
-        joyLeft = 0;
-        joyUp = 0;
-        joyYaw = 3.4; 
-      } else {
-        joyFwd = 1.0;
         joyLeft = 0;
         joyUp = 0;
         joyYaw = 0;
 
-        RLResetting = false;
-        autoAdjustMode = false;
+        stopRotTime = odomTime;
+        if (vehicleSpeed < minSpeed / 2.0) stopRotTime -= stopRotDelayTime;
+
+        autoAdjustMode = true;
+      }
+
+      if (odomTime > stopRotTime + stopRotDelayTime && autoAdjustMode) {
+        if (fabs(dirToGoal) > stopRotYaw2 * PI / 180.0) {
+          joyFwd = 0;
+          joyLeft = 0;
+          joyUp = 0;
+          if (dirToGoal < 0) joyYaw = -2.8;  // The stop rotate velocity, original: -1.0
+          else joyYaw = 2.8;  // The stop rotate velocity, original: 1.0
+        } else {
+          joyFwd = 1.0;
+          joyLeft = 0;
+          joyUp = 0;
+          joyYaw = 0;
+
+          autoAdjustMode = false;  
+        }
       }
     }
-
-    if (odomTime > stopRotTime + minStopRotInterval && disToGoal > stopRotDis && (fabs(dirToGoal) > stopRotYaw1 * PI / 180.0 || 
-        (fabs(dirToGoal) > stopRotYaw2 * PI / 180.0 && vehicleSpeed < minSpeed / 2.0)) && !autoAdjustMode) {
-      joyFwd = 0;
-      joyLeft = 0;
-      joyUp = 0;
-      joyYaw = 0;
-
-      stopRotTime = odomTime;
-      if (vehicleSpeed < minSpeed / 2.0) stopRotTime -= stopRotDelayTime;
-
-      autoAdjustMode = true;
-    }
-
-    if (odomTime > stopRotTime + stopRotDelayTime && autoAdjustMode) {
-      if (fabs(dirToGoal) > stopRotYaw2 * PI / 180.0) {
-        joyFwd = 0;
-        joyLeft = 0;
-        joyUp = 0;
-        if (dirToGoal < 0) joyYaw = -2.8;  // The stop rotate velocity, original: -1.0
-        else joyYaw = 2.8;  // The stop rotate velocity, original: 1.0
-      } else {
-        joyFwd = 1.0;
-        joyLeft = 0;
-        joyUp = 0;
-        joyYaw = 0;
-
-        autoAdjustMode = false;
-      }
-    }
-
     if (odomTime - autoModeTime > 0.0667) {
       if (autoAdjustMode) autoMode.data = -1.0;
       else autoMode.data = desiredSpeed / maxSpeed;
@@ -309,7 +310,7 @@ void stateEstimationHandler(const nav_msgs::Odometry::ConstPtr& odom)
       autoModeTime = odomTime;
     }
   } else {
-    autoAdjustMode = false;
+    autoAdjustMode = false;  
   }
 
   if (manualMode || (autonomyMode && autoAdjustMode)) {
@@ -704,16 +705,17 @@ void joystickHandler(const sensor_msgs::Joy::ConstPtr& joy)
   if (joy->axes[5] < -0.1) {
     manualMode = true;
     autonomyMode = false;  
-    autoAdjustMode = false;
+    autoAdjustMode = false; 
   } else {
     manualMode = false;
 
     if (joy->axes[2] < -0.1) {
+      // enter this branch when clicking a waypoint in rviz, at other times autonomyMode stays true, won't be changed
       if (!autonomyMode) joyFwd = 1.0;
-      autonomyMode = true;
+      autonomyMode = true;   
     } else {
       autonomyMode = false;  
-      autoAdjustMode = false;
+      autoAdjustMode = false;  
     }
   }
 
@@ -748,6 +750,7 @@ bool initRotateScanHandler(std_srvs::Empty::Request& req, std_srvs::Empty::Respo
 {
   // rotate for a circle to get initial scan of the env after the robot is spawned at a new place
   RLResetting = true;
+  autoAdjustMode = true;
   rotateStartTime = ros::Time::now().toSec();
 
   return true;
