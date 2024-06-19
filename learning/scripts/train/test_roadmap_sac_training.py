@@ -292,14 +292,21 @@ def main():
                 # save net parameters
                 if args.save_model:
                     if global_step % args.model_save_frequency == 0:
+                        save_dir = f"{args.model_path}/drm_nav"
+                        try:
+                            os.mkdir(save_dir)
+                            print("[Save Model]: Directory ", save_dir, " Created")
+                        except FileExistsError:
+                            print("[Save Model]: Directory", save_dir, " already exists")
+
                         checkpoint = {"actor_network": actor.state_dict(),
                                       "qf1_network": qf1.state_dict(),
                                       "qf2_network": qf2.state_dict(),
                                       "log_alpha": log_alpha,
                                       }
-                        path_checkpoint = f"{args.model_path}/drm_nav/checkpoint_{episode_ita}.pth"
+                        path_checkpoint = f"{save_dir}/checkpoint_{episode_ita}.pth"
                         torch.save(checkpoint, path_checkpoint)
-                        print(f'[Save Model]: Saved model on episode {episode_ita} \n')
+                        print(f'[Save Model]: Model weights on episode {episode_ita} saved \n')
 
                 # record training data
                 if global_step % 100 == 0:
