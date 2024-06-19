@@ -142,7 +142,7 @@ def main():
 
     # run the experiment
     global_step = 0
-    episode_ita = 299   # problematic episodes (cannot rotate): 139->140 (sometimes NO), 140 (OK)
+    episode_ita = 450
     start_time = time.time()
     ''' record the total training time '''
     while episode_ita < args.num_episodes:
@@ -176,10 +176,10 @@ def main():
                       f"success: {info['outcome_statistic']['success']}, "
                       f"collision: {info['outcome_statistic']['collision']}, "
                       f"timeout: {info['outcome_statistic']['timeout']}, "
-                      f"success rate: {info['outcome_statistic']['success'] / (episode_ita + 1)}%\n")
+                      f"success rate: {info['outcome_statistic']['success'] / (episode_ita - 450 + 1)}%\n")
                 writer.add_scalar("charts/episodic_return", info["episodic_return"], global_step)
                 writer.add_scalar("charts/episodic_length", info["episodic_length"], global_step)
-                writer.add_scalar("charts/success_rate", info['outcome_statistic']['success'] / (episode_ita - 299 + 1), global_step)
+                writer.add_scalar("charts/success_rate", info['outcome_statistic']['success'] / (episode_ita - 450 + 1), global_step)
                 episode_ita += 1
                 break
 
@@ -292,15 +292,14 @@ def main():
                 # save net parameters
                 if args.save_model:
                     if global_step % args.model_save_frequency == 0:
-                        print('Saving model', end='\n')
                         checkpoint = {"actor_network": actor.state_dict(),
                                       "qf1_network": qf1.state_dict(),
                                       "qf2_network": qf2.state_dict(),
                                       "log_alpha": log_alpha,
                                       }
-                        path_checkpoint = f"{args.model_path}/drm/checkpoint_{episode_ita}.pth"
+                        path_checkpoint = f"{args.model_path}/drm_nav/checkpoint_{episode_ita}.pth"
                         torch.save(checkpoint, path_checkpoint)
-                        print('Saved model', end='\n')
+                        print(f'[Save Model]: Saved model on episode {episode_ita} \n')
 
                 # record training data
                 if global_step % 100 == 0:

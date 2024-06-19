@@ -25,10 +25,10 @@ class Args:
     """the entity (team) of wandb's project"""
     capture_video: lambda x: bool(strtobool(x)) = False
     """whether to capture videos of the agent performances (check out `videos` folder)"""
-    save_model: lambda x: bool(strtobool(x)) = False
+    save_model: lambda x: bool(strtobool(x)) = True
     """whether to save model into the `runs/{run_name}` folder"""
     current_dir = os_path.dirname(os_path.abspath(__file__))
-    model_path: str = current_dir + "/model_weights/"
+    model_path: str = current_dir + "/model_weights"
     """path to the weights of policy network"""
 
     # Algorithm specific parameters
@@ -36,7 +36,7 @@ class Args:
     """the name of the environment"""
     num_episodes: int = 1000
     """total episodes of the experiments"""
-    max_episode_steps: int = 64
+    max_episode_steps: int = 48
     """the number of steps in one episode"""
     buffer_size: int = int(1e4)
     """the replay memory buffer size"""

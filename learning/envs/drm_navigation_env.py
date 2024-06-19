@@ -10,7 +10,7 @@ import rospy
 
 from geometry_msgs.msg import PointStamped, PoseStamped
 from nav_msgs.msg import Odometry
-from gazebo_msgs.msg import ModelState, ContactsState
+from gazebo_msgs.msg import ModelState  #, ContactsState
 from gazebo_msgs.srv import SetModelState
 from std_srvs.srv import Empty
 from global_planner.srv import GetRoadmap
@@ -31,7 +31,7 @@ class DecisionRoadmapNavEnv:
                  collision_reward=-20,
                  step_penalty_reward=-0.5,
                  goal_dis_amp=1/64.,
-                 goal_near_th=0.4,
+                 goal_near_th=0.6,
                  env_height_range=[0.2,2.5],
                  goal_dis_scale=1.0,
                  goal_dis_min_dis=0.3,
@@ -47,11 +47,11 @@ class DecisionRoadmapNavEnv:
         # Robot messages
         self.odom = None
         self.robot_odom_init = False
-        self.contact_sensor_init = False
+        # self.contact_sensor_init = False
 
         # Subscriber
         self.odom_sub = rospy.Subscriber("/CERLAB/quadcopter/odom", Odometry, self._odom_callback)
-        self.contact_state_sub = rospy.Subscriber("/quadcopter/bumper_states", ContactsState, self._collision_callback)
+        # self.contact_state_sub = rospy.Subscriber("/quadcopter/bumper_states", ContactsState, self._collision_callback)
         # Publisher
         # self.drone_pose_pub = rospy.Publisher("/CERLAB/quadcopter/setpoint_pose", PoseStamped, queue_size=10)  # subscribed by /gazebo
         self.current_goal_pub = rospy.Publisher("/agent/current_goal", PointStamped, queue_size=5)
@@ -94,8 +94,8 @@ class DecisionRoadmapNavEnv:
 
         # information of interaction between agent and environment
         self.ita_in_episode = None
-        self.robot_collision = False
-        self.contact_info = None
+        # self.robot_collision = False
+        # self.contact_info = None
         self.info = {
             "episodic_return": 0.0,
             "episodic_length": 0,
@@ -111,9 +111,9 @@ class DecisionRoadmapNavEnv:
         while not self.robot_odom_init:
             continue
         rospy.loginfo("Finish Odom Subscriber Init...")
-        while not self.contact_sensor_init:
-            continue
-        rospy.loginfo("Finish Contact Sensor Subscriber Init...")
+        # while not self.contact_sensor_init:
+        #     continue
+        # rospy.loginfo("Finish Contact Sensor Subscriber Init...")
         rospy.loginfo("Subscriber Initialization Finished!")
 
     def reset(self, ita):
@@ -132,7 +132,7 @@ class DecisionRoadmapNavEnv:
         assert self.init_target_array is not None
         assert ita < self.init_robot_array.shape[0]
         self.ita_in_episode = 0
-        self.robot_collision = False  # initialize collision state at the start of an episode
+        # self.robot_collision = False  # initialize collision state at the start of an episode
         self.info["episodic_return"] = 0.0
         self.info["episodic_length"] = 0
         self.info["episodic_outcome"] = None
@@ -246,12 +246,17 @@ class DecisionRoadmapNavEnv:
         self.current_goal_pub.publish(goal)
         execute_start_time = rospy.get_time()
         goal_switch_flag = False
-        while not (goal_switch_flag or rospy.is_shutdown()):
+        target_reach_flag = False
+        while not (goal_switch_flag or target_reach_flag or rospy.is_shutdown()):
             dis = math.sqrt((self.odom.pose.pose.position.x - goal.point.x) ** 2 +
                             (self.odom.pose.pose.position.y - goal.point.y) ** 2 +
                             (self.odom.pose.pose.position.z - goal.point.z) ** 2)
             goal_switch_flag = (dis <= 0.9) or ((rospy.get_time() - execute_start_time) >= self.step_time)
-                               # (self.odom.twist.twist.linear.x < 0.05 and self.odom.twist.twist.angular.z < 0.05)
+
+            target_dis = math.sqrt((self.odom.pose.pose.position.x - self.target_position[0]) ** 2 +
+                                   (self.odom.pose.pose.position.y - self.target_position[1]) ** 2 +
+                                   (self.odom.pose.pose.position.z - self.target_position[2]) ** 2)
+            target_reach_flag = (target_dis <= self.goal_near_th)
 
         robot_pose, roadmap_state = self._get_next_state()
         '''
@@ -265,11 +270,17 @@ class DecisionRoadmapNavEnv:
         except rospy.ServiceException as e:
             print("Pause Service Failed: %s" % e)
 
-        goal_dis, goal_dir = self._compute_dis_dir_2_goal(robot_pose)
-        self.target_dis_dir_cur = [goal_dis, goal_dir]
-        reward, done = self._compute_reward(robot_pose)
-
-        self.target_dis_dir_pre = [self.target_dis_dir_cur[0], self.target_dis_dir_cur[1]]
+        if target_reach_flag:
+            reward = self.goal_reward + self.step_penalty
+            done = True
+            self.info["episodic_outcome"] = "success"
+            self.info["outcome_statistic"]["success"] += 1
+            print("[Episodic Outcome]: Goal achieved!")
+        else:
+            target_dis, target_dir = self._compute_dis_dir_2_goal(robot_pose)
+            self.target_dis_dir_cur = [target_dis, target_dir]
+            reward, done = self._compute_reward(robot_pose)
+            self.target_dis_dir_pre = [self.target_dis_dir_cur[0], self.target_dis_dir_cur[1]]
 
         self.info["episodic_return"] += reward
         self.info["episodic_length"] += 1
@@ -280,9 +291,9 @@ class DecisionRoadmapNavEnv:
         return roadmap_state, reward, done, self.info
 
     def _get_next_state(self):
-        # Get Collision State
-        if self.contact_info:
-            self.robot_collision = True
+        # # Get Collision State
+        # if self.contact_info:
+        #     self.robot_collision = True
 
         # Get Robot Pose
         # compute yaw from quaternion
@@ -492,12 +503,12 @@ class DecisionRoadmapNavEnv:
             self.info["episodic_outcome"] = "success"
             self.info["outcome_statistic"]["success"] += 1
             print("[Episodic Outcome]: Goal achieved!")
-        elif self.robot_collision:
-            reward = self.collision_reward
-            done = True
-            self.info["episodic_outcome"] = "collision"
-            self.info["outcome_statistic"]["collision"] += 1
-            print("[Episodic Outcome]: Collides with obstacles!")
+        # elif self.robot_collision:
+        #     reward = self.collision_reward
+        #     done = True
+        #     self.info["episodic_outcome"] = "collision"
+        #     self.info["outcome_statistic"]["collision"] += 1
+        #     print("[Episodic Outcome]: Collides with obstacles!")
         elif (robot_pose[2] <= self.env_height_range[0]) or (robot_pose[2] >= self.env_height_range[1]):
             reward = self.collision_reward
             done = True
@@ -582,13 +593,13 @@ class DecisionRoadmapNavEnv:
             self.robot_odom_init = True
         self.odom = odom
 
-    def _collision_callback(self, contact_msg):
-        if self.contact_sensor_init is False:
-            self.contact_sensor_init = True
-        if contact_msg.states:
-            self.contact_info = contact_msg.states[-1].info
-        else:
-            self.contact_info = None
+    # def _collision_callback(self, contact_msg):
+    #     if self.contact_sensor_init is False:
+    #         self.contact_sensor_init = True
+    #     if contact_msg.states:
+    #         self.contact_info = contact_msg.states[-1].info
+    #     else:
+    #         self.contact_info = None
 
 
 
