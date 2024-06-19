@@ -92,7 +92,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.10000000149011612
       Style: Flat Squares
-      Topic: /occupancy_map/inflated_voxel_map
+      Topic: /occupancy_map/voxel_map
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -318,7 +318,9 @@ Visualization Manager:
       Marker Topic: /dep/roadmap
       Name: roadmap
       Namespaces:
-        {}
+        edge: true
+        num_voxel_text: true
+        prm_point: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -334,7 +336,8 @@ Visualization Manager:
       Marker Topic: /dep/best_paths
       Name: best path
       Namespaces:
-        {}
+        best_path: true
+        best_path_node: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -561,7 +564,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 35.42735290527344
+      Distance: 17.939186096191406
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -569,9 +572,9 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 12.164649963378906
-        Y: -0.5560224056243896
-        Z: 5.683411121368408
+        X: -7.7307329177856445
+        Y: -8.01168155670166
+        Z: 3.242276668548584
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
@@ -597,5 +600,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1048
-  X: 0
+  X: 72
   Y: 27
