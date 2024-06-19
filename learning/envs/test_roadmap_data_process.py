@@ -5,9 +5,11 @@ import rospy
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import PointStamped
 from global_planner.srv import GetRoadmap
+from std_srvs.srv import Empty
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
+import math
 from scipy.spatial import KDTree
 import torch
 from copy import deepcopy
@@ -20,12 +22,13 @@ node_coords_ = None
 edge_inputs_ = None
 route_node_ = []
 target_position_ = [-7., -7.]
+robot_position_ = []
 greedy_ = True
 input_dim_ = 7
 embedding_dim_ = 128
 coords_norm_coef_ = 30.
 utility_norm_coef_ = 4000.
-use_node_padding_ = True
+use_node_padding_ = False
 node_padding_size_ = 20
 k_neighbor_size = 20
 current_dir = os_path.dirname(os_path.abspath(__file__))
@@ -51,6 +54,7 @@ if __name__ == "__main__":
     rospy.init_node('test_roadmap_service_node')
     odom_sub = rospy.Subscriber("/CERLAB/quadcopter/odom", Odometry, odom_callback)
     get_roadmap = rospy.ServiceProxy('/dep/get_roadmap', GetRoadmap)
+    escape_stuck = rospy.ServiceProxy('/falco_planner/escape_stuck_service', Empty)
     # current_goal_pub = rospy.Publisher("/falco_planner/way_point", PointStamped, queue_size=5)
     current_goal_pub = rospy.Publisher("/agent/current_goal", PointStamped, queue_size=5)
 
@@ -253,8 +257,8 @@ if __name__ == "__main__":
         selected_node_idx = edge_inputs_[0, 0, action_index.item()]  # tensor(scalar)
 
         print(f"Step: {global_step}")
-        print(f"Current Node Position: {node_coords_[current_node_idx, 0], node_coords_[current_node_idx, 1]}")
-        print(f"Selected Node Index: {selected_node_idx}")
+        # print(f"Current Node Position: {node_coords_[current_node_idx, 0], node_coords_[current_node_idx, 1]}")
+        # print(f"Selected Node Index: {selected_node_idx}")
         print(" ")
 
         selected_node_pos = node_coords_[selected_node_idx]  # np.array(2,)
@@ -326,7 +330,19 @@ if __name__ == "__main__":
         ax2.add_patch(selection)
         plot_patch_list2.append(selection)
 
-        plt.pause(8)
+        robot_position_ = [odom_.pose.pose.position.x, odom_.pose.pose.position.y, odom_.pose.pose.position.z]
+        plt.pause(3.5)
+
+        dis = math.sqrt((odom_.pose.pose.position.x - robot_position_[0]) ** 2 +
+                        (odom_.pose.pose.position.y - robot_position_[1]) ** 2 +
+                        (odom_.pose.pose.position.z - robot_position_[2]) ** 2)
+        if dis <= 0.15:
+            rospy.wait_for_service('/falco_planner/escape_stuck_service')
+            try:
+                resp = escape_stuck()
+            except rospy.ServiceException as e:
+                print("Escape Stuck Service Failed: %s" % e)
+            print("[ROS Service Request]: adjusting robot to escape stuck...")
 
         # clear figure
         [line.pop(0).remove() for line in plot_line_list1]

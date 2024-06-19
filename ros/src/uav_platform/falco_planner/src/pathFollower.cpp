@@ -101,6 +101,7 @@ bool manualMode = true;
 bool autoAdjustMode = false;
 bool RLResetting = false;  // addded by me
 double rotateStartTime;  // added by me
+bool escapeStuck = false;
 int stateInitDelay = 100;
 
 bool pathFound = true;
@@ -270,8 +271,24 @@ void stateEstimationHandler(const nav_msgs::Odometry::ConstPtr& odom)
           autoAdjustMode = false;
         }
       }
+    } else if (escapeStuck) {
+      if (!pathFound) {
+        joyFwd = -0.1;
+        joyLeft = 0;
+        joyUp = 0;
+        joyYaw = 1.5;
+      } else {
+        printf("[Local Planner]: Escaping stuck completed!\n");
+        joyFwd = 1.0;
+        joyLeft = 0;
+        joyUp = 0;
+        joyYaw = 0;
+
+        escapeStuck = false;
+        autoAdjustMode = false;
+      }
     } else {
-      // if not RLResetting
+      // if not RLResetting and pathFound
       if (odomTime > stopRotTime + minStopRotInterval && disToGoal > stopRotDis && (fabs(dirToGoal) > stopRotYaw1 * PI / 180.0 || 
           (fabs(dirToGoal) > stopRotYaw2 * PI / 180.0 && vehicleSpeed < minSpeed / 2.0)) && !autoAdjustMode) {
         joyFwd = 0;
@@ -756,6 +773,15 @@ bool initRotateScanHandler(std_srvs::Empty::Request& req, std_srvs::Empty::Respo
   return true;
 }
 
+bool escapeStuckHandler(std_srvs::Empty::Request& req, std_srvs::Empty::Response& resp) 
+{
+  // move back to find available path
+  escapeStuck = true;
+  autoAdjustMode = true;
+
+  return true;
+}
+
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "path_follower");
@@ -864,6 +890,8 @@ int main(int argc, char** argv)
   pubWaypointPointer = &pubWaypoint;
   
   ros::ServiceServer initRotateScanService = nh.advertiseService("falco_planner/init_rotate_scan_service", initRotateScanHandler);
+
+  ros::ServiceServer escapeStuckService = nh.advertiseService("falco_planner/escape_stuck_service", escapeStuckHandler);
 
   tf::TransformBroadcaster tfBroadcaster; 
   tfBroadcasterPointer = &tfBroadcaster;  
