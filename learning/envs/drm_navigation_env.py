@@ -64,6 +64,7 @@ class DecisionRoadmapNavEnv:
         self.reset_roadmap = rospy.ServiceProxy('/dep/reset_roadmap', SetRobotPose)
         self.set_robot_pose = rospy.ServiceProxy('/falco_planner/set_robot_pose', SetRobotPose)
         self.init_rotate_scan = rospy.ServiceProxy('falco_planner/init_rotate_scan_service', Empty)
+        self.escape_stuck = rospy.ServiceProxy('falco_planner/escape_stuck_service', Empty)
 
         # Training environment setup
         self.step_time = args.step_time
@@ -244,6 +245,8 @@ class DecisionRoadmapNavEnv:
         goal.point.y = selected_node_pos[1]
         goal.point.z = 1.0
         self.current_goal_pub.publish(goal)
+
+        robot_position = [self.odom.pose.pose.position.x, self.odom.pose.pose.position.y, self.odom.pose.pose.position.z]
         execute_start_time = rospy.get_time()
         goal_switch_flag = False
         target_reach_flag = False
@@ -258,6 +261,19 @@ class DecisionRoadmapNavEnv:
                                    (self.odom.pose.pose.position.z - self.target_position[2]) ** 2)
             target_reach_flag = (target_dis <= self.goal_near_th)
 
+        # check whether local planner get stuck
+        robot_move = math.sqrt((self.odom.pose.pose.position.x - robot_position[0]) ** 2 +
+                               (self.odom.pose.pose.position.y - robot_position[1]) ** 2 +
+                               (self.odom.pose.pose.position.z - robot_position[2]) ** 2)
+        if robot_move <= 0.15:
+            rospy.wait_for_service('/falco_planner/escape_stuck_service')
+            try:
+                resp = self.escape_stuck()
+            except rospy.ServiceException as e:
+                print("Escape Stuck Service Failed: %s" % e)
+            print("[ROS Service Request]: adjusting robot to escape stuck...")
+
+        # get next state
         robot_pose, roadmap_state = self._get_next_state()
         '''
         Then pause the simulation
