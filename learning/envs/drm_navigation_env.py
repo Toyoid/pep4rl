@@ -41,8 +41,13 @@ class DecisionRoadmapNavEnv:
         # # Action space:
         # self.action_space = (3,)
 
-        # get initial robot and goal pose list in training_worlds.world
-        self.init_robot_array, self.init_target_array = self._get_init_robot_goal("Rand_R1")
+        self.is_train = is_train
+        if self.is_train:
+            # get initial robot and goal pose list in training_worlds.world
+            self.init_robot_array, self.init_target_array = self._get_init_robot_goal("Rand_R1")
+        else:
+            # get initial robot and goal pose list in dense_worlds.world
+            self.init_robot_array, self.init_target_array = self._get_init_robot_goal("eval_positions")
 
         # Robot messages
         self.odom = None
@@ -86,7 +91,6 @@ class DecisionRoadmapNavEnv:
         self.edge_inputs = None
         self.node_coords = None
         self.route_node = []
-        self.is_train = is_train
         self.device = device
         self.k_neighbor_size = args.k_neighbor_size
         self.coords_norm_coef_ = args.coords_norm_coef_
@@ -544,32 +548,48 @@ class DecisionRoadmapNavEnv:
 
         return reward, done
 
-    @staticmethod
-    def _get_init_robot_goal(rand_name):
+    def _get_init_robot_goal(self, rand_name):
         # Read Random Start Pose and Goal Position based on random name
         from os import path as os_path
         current_dir = os_path.dirname(os_path.abspath(__file__))
-        overall_list_xy = pickle.load(open(current_dir + "/random_positions/" + rand_name + ".p", "rb"))
+        f = open(current_dir + "/random_positions/" + rand_name + ".p", "rb")
+        overall_list_xy = pickle.load(f)
+        f.close()
         overall_robot_list_xy = overall_list_xy[0]
         overall_goal_list_xy = overall_list_xy[1]
-        print(f"Use Random Start and Goal Positions [{rand_name}] for training...")
+        print(f"Use Random Start and Goal Positions [{rand_name}] ...")
 
-        overall_init_z = np.array([1.0] * 1000)
-        overall_robot_array = np.zeros((1000, 4))
-        overall_goal_array = np.zeros((1000, 3))
-        env_idx = 0
-        for i in range(overall_goal_list_xy.__len__()):
-            init_robot_xy = np.array(overall_robot_list_xy[i])
-            init_goal_xy = np.array(overall_goal_list_xy[i])
+        init_drone_height = 1.0
+        if self.is_train:
+            num_episodes = 1000
+        else:
+            num_episodes = 200
 
-            init_robot_pose = np.insert(init_robot_xy, 2, overall_init_z[env_idx: env_idx + init_goal_xy.shape[0]],
-                                        axis=1)
-            init_goal_pos = np.insert(init_goal_xy, 2, overall_init_z[env_idx: env_idx + init_goal_xy.shape[0]], axis=1)
+        overall_init_z = np.array([init_drone_height] * num_episodes)
 
-            overall_robot_array[env_idx: env_idx + init_goal_xy.shape[0]] = init_robot_pose
-            overall_goal_array[env_idx: env_idx + init_goal_xy.shape[0]] = init_goal_pos
+        if self.is_train:
+            overall_robot_array = np.zeros((num_episodes, 4))
+            overall_goal_array = np.zeros((num_episodes, 3))
+            env_idx = 0
+            for i in range(overall_goal_list_xy.__len__()):
+                init_robot_xy = np.array(overall_robot_list_xy[i])
+                init_goal_xy = np.array(overall_goal_list_xy[i])
 
-            env_idx += init_goal_xy.shape[0]
+                init_robot_pose = np.insert(init_robot_xy, 2, overall_init_z[env_idx: env_idx + init_goal_xy.shape[0]],
+                                            axis=1)
+                init_goal_pos = np.insert(init_goal_xy, 2, overall_init_z[env_idx: env_idx + init_goal_xy.shape[0]],
+                                          axis=1)
+
+                overall_robot_array[env_idx: env_idx + init_goal_xy.shape[0]] = init_robot_pose
+                overall_goal_array[env_idx: env_idx + init_goal_xy.shape[0]] = init_goal_pos
+
+                env_idx += init_goal_xy.shape[0]
+        else:
+            init_robot_xy = np.array(overall_robot_list_xy)
+            init_goal_xy = np.array(overall_goal_list_xy)
+
+            overall_robot_array = np.insert(init_robot_xy, 2, overall_init_z[:], axis=1)
+            overall_goal_array = np.insert(init_goal_xy, 2, overall_init_z[:], axis=1)
 
         return overall_robot_array, overall_goal_array
 

@@ -12,29 +12,29 @@ from envs.drm_navigation_env import DecisionRoadmapNavEnv
 from algorithm.attention_networks import PolicyNet
 
 
-def get_time_str():
-    date_time = datetime.fromtimestamp(time.time())
-    formatted_date_time = date_time.strftime('%Y%m%d%H%M%S')
-    return formatted_date_time
+# def get_time_str():
+#     date_time = datetime.fromtimestamp(time.time())
+#     formatted_date_time = date_time.strftime('%Y%m%d%H%M%S')
+#     return formatted_date_time
 
 
 def main():
     args = get_config()
-    args.exp_name = os.path.basename(__file__)[: -len(".py")]
-    run_name = f"{args.env_name}__{args.exp_name}__seed-{args.seed}__{get_time_str()}"
+    # args.exp_name = os.path.basename(__file__)[: -len(".py")]
+    # run_name = f"{args.env_name}__{args.exp_name}__seed-{args.seed}__{get_time_str()}"
     # init logger
-    if args.use_wandb:
-        import wandb
-
-        wandb.init(
-            project=args.wandb_project_name,
-            entity=args.wandb_entity,
-            sync_tensorboard=True,
-            config=vars(args),
-            name=run_name,
-            monitor_gym=False,
-            save_code=True,
-        )
+    # if args.use_wandb:
+    #     import wandb
+    #
+    #     wandb.init(
+    #         project=args.wandb_project_name,
+    #         entity=args.wandb_entity,
+    #         sync_tensorboard=True,
+    #         config=vars(args),
+    #         name=run_name,
+    #         monitor_gym=False,
+    #         save_code=True,
+    #     )
 
     # seeding
     random.seed(args.seed)
@@ -45,14 +45,11 @@ def main():
     if args.cuda and torch.cuda.is_available():
         print("choose to use gpu...")
         device = torch.device("cuda:0")
-        torch.set_num_threads(args.n_training_threads)
-        if args.cuda_deterministic:
-            torch.backends.cudnn.benchmark = False
-            torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.deterministic = args.cuda_deterministic
     else:
         print("choose to use cpu...")
         device = torch.device("cpu")
-        torch.set_num_threads(args.n_training_threads)
+    torch.set_num_threads(args.n_training_threads)
 
     # env setup
     rospy.init_node("decision_roadmap_agent")
@@ -60,10 +57,10 @@ def main():
 
     # load attention policy network
     policy = PolicyNet(args.input_dim, args.embedding_dim).to(device)
-    if device == 'cuda':
-        checkpoint = torch.load(f'{args.model_path}/context_aware_nav/checkpoint.pth')
+    if device == 'cpu':
+        checkpoint = torch.load(f'{args.model_path}/drm_nav/checkpoint_976.pth', map_location=torch.device('cpu'))
     else:
-        checkpoint = torch.load(f'{args.model_path}/checkpoint.pth', map_location=torch.device('cpu'))
+        checkpoint = torch.load(f'{args.model_path}/drm_nav/checkpoint_976.pth')
     policy.load_state_dict(checkpoint['policy_model'])
 
     np.set_printoptions(precision=3)
@@ -73,39 +70,39 @@ def main():
     episode_ita = 0
     start_time = time.time()
     ''' record the total training time '''
-    next_roadmap_state = envs.reset(episode_ita)  # need seeding?
-    next_done = torch.zeros(args.num_envs).to(device)  # (1,)
-
     while episode_ita < args.num_episodes:
-        # interact with the environment and collect data
-        # for step in range(0, args.num_steps):
+        roadmap_state = envs.reset(episode_ita)
         while not rospy.is_shutdown():
-            global_step += args.num_envs
-
-            node_inputs, edge_inputs, current_index, node_padding_mask, edge_padding_mask, edge_mask = next_roadmap_state
+            global_step += 1
+            node_inputs, edge_inputs, current_index, node_padding_mask, edge_padding_mask, edge_mask = roadmap_state
             with torch.no_grad():
-                logp_list = policy(node_inputs, edge_inputs, current_index, node_padding_mask, edge_padding_mask, edge_mask)
+                log_pi_list = policy(node_inputs, edge_inputs, current_index, node_padding_mask, edge_padding_mask, edge_mask)
 
             if args.greedy:
-                action_index = torch.argmax(logp_list, dim=1).long()
+                action_index = torch.argmax(log_pi_list, dim=1).long()
             else:
-                action_index = torch.multinomial(logp_list.exp(), 1).long().squeeze(1)
+                action_index = torch.multinomial(log_pi_list.exp(), 1).long().squeeze(1)
 
             # execute the game and log data.
             next_roadmap_state, reward, next_done, info = envs.step(action_index)
 
             # check the episode end points and log the relevant episodic return (not considering parallel envs)
             if info["episodic_outcome"] is not None:
-                print(f"[Training Info]: episode={episode_ita+1}, "
+                print(f"[Training Info]: episode={episode_ita + 1}, "
                       f"global_step={global_step}, outcome={info['episodic_outcome']}, "
                       f"episodic_return={info['episodic_return']}, episodic_length={info['episodic_length']}, "
                       f"success: {info['outcome_statistic']['success']}, "
                       f"collision: {info['outcome_statistic']['collision']}, "
-                      f"timeout: {info['outcome_statistic']['timeout']}\n")
+                      f"timeout: {info['outcome_statistic']['timeout']}, "
+                      f"success rate: {info['outcome_statistic']['success'] / (episode_ita + 1)}%\n")
                 episode_ita += 1
-                if episode_ita == args.num_episodes:
-                    break
-                next_roadmap_state = envs.reset(episode_ita)
+                break
+
+    eval_period = time.time() - start_time
+    hours = int(eval_period // 3600)
+    minutes = int((eval_period % 3600) // 60)
+    seconds = int(eval_period % 60)
+    print(f"Total training time: {hours} h, {minutes} mins, {seconds} s")
 
 
 if __name__ == "__main__":

@@ -34,7 +34,7 @@ class Args:
     # Algorithm specific parameters
     env_name: str = "Decision-Roadmap-Navigation"
     """the name of the environment"""
-    num_episodes: int = 1000
+    num_episodes: int = 50
     """total episodes of the experiments"""
     max_episode_steps: int = 48
     """the number of steps in one episode"""
