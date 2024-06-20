@@ -273,7 +273,7 @@ void stateEstimationHandler(const nav_msgs::Odometry::ConstPtr& odom)
       }
     } else if (escapeStuck) {
       if (!pathFound) {
-        joyFwd = -0.1;
+        joyFwd = -0.15;
         joyLeft = 0;
         joyUp = 0;
         joyYaw = 1.5;

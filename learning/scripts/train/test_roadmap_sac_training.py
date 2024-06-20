@@ -291,7 +291,7 @@ def main():
 
                 # save net parameters
                 if args.save_model:
-                    if global_step % args.model_save_frequency == 0:
+                    if (global_step % args.model_save_frequency == 0) or (episode_ita == args.num_episodes - 1):
                         save_dir = f"{args.model_path}/drm_nav"
                         try:
                             os.mkdir(save_dir)
