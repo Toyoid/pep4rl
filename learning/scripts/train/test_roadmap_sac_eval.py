@@ -61,7 +61,7 @@ def main():
         checkpoint = torch.load(f'{args.model_path}/drm_nav/checkpoint_976.pth', map_location=torch.device('cpu'))
     else:
         checkpoint = torch.load(f'{args.model_path}/drm_nav/checkpoint_976.pth')
-    policy.load_state_dict(checkpoint['policy_model'])
+    policy.load_state_dict(checkpoint['actor_network'])
 
     np.set_printoptions(precision=3)
 
