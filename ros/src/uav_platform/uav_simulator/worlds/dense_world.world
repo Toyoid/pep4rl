@@ -16,7 +16,7 @@
       <real_time_update_rate>100</real_time_update_rate>
       <gravity>0 0 -9.8</gravity>
     </physics>
-    <!-- <model name="navigation_target">
+    <model name="navigation_target">
       <link name="link">
 	    <collision name="collision1">
           <geometry>
@@ -47,7 +47,7 @@
           </material>
         </visual>  
       </link>
-    </model> -->
+    </model>
     <model name="wall1">
       <static>true</static>
       <link name="link">
