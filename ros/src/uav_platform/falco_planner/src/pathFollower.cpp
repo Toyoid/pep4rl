@@ -307,8 +307,8 @@ void stateEstimationHandler(const nav_msgs::Odometry::ConstPtr& odom)
           joyFwd = 0;
           joyLeft = 0;
           joyUp = 0;
-          if (dirToGoal < 0) joyYaw = -2.8;  // The stop rotate velocity, original: -1.0
-          else joyYaw = 2.8;  // The stop rotate velocity, original: 1.0
+          if (dirToGoal < 0) joyYaw = -3.0;  // The stop rotate velocity, original: -1.0
+          else joyYaw = 3.0;  // The stop rotate velocity, original: 1.0
         } else {
           joyFwd = 1.0;
           joyLeft = 0;
