@@ -34,7 +34,7 @@ class Args:
     # Algorithm specific parameters
     env_name: str = "Decision-Roadmap-Navigation"
     """the name of the environment"""
-    num_episodes: int = 50
+    num_episodes: int = 1000
     """total episodes of the experiments"""
     max_episode_steps: int = 48
     """the number of steps in one episode"""
@@ -64,7 +64,7 @@ class Args:
     """Entropy regularization coefficient."""
     autotune: bool = True
     """automatic tuning of the entropy coefficient"""
-    greedy: lambda x: bool(strtobool(x)) = True
+    greedy: lambda x: bool(strtobool(x)) = False
     """whether to use greedy sample mechanism from policy output"""
     input_dim: int = 7
     """input dimension of the attention network"""
@@ -72,9 +72,9 @@ class Args:
     """embedding dimension of the attention network"""
 
     # Roadmap env specific parameters
-    k_neighbor_size: int = 30  # 15 in dep.cpp
+    k_neighbor_size: int = 25  # 15 in dep.cpp
     """number of k-nearest neighbors for edge connection"""
-    step_time: float = 4.0
+    step_time: float = 3.5
     """step time duration for executing a command from policy network"""
     coords_norm_coef_: float = 30.
     """coefficient for normalizing node coordinates"""

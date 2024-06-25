@@ -20,21 +20,6 @@ from algorithm.attention_networks import PolicyNet
 
 def main():
     args = get_config()
-    # args.exp_name = os.path.basename(__file__)[: -len(".py")]
-    # run_name = f"{args.env_name}__{args.exp_name}__seed-{args.seed}__{get_time_str()}"
-    # init logger
-    # if args.use_wandb:
-    #     import wandb
-    #
-    #     wandb.init(
-    #         project=args.wandb_project_name,
-    #         entity=args.wandb_entity,
-    #         sync_tensorboard=True,
-    #         config=vars(args),
-    #         name=run_name,
-    #         monitor_gym=False,
-    #         save_code=True,
-    #     )
 
     # seeding
     random.seed(args.seed)
@@ -67,9 +52,8 @@ def main():
 
     # run the experiment
     global_step = 0
-    episode_ita = 0
+    episode_ita = 900
     start_time = time.time()
-    ''' record the total training time '''
     while episode_ita < args.num_episodes:
         roadmap_state = envs.reset(episode_ita)
         while not rospy.is_shutdown():
@@ -94,7 +78,7 @@ def main():
                       f"success: {info['outcome_statistic']['success']}, "
                       f"collision: {info['outcome_statistic']['collision']}, "
                       f"timeout: {info['outcome_statistic']['timeout']}, "
-                      f"success rate: {info['outcome_statistic']['success'] / (episode_ita + 1)}%\n")
+                      f"success rate: {info['outcome_statistic']['success'] / (episode_ita - 900 + 1)}%\n")
                 episode_ita += 1
                 break
 

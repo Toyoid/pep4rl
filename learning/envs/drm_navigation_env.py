@@ -36,11 +36,6 @@ class DecisionRoadmapNavEnv:
                  goal_dis_scale=1.0,
                  goal_dis_min_dis=0.3,
                  ):
-        # # Observation space:
-        # self.robot_obs_space = (5,)
-        # # Action space:
-        # self.action_space = (3,)
-
         self.is_train = is_train
         if self.is_train:
             # get initial robot and goal pose list in training_worlds.world
@@ -329,6 +324,20 @@ class DecisionRoadmapNavEnv:
                                self.odom.pose.pose.position.z, yaw])
 
         # Get Roadmap State
+        '''
+        Required Inputs:
+        node_inputs, edge_inputs, current_index, node_padding_mask, edge_padding_mask, edge_mask
+
+        Need to Provide:
+            (x, y)
+            utility
+            guidepost
+            (dx, dy, dis) -> node_inputs, node_padding_mask
+
+            current_node_index (scalar: idx) -> current_index (tensor: (1,1,1))
+
+            edges -> edges_inputs, edge_padding_mask, edge_mask
+        '''
         rospy.wait_for_service('/dep/get_roadmap')
         try:
             roadmap_resp = self.get_roadmap()
@@ -374,7 +383,7 @@ class DecisionRoadmapNavEnv:
         guidepost = np.zeros((n_nodes, 1))
         x = self.node_coords[:, 0] + self.node_coords[:, 1] * 1j
         for node in self.route_node:
-            index = np.argwhere(x == node[0] + node[1] * 1j)
+            index = np.argwhere(x == node[0] + node[1] * 1j)   # distance????????????
             guidepost[index] = 1
 
         # 4. formulate node_inputs tensor
@@ -448,23 +457,7 @@ class DecisionRoadmapNavEnv:
         self.edge_inputs = torch.where(self.edge_inputs == -1, zero, self.edge_inputs)  # change the unconnected node idxs from -1 back to 0 for attetion network
 
         roadmap_state = node_inputs, self.edge_inputs, current_index, node_padding_mask, edge_padding_mask, edge_mask
-        '''
-        Required Inputs:
-        node_inputs, edge_inputs, current_index, node_padding_mask, edge_padding_mask, edge_mask
-        
-        Need to Provide:
-            (x, y)
-            utility
-            guidepost
-            (dx, dy, dis) -> node_inputs, node_padding_mask
-            
-            current_node_index (scalar: idx) -> current_index (tensor: (1,1,1))
-            
-            edges -> edges_inputs, edge_padding_mask, edge_mask
-            
-        NEXT:
-        train SAC
-        '''
+
         return robot_pose, roadmap_state
 
     def _compute_dis_dir_2_goal(self, robot_pose):

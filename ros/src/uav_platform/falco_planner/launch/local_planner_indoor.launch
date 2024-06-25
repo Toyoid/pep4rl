@@ -82,8 +82,8 @@
     <param name="trackPitch" type="double" value="0" />
     <param name="lookAheadScale" type="double" value="0.2" />
     <param name="minLookAheadDis" type="double" value="0.2" />
-    <param name="minSpeed" type="double" value="1.7" />   <!--1.7-->
-    <param name="maxSpeed" type="double" value="1.7" />   <!--1.7-->
+    <param name="minSpeed" type="double" value="1.6" />   <!--1.7-->
+    <param name="maxSpeed" type="double" value="1.6" />   <!--1.7-->
     <param name="accXYGain" type="double" value="0.05" />
     <param name="velXYGain" type="double" value="0.4" />
     <param name="posXYGain" type="double" value="0.05" />
