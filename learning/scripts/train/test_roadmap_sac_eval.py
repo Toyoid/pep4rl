@@ -43,9 +43,9 @@ def main():
     # load attention policy network
     policy = PolicyNet(args.input_dim, args.embedding_dim).to(device)
     if device == 'cpu':
-        checkpoint = torch.load(f'{args.model_path}/drm_nav/checkpoint_976.pth', map_location=torch.device('cpu'))
+        checkpoint = torch.load(f'{args.model_path}/drm_nav/checkpoint_999.pth', map_location=torch.device('cpu'))
     else:
-        checkpoint = torch.load(f'{args.model_path}/drm_nav/checkpoint_976.pth')
+        checkpoint = torch.load(f'{args.model_path}/drm_nav/checkpoint_999.pth')
     policy.load_state_dict(checkpoint['actor_network'])
 
     np.set_printoptions(precision=3)
@@ -86,7 +86,7 @@ def main():
     hours = int(eval_period // 3600)
     minutes = int((eval_period % 3600) // 60)
     seconds = int(eval_period % 60)
-    print(f"Total training time: {hours} h, {minutes} mins, {seconds} s")
+    print(f"Total evaluation time: {hours} h, {minutes} mins, {seconds} s")
 
 
 if __name__ == "__main__":

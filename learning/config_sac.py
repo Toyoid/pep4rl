@@ -64,7 +64,7 @@ class Args:
     """Entropy regularization coefficient."""
     autotune: bool = True
     """automatic tuning of the entropy coefficient"""
-    greedy: lambda x: bool(strtobool(x)) = False
+    greedy: lambda x: bool(strtobool(x)) = True
     """whether to use greedy sample mechanism from policy output"""
     input_dim: int = 7
     """input dimension of the attention network"""

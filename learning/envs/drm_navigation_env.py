@@ -37,7 +37,8 @@ class DecisionRoadmapNavEnv:
                  goal_dis_min_dis=0.3,
                  ):
         self.is_train = is_train
-        if self.is_train:
+        # if self.is_train:
+        if True:
             # get initial robot and goal pose list in training_worlds.world
             self.init_robot_array, self.init_target_array = self._get_init_robot_goal("Rand_R1")
         else:
@@ -553,14 +554,16 @@ class DecisionRoadmapNavEnv:
         print(f"Use Random Start and Goal Positions [{rand_name}] ...")
 
         init_drone_height = 1.0
-        if self.is_train:
+        # if self.is_train:
+        if True:
             num_episodes = 1000
         else:
             num_episodes = 200
 
         overall_init_z = np.array([init_drone_height] * num_episodes)
 
-        if self.is_train:
+        # if self.is_train:
+        if True:
             overall_robot_array = np.zeros((num_episodes, 4))
             overall_goal_array = np.zeros((num_episodes, 3))
             env_idx = 0
