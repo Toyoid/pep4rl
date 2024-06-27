@@ -14,7 +14,7 @@
   <arg name="trackingCamZOffset" default="0"/>
   <arg name="trackingCamScale" default="1.0"/>
   <!-- probably the stop distance to the waypoint, original: 0.5 -->
-  <arg name="stopDis" default="0.8"/>
+  <arg name="stopDis" default="0.1"/>
   <arg name="shiftGoalAtStart" default="false"/>
   <arg name="goalX" default="0"/>
   <arg name="goalY" default="0"/>
@@ -83,7 +83,7 @@
     <param name="lookAheadScale" type="double" value="0.2" />
     <param name="minLookAheadDis" type="double" value="0.2" />
     <param name="minSpeed" type="double" value="0.5" />   <!--1.7-->
-    <param name="maxSpeed" type="double" value="2.5" />   <!--1.7-->
+    <param name="maxSpeed" type="double" value="2.25" />   <!--1.7-->
     <param name="accXYGain" type="double" value="0.05" />
     <param name="velXYGain" type="double" value="0.4" />
     <param name="posXYGain" type="double" value="0.05" />

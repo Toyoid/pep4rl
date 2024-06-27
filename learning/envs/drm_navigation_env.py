@@ -9,6 +9,7 @@ import torch
 import rospy
 
 from geometry_msgs.msg import PointStamped, PoseStamped
+from sensor_msgs.msg import Joy
 from nav_msgs.msg import Odometry
 from gazebo_msgs.msg import ModelState  #, ContactsState
 from gazebo_msgs.srv import SetModelState
@@ -31,7 +32,7 @@ class DecisionRoadmapNavEnv:
                  collision_reward=-20,
                  step_penalty_reward=-0.5,
                  goal_dis_amp=1/64.,
-                 goal_near_th=0.6,
+                 goal_near_th=0.8,
                  env_height_range=[0.2,2.5],
                  goal_dis_scale=1.0,
                  goal_dis_min_dis=0.3,
@@ -56,6 +57,8 @@ class DecisionRoadmapNavEnv:
         # Publisher
         # self.drone_pose_pub = rospy.Publisher("/CERLAB/quadcopter/setpoint_pose", PoseStamped, queue_size=10)  # subscribed by /gazebo
         self.current_goal_pub = rospy.Publisher("/agent/current_goal", PointStamped, queue_size=5)
+        # publish joy for activating falco planner
+        self.pub_joy = rospy.Publisher('/falco_planner/joy', Joy, queue_size=5)
 
         # Service
         self.pause_gazebo = rospy.ServiceProxy('/gazebo/pause_physics', Empty)
@@ -176,6 +179,8 @@ class DecisionRoadmapNavEnv:
         except rospy.ServiceException as e:
             print("Set Robot Pose Service Failed: %s" % e)
         print("[ROS Service Request]: set new quadcopter state...")
+        # publish joy for activating falco planner
+        self._pub_falco_planner_joy()
         # clear map and roadmap after reset
         rospy.wait_for_service('/dep/reset_roadmap')
         try:
@@ -588,6 +593,14 @@ class DecisionRoadmapNavEnv:
             overall_goal_array = np.insert(init_goal_xy, 2, overall_init_z[:], axis=1)
 
         return overall_robot_array, overall_goal_array
+
+    def _pub_falco_planner_joy(self):
+        joy = Joy()
+        joy.axes = [0., 0., -1.0, 0., 1.0, 1.0, 0., 0.]
+        joy.buttons = [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
+        joy.header.stamp = rospy.Time.now()
+        joy.header.frame_id = "waypoint_tool"
+        self.pub_joy.publish(joy)
 
     @staticmethod
     def calculate_edge_mask(edge_inputs):

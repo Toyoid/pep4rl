@@ -116,7 +116,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.05000000074505806
       Style: Points
-      Topic: /free_paths
+      Topic: /falco_planner/free_paths
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -142,7 +142,7 @@ Visualization Manager:
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
-      Topic: /track_path
+      Topic: /falco_planner/track_path
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -181,7 +181,7 @@ Visualization Manager:
       Name: Waypoint
       Queue Size: 10
       Radius: 0.20000000298023224
-      Topic: /way_point
+      Topic: /falco_planner/way_point
       Unreliable: false
       Value: true
     - Alpha: 0.5
@@ -252,7 +252,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 33.109840393066406
+      Distance: 42.63982009887695
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -260,17 +260,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 2.0266857147216797
-        Y: -0.07185012102127075
-        Z: -3.8036773204803467
+        X: 2.898540496826172
+        Y: -1.0549198389053345
+        Z: -1.0049946308135986
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.8247969150543213
+      Pitch: 1.0697966814041138
       Target Frame: vehicle
-      Yaw: 3.1253960132598877
+      Yaw: 3.1403965950012207
     Saved: ~
 Window Geometry:
   DepthImage:
