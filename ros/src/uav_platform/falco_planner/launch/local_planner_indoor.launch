@@ -14,7 +14,7 @@
   <arg name="trackingCamZOffset" default="0"/>
   <arg name="trackingCamScale" default="1.0"/>
   <!-- probably the stop distance to the waypoint, original: 0.5 -->
-  <arg name="stopDis" default="0.2"/>
+  <arg name="stopDis" default="0.3"/>
   <arg name="shiftGoalAtStart" default="false"/>
   <arg name="goalX" default="0"/>
   <arg name="goalY" default="0"/>
@@ -50,7 +50,7 @@
     <param name="sensorMaxYaw" type="double" value="40.0" />
     <param name="yawDiffLimit" type="double" value="60.0" />
     <param name="yawWeight" type="double" value="0.015" />
-    <param name="pathScale" type="double" value="0.5" />  <!-- 0.5 -->
+    <param name="pathScale" type="double" value="0.4" />  <!-- 0.5 -->
     <param name="minPathScale" type="double" value="0.125" />  <!-- 0.25 -->
     <param name="pathScaleStep" type="double" value="0.0625" />  <!-- 0.125 -->
     <param name="pathScaleBySpeed" type="bool" value="true" />
@@ -83,7 +83,7 @@
     <param name="lookAheadScale" type="double" value="0.2" />
     <param name="minLookAheadDis" type="double" value="0.2" />
     <param name="minSpeed" type="double" value="0.5" />
-    <param name="maxSpeed" type="double" value="2.0" />
+    <param name="maxSpeed" type="double" value="1.5" />
     <param name="accXYGain" type="double" value="0.05" />
     <param name="velXYGain" type="double" value="0.4" />
     <param name="posXYGain" type="double" value="0.05" />
@@ -108,7 +108,7 @@
     <param name="minStopRotInterval" type="double" value="1.0" />
     <param name="stopRotDelayTime" type="double" value="0" />
     <param name="stopRotDis" type="double" value="1.0" />
-    <param name="stopRotYaw1" type="double" value="135.0" />  <!-- which direction difference will trigger stop-rotate , original: 90 -->
+    <param name="stopRotYaw1" type="double" value="100.0" />  <!-- which direction difference will trigger stop-rotate , original: 90 -->
     <param name="stopRotYaw2" type="double" value="10.0" />
     <param name="stopDis" value="$(arg stopDis)" />
     <param name="slowDis" type="double" value="2.0" />

@@ -15,6 +15,7 @@
 #include <global_planner/PRMKDTree.h>
 #include <global_planner/PRMAstar.h>
 #include <global_planner/utils.h>
+#include <global_planner/point_struct.h>
 #include <opencv2/opencv.hpp>
 
 
@@ -39,9 +40,6 @@ namespace globalPlanner{
 		nav_msgs::Odometry odom_;
 		std::shared_ptr<mapManager::occMap> map_; 
 		std::shared_ptr<PRM::KDTree> roadmap_;
-
-
-
 
 		// parameters
 		double vel_ = 1.0;
@@ -77,6 +75,8 @@ namespace globalPlanner{
 		Eigen::Vector3d position_;
 		std::shared_ptr<PRM::Node> currGoal_;  //added by me
 		unsigned int waypointIdx_ = 0;  //added by me
+		Point3D navWaypoint_;  //added by me
+		Point3D navHeading_;  //added by me
 		double currYaw_;
 		std::deque<Eigen::Vector3d> histTraj_; // historic trajectory for information gain update 
 		// std::vector<std::shared_ptr<PRM::Node>> prmNodeVec_; // all nodes		
@@ -111,8 +111,8 @@ namespace globalPlanner{
 		// callback functions
 		void odomCB(const nav_msgs::OdometryConstPtr& odom);
 		void visCB(const ros::TimerEvent&);
-		void currGoalCB(const geometry_msgs::PointStamped::ConstPtr& goal);  //added by me
- 		void waypointUpdateCB(const ros::TimerEvent&);  //added by me
+		void currGoalCB(const geometry_msgs::PointStamped::ConstPtr& goal);  
+ 		void waypointUpdateCB(const ros::TimerEvent&);  
 
 		// help function
 		bool isPosValid(const Eigen::Vector3d& p);
@@ -126,6 +126,7 @@ namespace globalPlanner{
 		int weightedSample(const std::vector<double>& weights);
 		std::shared_ptr<PRM::Node> sampleFrontierPoint(const std::vector<double>& sampleWeights);
 		std::shared_ptr<PRM::Node> extendNode(const std::shared_ptr<PRM::Node>& n, const std::shared_ptr<PRM::Node>& target);
+		Point3D projectNavWaypoint(const Point3D& nav_waypoint, const Point3D& last_waypoint);  // added by me
 
 		// visualization functions
 		visualization_msgs::MarkerArray buildRoadmapMarkers();
