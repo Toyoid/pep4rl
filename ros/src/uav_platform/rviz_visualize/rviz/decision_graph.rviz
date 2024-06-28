@@ -318,9 +318,7 @@ Visualization Manager:
       Marker Topic: /dep/roadmap
       Name: roadmap
       Namespaces:
-        edge: true
-        num_voxel_text: true
-        prm_point: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -336,8 +334,7 @@ Visualization Manager:
       Marker Topic: /dep/best_paths
       Name: best path
       Namespaces:
-        best_path: true
-        best_path_node: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -572,9 +569,9 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -9.282132148742676
-        Y: 9.066186904907227
-        Z: 3.105792999267578
+        X: -2.7362775802612305
+        Y: 0.11430403590202332
+        Z: 3.874168634414673
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false

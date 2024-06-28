@@ -52,7 +52,7 @@ def main():
 
     # run the experiment
     global_step = 0
-    episode_ita = 900
+    episode_ita = 0
     start_time = time.time()
     while episode_ita < args.num_episodes:
         roadmap_state = envs.reset(episode_ita)
@@ -68,7 +68,7 @@ def main():
                 action_index = torch.multinomial(log_pi_list.exp(), 1).long().squeeze(1)
 
             # execute the game and log data.
-            next_roadmap_state, reward, next_done, info = envs.step(action_index)
+            roadmap_state, reward, next_done, info = envs.step(action_index)
 
             # check the episode end points and log the relevant episodic return (not considering parallel envs)
             if info["episodic_outcome"] is not None:
@@ -78,7 +78,7 @@ def main():
                       f"success: {info['outcome_statistic']['success']}, "
                       f"collision: {info['outcome_statistic']['collision']}, "
                       f"timeout: {info['outcome_statistic']['timeout']}, "
-                      f"success rate: {info['outcome_statistic']['success'] / (episode_ita - 900 + 1)}%\n")
+                      f"success rate: {info['outcome_statistic']['success'] / (episode_ita + 1)}%\n")
                 episode_ita += 1
                 break
 
