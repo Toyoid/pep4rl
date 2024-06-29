@@ -1065,7 +1065,7 @@ namespace globalPlanner{
 		const float kEpsilon = 1e-5;
 		const bool is_momentum = (last_waypoint - nav_waypoint).norm() < kEpsilon ? true : false; // momentum heading if same goal
 		Point3D waypoint = nav_waypoint;
-		const float waypoint_project_dist = 1.75;
+		const float waypoint_project_dist = 1.6;
 		const Point3D robot_pos(this->position_);
 		const Point3D diff_p = nav_waypoint - robot_pos;
 		Point3D new_heading;
