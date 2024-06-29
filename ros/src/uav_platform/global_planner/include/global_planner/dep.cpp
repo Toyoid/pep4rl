@@ -30,6 +30,7 @@ namespace globalPlanner{
 	void DEP::initParam(){
 		this->navWaypoint_ = Point3D(0, 0, 0);
 		this->navHeading_ = Point3D(0, 0, 0);
+		this->ultimateTarget_.reset(new PRM::Node (this->position_));
 
 		// odom topic name
 		if (not this->nh_.getParam(this->ns_ + "/odom_topic", this->odomTopic_)){
@@ -320,13 +321,15 @@ namespace globalPlanner{
 		//added by me
 		this->waypointPub_ = this->nh_.advertise<geometry_msgs::PointStamped>("/falco_planner/way_point", 5); 
 		// this->bestPathGoalPub_ = this->nh_.advertise<geometry_msgs::PointStamped>("/agent/current_goal", 5); 
-
 	}
 
 	void DEP::registerCallback(){
 		// odom subscriber
 		this->odomSub_ = this->nh_.subscribe(this->odomTopic_, 1000, &DEP::odomCB, this);
 		// this->odomSub_ = this->nh_.subscribe("/falco_planner/state_estimation", 1000, &DEP::odomCB, this);
+
+		// ultimate target subscriber
+		this->ultimateTargetSub_ = this->nh_.subscribe("/env/nav_target", 5, &DEP::ultimateTargetCB, this);
 	
 		// visualization timer
 		this->visTimer_ = this->nh_.createTimer(ros::Duration(0.2), &DEP::visCB, this);
@@ -342,10 +345,10 @@ namespace globalPlanner{
 		if (not this->odomReceived_) return false;
 		// cout << "start detecting frontier" << endl;
 		// ros::Time frontierStartTime = ros::Time::now();
+
 		this->detectFrontierRegion(this->frontierPointPairs_);
 		// ros::Time frontierEndTime = ros::Time::now();
 		// cout << "frontier detection time: " << (frontierEndTime - frontierStartTime).toSec() << endl;
-
 
 		// cout << "start building roadmap" << endl;
 		// ros::Time buildStartTime = ros::Time::now();
@@ -687,6 +690,18 @@ namespace globalPlanner{
 				}
 			}
 		}
+
+		// add ultimate navigation goal to PRM
+		if (!this->prmNodeVec_.count(this->ultimateTarget_)) {
+			this->prmNodeVec_.insert(this->ultimateTarget_);
+		}
+		else {
+			if(!this->isTargetInRoadmap_) {
+				this->roadmap_->insert(this->ultimateTarget_);
+				newNodes.push_back(this->ultimateTarget_);
+				this->isTargetInRoadmap_ = true;
+			}
+		}
 		
 		// node connection
 		for (std::shared_ptr<PRM::Node>& n : newNodes){
@@ -938,6 +953,14 @@ namespace globalPlanner{
 		}
 	}
 
+	void DEP::ultimateTargetCB(const geometry_msgs::PointStamped::ConstPtr& navTarget) {
+		Eigen::Vector3d ultimateTargetPos(navTarget->point.x, navTarget->point.y, navTarget->point.z);
+
+		this->ultimateTarget_.reset(new PRM::Node (ultimateTargetPos));
+
+		cout << "[Debug]: ultimate target recieved !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+	}
+
 	void DEP::visCB(const ros::TimerEvent&){
 		if (this->prmNodeVec_.size() != 0){
 			visualization_msgs::MarkerArray roadmapMarkers = this->buildRoadmapMarkers();
@@ -961,10 +984,7 @@ namespace globalPlanner{
 		this->currGoalReceived_ = true;
 		this->resettingRLEnv_ = false;
 
-		Eigen::Vector3d p;
-		p(0) = goal->point.x;
-		p(1) = goal->point.y;
-		p(2) = goal->point.z;
+		Eigen::Vector3d p(goal->point.x, goal->point.y, goal->point.z);
 		this->currGoal_.reset(new PRM::Node(p));
 
 		std::cout << "\033[1;32m[Agent]: Current goal \033[0m" 
@@ -993,8 +1013,7 @@ namespace globalPlanner{
 			// find best path to current goal
 			this->bestPath_.clear();
 			// find nearest node of current location
-			std::shared_ptr<PRM::Node> currPos;
-			currPos.reset(new PRM::Node (this->position_));
+			std::shared_ptr<PRM::Node> currPos(new PRM::Node (this->position_));
 			std::shared_ptr<PRM::Node> start = this->roadmap_->nearestNeighbor(currPos);
 			std::shared_ptr<PRM::Node> temp_goal = this->roadmap_->nearestNeighbor(this->currGoal_);  // this is important, or no path will be found!
 

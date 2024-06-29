@@ -34,6 +34,7 @@ namespace globalPlanner{
 		ros::Publisher bestPathGoalPub_;
 		ros::Subscriber odomSub_;
 		ros::Subscriber currGoalSub_;  //added by me
+		ros::Subscriber ultimateTargetSub_;
 		ros::Timer visTimer_;
 		ros::Timer waypointTimer_;  //added by me
 
@@ -74,6 +75,8 @@ namespace globalPlanner{
 		bool resettingRLEnv_ = false; //added
 		Eigen::Vector3d position_;
 		std::shared_ptr<PRM::Node> currGoal_;  //added by me
+		std::shared_ptr<PRM::Node> ultimateTarget_;
+		bool isTargetInRoadmap_ = false;
 		unsigned int waypointIdx_ = 0;  //added by me
 		Point3D navWaypoint_;  //added by me
 		Point3D navHeading_;  //added by me
@@ -113,6 +116,7 @@ namespace globalPlanner{
 		void visCB(const ros::TimerEvent&);
 		void currGoalCB(const geometry_msgs::PointStamped::ConstPtr& goal);  
  		void waypointUpdateCB(const ros::TimerEvent&);  
+		void ultimateTargetCB(const geometry_msgs::PointStamped::ConstPtr& navTarget);
 
 		// help function
 		bool isPosValid(const Eigen::Vector3d& p);

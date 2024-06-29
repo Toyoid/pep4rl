@@ -32,7 +32,7 @@ class DecisionRoadmapNavEnv:
                  collision_reward=-20,
                  step_penalty_reward=-0.5,
                  goal_dis_amp=1/64.,
-                 goal_near_th=0.6,
+                 goal_near_th=0.4,
                  env_height_range=[0.2,2.5],
                  goal_dis_scale=1.0,
                  goal_dis_min_dis=0.3,
@@ -58,6 +58,7 @@ class DecisionRoadmapNavEnv:
         self.current_goal_pub = rospy.Publisher("/agent/current_goal", PointStamped, queue_size=5)
         # publish joy for activating falco planner
         self.pub_joy = rospy.Publisher('/falco_planner/joy', Joy, queue_size=5)
+        self.nav_target_pub = rospy.Publisher("env/nav_target", PointStamped, queue_size=5)
 
         # Service
         self.pause_gazebo = rospy.ServiceProxy('/gazebo/pause_physics', Empty)
@@ -157,6 +158,14 @@ class DecisionRoadmapNavEnv:
         rospy.wait_for_service('/gazebo/set_model_state')
         try:
             resp = self.set_model_pose(target_msg)
+            target = PointStamped()
+            target.header.frame_id = "map"
+            target.header.stamp = rospy.Time.now()
+            target.point.x = self.target_position[0]
+            target.point.y = self.target_position[1]
+            target.point.z = self.target_position[2]
+            self.nav_target_pub.publish(target)
+            print(f"Target: [{self.target_position[0]}, {self.target_position[1]}, {self.target_position[2]}]")
         except rospy.ServiceException as e:
             print("Set Target Service Failed: %s" % e)
         # reset robot initial pose
@@ -232,7 +241,6 @@ class DecisionRoadmapNavEnv:
         '''
         selected_node_idx = self.edge_inputs[0, 0, action_index.item()]  # tensor(scalar)
         selected_node_pos = self.node_coords[selected_node_idx]  # np.array(2,)
-        self.route_node.append(selected_node_pos)
 
         rospy.wait_for_service('/gazebo/unpause_physics')
         try:
@@ -252,18 +260,24 @@ class DecisionRoadmapNavEnv:
 
         robot_position = [self.odom.pose.pose.position.x, self.odom.pose.pose.position.y, self.odom.pose.pose.position.z]
         execute_start_time = rospy.get_time()
-        goal_switch_flag = False
+        waypoint_arrive_flag = False
+        step_time_flag = False
         target_reach_flag = False
-        while not (goal_switch_flag or target_reach_flag or rospy.is_shutdown()):
+        while not (waypoint_arrive_flag or step_time_flag or target_reach_flag or rospy.is_shutdown()):
             dis = math.sqrt((self.odom.pose.pose.position.x - goal.point.x) ** 2 +
                             (self.odom.pose.pose.position.y - goal.point.y) ** 2 +
                             (self.odom.pose.pose.position.z - goal.point.z) ** 2)
-            goal_switch_flag = (dis <= 0.9) or ((rospy.get_time() - execute_start_time) >= self.step_time)
+            waypoint_arrive_flag = dis <= 0.9
+            step_time_flag = (rospy.get_time() - execute_start_time) >= self.step_time
 
             target_dis = math.sqrt((self.odom.pose.pose.position.x - self.target_position[0]) ** 2 +
                                    (self.odom.pose.pose.position.y - self.target_position[1]) ** 2 +
                                    (self.odom.pose.pose.position.z - self.target_position[2]) ** 2)
             target_reach_flag = (target_dis <= self.goal_near_th)
+
+        # update route_node for computing guidepost
+        if waypoint_arrive_flag:
+            self.route_node.append(selected_node_pos)
 
         # check whether local planner get stuck
         robot_move = math.sqrt((self.odom.pose.pose.position.x - robot_position[0]) ** 2 +
@@ -388,7 +402,10 @@ class DecisionRoadmapNavEnv:
         guidepost = np.zeros((n_nodes, 1))
         x = self.node_coords[:, 0] + self.node_coords[:, 1] * 1j
         for node in self.route_node:
-            index = np.argwhere(x == node[0] + node[1] * 1j)   # distance????????????
+            node_complex = node[0] + node[1] * 1j
+            distances = np.abs(x - node_complex)
+            # assume a node has been visited when query distance is lower than 0.9 (PRM sampling dist threshold: 0.8)
+            index = np.argwhere(distances < 0.9)
             guidepost[index] = 1
 
         # 4. formulate node_inputs tensor
