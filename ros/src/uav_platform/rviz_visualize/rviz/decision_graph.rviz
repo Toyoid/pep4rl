@@ -68,35 +68,33 @@ Visualization Manager:
       Reference Frame: <Fixed Frame>
       Show Trail: false
       Value: false
-    - Alpha: 0.6000000238418579
-      Autocompute Intensity Bounds: false
+    - Alpha: 0.10000000149011612
+      Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
         Max Value: 2
         Min Value: -3
         Value: false
       Axis: Z
-      Channel Name: z
+      Channel Name: y
       Class: rviz/PointCloud2
       Color: 114; 159; 207
       Color Transformer: FlatColor
       Decay Time: 0
       Enabled: true
-      Invert Rainbow: true
+      Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 5
       Min Color: 0; 0; 0
-      Min Intensity: 0.10000000149011612
       Name: Dynamic Map
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
-      Size (Pixels): 1
-      Size (m): 0.02500000037252903
-      Style: Flat Squares
+      Size (Pixels): 2
+      Size (m): 0.029999999329447746
+      Style: Points
       Topic: /occupancy_map/voxel_map
       Unreliable: false
       Use Fixed Frame: true
-      Use rainbow: true
+      Use rainbow: false
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
@@ -401,17 +399,17 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
-    - Alpha: 1
+    - Alpha: 0.699999988079071
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 1.7812834978103638
-        Min Value: 0.014262914657592773
+        Max Value: 3.003178596496582
+        Min Value: 0.004750370979309082
         Value: true
       Axis: Z
       Channel Name: intensity
       Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: AxisColor
+      Color: 114; 159; 207
+      Color Transformer: FlatColor
       Decay Time: 0
       Enabled: false
       Invert Rainbow: false
@@ -422,7 +420,7 @@ Visualization Manager:
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.009999999776482582
+      Size (m): 0.003000000026077032
       Style: Flat Squares
       Topic: /camera/depth/points
       Unreliable: false
@@ -441,7 +439,7 @@ Visualization Manager:
       Color: 237; 212; 0
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -456,7 +454,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -483,7 +481,7 @@ Visualization Manager:
       Value: false
     - Alpha: 0.800000011920929
       Class: rviz/PointStamped
-      Color: 117; 80; 123
+      Color: 173; 127; 168
       Enabled: true
       History Length: 1
       Name: Waypoint
@@ -576,7 +574,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 27.042869567871094
+      Distance: 29.130220413208008
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -584,17 +582,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -4.404549598693848
-        Y: -2.2842817306518555
-        Z: 6.050482749938965
+        X: -3.9297573566436768
+        Y: -0.44874662160873413
+        Z: 5.699856758117676
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.1097970008850098
+      Pitch: 1.0497971773147583
       Target Frame: <Fixed Frame>
-      Yaw: 3.1316888332366943
+      Yaw: 3.1366913318634033
     Saved: ~
 Window Geometry:
   Displays:
