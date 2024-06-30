@@ -142,7 +142,7 @@ def main():
 
     # run the experiment
     global_step = 0
-    episode_ita = 600
+    episode_ita = 0
     start_time = time.time()
     while episode_ita < args.num_episodes:
         roadmap_state = envs.reset(episode_ita)
@@ -171,15 +171,22 @@ def main():
             if info["episodic_outcome"] is not None:
                 print(f"[Training Info]: episode={episode_ita + 1}, "
                       f"global_step={global_step}, outcome={info['episodic_outcome']}, "
-                      f"episodic_return={info['episodic_return']}, episodic_length={info['episodic_length']}, "
+                      f"episodic_return={info['episodic_return']:.2f}, \n"
+                      f"episodic_length={info['episodic_length']},"
                       f"success: {info['outcome_statistic']['success']}, "
                       f"collision: {info['outcome_statistic']['collision']}, "
                       f"timeout: {info['outcome_statistic']['timeout']}, "
-                      f"success rate: {info['outcome_statistic']['success'] / (episode_ita - 600 + 1)}%\n")
+                      f"success rate: {(100 * info['outcome_statistic']['success'] / (episode_ita + 1)):.1f}% \n")
                 writer.add_scalar("charts/episodic_return", info["episodic_return"], global_step)
                 writer.add_scalar("charts/episodic_length", info["episodic_length"], global_step)
-                writer.add_scalar("charts/success_rate", info['outcome_statistic']['success'] / (episode_ita - 600 + 1), global_step)
+                writer.add_scalar("charts/success_rate", info['outcome_statistic']['success'] / (episode_ita + 1), global_step)
                 episode_ita += 1
+                if episode_ita < args.num_episodes:
+                    # print("-------------------------------------------------------------------------------------------")
+                    print("*******************************************************************************************")
+                    print(f"  Episode {episode_ita + 1}: ")
+                    print("*******************************************************************************************")
+
                 break
 
             # training

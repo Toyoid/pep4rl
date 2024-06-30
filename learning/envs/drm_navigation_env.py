@@ -32,7 +32,7 @@ class DecisionRoadmapNavEnv:
                  collision_reward=-20,
                  step_penalty_reward=-0.5,
                  goal_dis_amp=1/64.,
-                 goal_near_th=0.4,
+                 goal_near_th=0.5,
                  env_height_range=[0.2,2.5],
                  goal_dis_scale=1.0,
                  goal_dis_min_dis=0.3,
@@ -165,7 +165,7 @@ class DecisionRoadmapNavEnv:
             target.point.y = self.target_position[1]
             target.point.z = self.target_position[2]
             self.nav_target_pub.publish(target)
-            print(f"Target: [{self.target_position[0]}, {self.target_position[1]}, {self.target_position[2]}]")
+            print(f"[ROS Service Request]: Target position [{self.target_position[0]}, {self.target_position[1]}, {self.target_position[2]}]")
         except rospy.ServiceException as e:
             print("Set Target Service Failed: %s" % e)
         # reset robot initial pose

@@ -151,11 +151,11 @@ namespace AutoFlight{
 		this->expPlanner_->setMap(this->map_);
 		bool replanSuccess = this->expPlanner_->makePlan();
 		if (replanSuccess){
-			std::cout << "\033[1;32m[AutoFlight]: Roadmap Generation Succeed!" << endl;
+			std::cout << "[AutoFlight]: Roadmap Generation Succeed!" << endl;
 			resp.roadmapMarkers = this->expPlanner_->buildRoadmapMarkers();
 		}
 		else{
-			std::cout << "\033[1;32m[AutoFlight]: Roadmap Generation failed!" << endl;
+			std::cout << "\033[1;32m[AutoFlight]: Roadmap Generation failed!\033[0m" << endl;
 		}		
 
 		return true;
@@ -184,29 +184,26 @@ namespace AutoFlight{
 		this->expPlanner_->resetRoadmap(req.robotPose);
 		this->expPlanner_->setMap(this->map_);
 
-		cout << "\033[1;32m[Roadmap]: Successfully reset map and roadmap.\033[0m" << endl;
+		cout << "\n\033[1;32m[Roadmap]: Successfully reset map and roadmap.\033[0m" << endl;
 
 		return true;
 	}
 
 	void dynamicPRM::run(){
-		cout << "\033[1;32m[AutoFlight]: Please double check all parameters. Then PRESS ENTER to continue or PRESS CTRL+C to stop.\033[0m" << endl;
+//		cout << "\033[1;32m[AutoFlight]: Please double check all parameters. Then PRESS ENTER to continue or PRESS CTRL+C to stop.\033[0m" << endl;
 		// std::cin.clear();
 		// fflush(stdin);
 		// std::cin.get();
 		// this->takeoff();
 
-		cout << "\033[1;32m[AutoFlight]: Takeoff succeed. Then PRESS ENTER to continue or PRESS CTRL+C to land.\033[0m" << endl;
+//		cout << "\033[1;32m[AutoFlight]: Takeoff succeed. Then PRESS ENTER to continue or PRESS CTRL+C to land.\033[0m" << endl;
 		// std::cin.clear();
 		// fflush(stdin);
 		// std::cin.get();
 
-		// added by me
-		cout << "No map recording." << endl;
-
 		this->initExplore();
 
-		cout << "\033[1;32m[AutoFlight]: PRESS ENTER to Start Planning.\033[0m" << endl;
+		cout << "\n\033[1;32m[AutoFlight]: Flight System is Ready. Launch a Decision Roadmap Agent to Start Planning.\033[0m" << endl;
 		// std::cin.clear();
 		// fflush(stdin);
 		// std::cin.get();

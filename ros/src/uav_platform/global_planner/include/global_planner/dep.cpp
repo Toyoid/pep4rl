@@ -28,8 +28,7 @@ namespace globalPlanner{
 	}
 
 	void DEP::initParam(){
-		this->navWaypoint_ = Point3D(0, 0, 0);
-		this->navHeading_ = Point3D(0, 0, 0);
+	    // initialize ultimate navigation target
 		this->ultimateTarget_.reset(new PRM::Node (this->position_));
 
 		// odom topic name
@@ -287,18 +286,25 @@ namespace globalPlanner{
 		this->roadmap_.reset(new PRM::KDTree ());
 	}
 
-	void DEP::resetRoadmap(const gazebo_msgs::ModelState& resetRobotPos){
+	void DEP::resetRoadmap(const gazebo_msgs::ModelState& resetRobotPos) {
+	    // IMPORTANT: reset flag variables before clearing roadmap_ and prmNodeVec_ to prevent visiting invalid roadmap data in waypointUpdateTimer
+	    this->currGoalReceived_ = false;
+		this->resettingRLEnv_ = true;
+
 		this->prmNodeVec_.clear();
 		this->roadmap_->clear();
 		
-		this->currGoalReceived_ = false;
-		this->resettingRLEnv_ = true;
+
 		Eigen::Vector3d p;
 		p(0) = resetRobotPos.pose.position.x;
 		p(1) = resetRobotPos.pose.position.y;
 		p(2) = resetRobotPos.pose.position.z;
 		this->currGoal_.reset(new PRM::Node(p));
-		
+
+		this->navWaypoint_ = Point3D(p(0), p(1), p(2));
+		this->navHeading_ = Point3D(0, 0, 0);
+		this->isTargetInRoadmap_ = false;
+
 		this->waypointIdx_ = 0;  
 		this->histTraj_.clear();  
 		this->bestPath_.clear();
@@ -315,7 +321,7 @@ namespace globalPlanner{
 		// best path publisher
 		this->bestPathPub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("/dep/best_paths", 10);
 
-		// fronteir vis publisher
+		// frontier vis publisher
 		this->frontierVisPub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("/dep/frontier_regions", 10);
 
 		//added by me
@@ -466,8 +472,6 @@ namespace globalPlanner{
 		return true;
 	}
 
-
-
 	bool isNodeRequireUpdate(std::shared_ptr<PRM::Node> n, std::vector<std::shared_ptr<PRM::Node>> path, double& leastDistance){
 		double distanceThresh = 2;
 		leastDistance = std::numeric_limits<double>::max();
@@ -577,6 +581,18 @@ namespace globalPlanner{
 		int countSample = 0;
 		std::shared_ptr<PRM::Node> n;
 		std::vector<std::shared_ptr<PRM::Node>> newNodes;
+
+		// add ultimate navigation goal to PRM
+		if (!this->prmNodeVec_.count(this->ultimateTarget_)) {
+			this->prmNodeVec_.insert(this->ultimateTarget_);
+		}
+		else {
+			if(!this->isTargetInRoadmap_) {
+				this->roadmap_->insert(this->ultimateTarget_);
+				newNodes.push_back(this->ultimateTarget_);
+				this->isTargetInRoadmap_ = true;
+			}
+		}
 
 		// while does reach sampling threshold (fail time) 
 		// 1. sample point from frontier region by weighted sampling
@@ -688,18 +704,6 @@ namespace globalPlanner{
 						}
 					}
 				}
-			}
-		}
-
-		// add ultimate navigation goal to PRM
-		if (!this->prmNodeVec_.count(this->ultimateTarget_)) {
-			this->prmNodeVec_.insert(this->ultimateTarget_);
-		}
-		else {
-			if(!this->isTargetInRoadmap_) {
-				this->roadmap_->insert(this->ultimateTarget_);
-				newNodes.push_back(this->ultimateTarget_);
-				this->isTargetInRoadmap_ = true;
 			}
 		}
 		
@@ -958,7 +962,7 @@ namespace globalPlanner{
 
 		this->ultimateTarget_.reset(new PRM::Node (ultimateTargetPos));
 
-		cout << "[Debug]: ultimate target recieved !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+		cout << "[Roadmap]: Ultimate navigation target received. " << endl;
 	}
 
 	void DEP::visCB(const ros::TimerEvent&){
@@ -980,14 +984,14 @@ namespace globalPlanner{
 		}
 	}
 
-	void DEP::currGoalCB(const geometry_msgs::PointStamped::ConstPtr& goal){
+	void DEP::currGoalCB(const geometry_msgs::PointStamped::ConstPtr& goal) {
 		this->currGoalReceived_ = true;
 		this->resettingRLEnv_ = false;
 
 		Eigen::Vector3d p(goal->point.x, goal->point.y, goal->point.z);
 		this->currGoal_.reset(new PRM::Node(p));
 
-		std::cout << "\033[1;32m[Agent]: Current goal \033[0m" 
+		std::cout << "[Agent]: Current goal "
 		<< " x: " << std::setw(2) << this->currGoal_->pos(0)
 		<< " y: " << std::setw(2) << this->currGoal_->pos(1)
 		<< " z: " << std::setw(2) << this->currGoal_->pos(2)
@@ -996,6 +1000,7 @@ namespace globalPlanner{
 
 	void DEP::waypointUpdateCB(const ros::TimerEvent&) {
 		if (this->resettingRLEnv_) {
+		    // Publishing robot initial position as waypoint to reset RL Env
 			geometry_msgs::PointStamped waypoint;
 			waypoint.header.stamp = ros::Time::now();
 			waypoint.header.frame_id = "map";
@@ -1003,11 +1008,9 @@ namespace globalPlanner{
 			waypoint.point.y = this->currGoal_->pos(1);
 			waypoint.point.z = this->currGoal_->pos(2);
 			this->waypointPub_.publish(waypoint);
-			std::cout << "\033[1;32m[Debug]: Publishing robot initial position as waypoint to reset RL Env... \033[0m" << std::endl;
+			// std::cout << "\033[1;32m[Debug]: Publishing robot initial position as waypoint to reset RL Env... \033[0m" << std::endl;
 		}
 		else if (this->currGoalReceived_) {
-			this->resettingRLEnv_ = false;
-
 			Point3D lastNavWaypoint = this->navWaypoint_;
 
 			// find best path to current goal
@@ -1018,24 +1021,20 @@ namespace globalPlanner{
 			std::shared_ptr<PRM::Node> temp_goal = this->roadmap_->nearestNeighbor(this->currGoal_);  // this is important, or no path will be found!
 
 			std::vector<std::shared_ptr<PRM::Node>> path = PRM::AStar(this->roadmap_, start, temp_goal, this->map_);
-			if (int(path.size()) != 0){
+			if (int(path.size()) != 0) {
+				// Finding path success
 				path.insert(path.begin(), currPos);
 				std::vector<std::shared_ptr<PRM::Node>> pathSc;
 				this->shortcutPath(path, pathSc);
 				this->bestPath_ = pathSc;
 				this->waypointIdx_ = 0;
-
-				cout << "Finding path success!" << endl;
-			}
-			else {
-				cout << "Finding path fails. need generate more samples." << endl;
 			}
 
 			// construct waypoint
 			geometry_msgs::PointStamped waypoint;
 			waypoint.header.stamp = ros::Time::now();
 			waypoint.header.frame_id = "map";
-			if (this->bestPath_.size() != 0){
+			if (this->bestPath_.size() != 0) {
 				if (((this->position_ - this->bestPath_[this->waypointIdx_]->pos).norm() <= 0.2) && (this->waypointIdx_ < (this->bestPath_.size() - 1))){
 					this->waypointIdx_ += 1;
 				}  
@@ -1048,9 +1047,9 @@ namespace globalPlanner{
 				waypoint.point.y = projectedWaypoint.y;
 				waypoint.point.z = projectedWaypoint.z;			
 			}
-			else{
-				std::cout << "\033[1;31m[Debug]: Find global paths fails. Directly using local planner... \033[0m" << std::endl;
-				
+			else {
+				// Find global paths fails. Directly using local planner
+				// std::cout << "\033[1;31m[Debug]: Find global paths fails. Directly using local planner... \033[0m" << std::endl;
 				this->navHeading_ = Point3D(0, 0, 0);
 
 				waypoint.point.x = this->currGoal_->pos(0);

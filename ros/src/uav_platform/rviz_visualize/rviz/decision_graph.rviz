@@ -12,9 +12,9 @@ Panels:
         - /Marker1
         - /Marker1/Namespaces1
         - /Path1
-        - /PointStamped1
+        - /Navigation Target1
       Splitter Ratio: 0.4770458936691284
-    Tree Height: 303
+    Tree Height: 624
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -33,7 +33,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: Dynamic Map
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -319,7 +319,9 @@ Visualization Manager:
       Marker Topic: /dep/roadmap
       Name: roadmap
       Namespaces:
-        {}
+        edge: true
+        num_voxel_text: true
+        prm_point: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -335,7 +337,8 @@ Visualization Manager:
       Marker Topic: /dep/best_paths
       Name: best path
       Namespaces:
-        {}
+        best_path: true
+        best_path_node: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -438,7 +441,7 @@ Visualization Manager:
       Color: 237; 212; 0
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -453,7 +456,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -481,25 +484,25 @@ Visualization Manager:
     - Alpha: 0.800000011920929
       Class: rviz/PointStamped
       Color: 64; 215; 255
-      Enabled: false
+      Enabled: true
       History Length: 1
       Name: Waypoint
       Queue Size: 10
       Radius: 0.11999999731779099
       Topic: /falco_planner/way_point
       Unreliable: false
-      Value: false
+      Value: true
     - Alpha: 1
       Class: rviz/PointStamped
       Color: 242; 52; 98
-      Enabled: false
+      Enabled: true
       History Length: 1
       Name: Current Goal
       Queue Size: 10
       Radius: 0.11999999731779099
       Topic: /agent/current_goal
       Unreliable: false
-      Value: false
+      Value: true
     - Class: rviz/Marker
       Enabled: false
       Marker Topic: /falco_planner/track_point_marker
@@ -532,12 +535,12 @@ Visualization Manager:
       Topic: /falco_planner/path
       Unreliable: false
       Value: false
-    - Alpha: 0.699999988079071
+    - Alpha: 0.6499999761581421
       Class: rviz/PointStamped
-      Color: 78; 154; 6
+      Color: 0; 255; 0
       Enabled: true
       History Length: 1
-      Name: PointStamped
+      Name: Navigation Target
       Queue Size: 10
       Radius: 0.15000000596046448
       Topic: /env/nav_target
@@ -545,7 +548,7 @@ Visualization Manager:
       Value: true
   Enabled: true
   Global Options:
-    Background Color: 0; 0; 0
+    Background Color: 255; 255; 255
     Default Light: true
     Fixed Frame: map
     Frame Rate: 30
@@ -573,7 +576,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 27.025699615478516
+      Distance: 34.67220687866211
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -581,17 +584,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.4141240119934082
-        Y: 0.5199282765388489
-        Z: 4.258357524871826
+        X: -1.0872652530670166
+        Y: -4.787482261657715
+        Z: 4.58037805557251
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.449796438217163
+      Pitch: 1.5647963285446167
       Target Frame: <Fixed Frame>
-      Yaw: 3.166687250137329
+      Yaw: 3.1466853618621826
     Saved: ~
 Window Geometry:
   Displays:

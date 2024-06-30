@@ -95,7 +95,10 @@ bool setRobotPoseServiceHandler(falco_planner::SetRobotPose::Request& req, falco
   gazebo_msgs::SetModelState srv;
   srv.request.model_state = req.robotPose;
   if (setModelState.call(srv)) {
-      ROS_INFO("Reset Robot Pose Service Succeeded");
+      printf("\n\033[1;32m**************************************************************************************************\033[0m\n");
+      printf("\033[1;32m[Environment]: Reset Robot Pose Service Succeeded. New Episode Starts.\033[0m\n");
+      printf("\033[1;32m**************************************************************************************************\033[0m\n");
+      // ROS_INFO("Reset Robot Pose Service Succeeded");
   } else {
       ROS_ERROR("Reset Robot Pose Service Failed");
   }
