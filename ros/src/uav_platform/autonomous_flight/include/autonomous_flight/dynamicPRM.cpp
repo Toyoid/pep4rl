@@ -151,11 +151,11 @@ namespace AutoFlight{
 		this->expPlanner_->setMap(this->map_);
 		bool replanSuccess = this->expPlanner_->makePlan();
 		if (replanSuccess){
-			std::cout << "[AutoFlight]: Roadmap Generation Succeed!" << endl;
+			std::cout << "\033[1;32m[AutoFlight]: Roadmap Generation Succeed!\033[0m" << endl;
 			resp.roadmapMarkers = this->expPlanner_->buildRoadmapMarkers();
 		}
 		else{
-			std::cout << "\033[1;32m[AutoFlight]: Roadmap Generation failed!\033[0m" << endl;
+			std::cout << "\033[1;31m[AutoFlight]: Roadmap Generation failed!\033[0m" << endl;
 		}		
 
 		return true;
