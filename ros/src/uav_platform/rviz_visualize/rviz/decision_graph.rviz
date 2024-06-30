@@ -68,7 +68,7 @@ Visualization Manager:
       Reference Frame: <Fixed Frame>
       Show Trail: false
       Value: false
-    - Alpha: 1
+    - Alpha: 0.6000000238418579
       Autocompute Intensity Bounds: false
       Autocompute Value Bounds:
         Max Value: 2
@@ -77,8 +77,8 @@ Visualization Manager:
       Axis: Z
       Channel Name: z
       Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: AxisColor
+      Color: 114; 159; 207
+      Color Transformer: FlatColor
       Decay Time: 0
       Enabled: true
       Invert Rainbow: true
@@ -90,8 +90,8 @@ Visualization Manager:
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.10000000149011612
+      Size (Pixels): 1
+      Size (m): 0.02500000037252903
       Style: Flat Squares
       Topic: /occupancy_map/voxel_map
       Unreliable: false
@@ -319,9 +319,7 @@ Visualization Manager:
       Marker Topic: /dep/roadmap
       Name: roadmap
       Namespaces:
-        edge: true
-        num_voxel_text: true
-        prm_point: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -337,8 +335,7 @@ Visualization Manager:
       Marker Topic: /dep/best_paths
       Name: best path
       Namespaces:
-        best_path: true
-        best_path_node: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -548,7 +545,7 @@ Visualization Manager:
       Value: true
   Enabled: true
   Global Options:
-    Background Color: 255; 255; 255
+    Background Color: 0; 0; 0
     Default Light: true
     Fixed Frame: map
     Frame Rate: 30
@@ -576,7 +573,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 34.67220687866211
+      Distance: 34.113243103027344
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -584,17 +581,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -1.0872652530670166
-        Y: -4.787482261657715
-        Z: 4.58037805557251
+        X: -5.106489658355713
+        Y: 0.032081857323646545
+        Z: 4.669042587280273
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.5647963285446167
+      Pitch: 0.884797215461731
       Target Frame: <Fixed Frame>
-      Yaw: 3.1466853618621826
+      Yaw: 3.156689167022705
     Saved: ~
 Window Geometry:
   Displays:
