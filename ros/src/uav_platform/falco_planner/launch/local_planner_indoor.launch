@@ -108,7 +108,7 @@
     <param name="minStopRotInterval" type="double" value="1.0" />
     <param name="stopRotDelayTime" type="double" value="0" />
     <param name="stopRotDis" type="double" value="1.0" />
-    <param name="stopRotYaw1" type="double" value="100.0" />  <!-- which direction difference will trigger stop-rotate , original: 90 -->
+    <param name="stopRotYaw1" type="double" value="90.0" />  <!-- which direction difference will trigger stop-rotate , original: 90 -->
     <param name="stopRotYaw2" type="double" value="10.0" />
     <param name="stopDis" value="$(arg stopDis)" />
     <param name="slowDis" type="double" value="2.0" />

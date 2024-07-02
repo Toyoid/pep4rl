@@ -99,7 +99,7 @@ def main():
     # cuda
     if args.cuda and torch.cuda.is_available():
         print("choose to use gpu...")
-        device = torch.device("cuda:0")
+        device = torch.device("cuda:1")
         torch.backends.cudnn.deterministic = args.cuda_deterministic
     else:
         print("choose to use cpu...")
@@ -125,7 +125,7 @@ def main():
     if args.autotune:
         target_entropy = 0.01 * (-np.log(1 / args.k_neighbor_size))  # TBD after reading SAC
         # log_alpha = torch.zeros(1, requires_grad=True, device=device)  # TBD after reading SAC
-        log_alpha = torch.tensor([-2.], requires_grad=True, device="cuda:0")  # TBD after reading SAC
+        log_alpha = torch.tensor([-2.], requires_grad=True, device=device)  # TBD after reading SAC
         alpha = log_alpha.exp().item()
         alpha_optimizer = optim.Adam([log_alpha], lr=1e-4)  # TBD after reading SAC: 1e-4 (context) q_lr in cleanrl
     else:
@@ -142,9 +142,9 @@ def main():
 
     # run the experiment
     global_step = 0
-    episode_ita = 0
+    episode_ita = 300
     start_time = time.time()
-    while episode_ita < args.num_episodes:
+    while episode_ita < args.train_num_episodes:
         roadmap_state = envs.reset(episode_ita)
         while not rospy.is_shutdown():
             global_step += 1
@@ -166,28 +166,6 @@ def main():
             replay_buffer.add(deepcopy(roadmap_state), action_index.view(1, 1, 1).clone(), reward.clone(), done.clone(),
                               deepcopy(next_roadmap_state))
             roadmap_state = next_roadmap_state
-
-            # check the episode end points and log the relevant episodic return (not considering parallel envs)
-            if info["episodic_outcome"] is not None:
-                print(f"[Training Info]: episode={episode_ita + 1}, "
-                      f"global_step={global_step}, outcome={info['episodic_outcome']}, "
-                      f"episodic_return={info['episodic_return']:.2f}, \n"
-                      f"episodic_length={info['episodic_length']},"
-                      f"success: {info['outcome_statistic']['success']}, "
-                      f"collision: {info['outcome_statistic']['collision']}, "
-                      f"timeout: {info['outcome_statistic']['timeout']}, "
-                      f"success rate: {(100 * info['outcome_statistic']['success'] / (episode_ita + 1)):.1f}% \n")
-                writer.add_scalar("charts/episodic_return", info["episodic_return"], global_step)
-                writer.add_scalar("charts/episodic_length", info["episodic_length"], global_step)
-                writer.add_scalar("charts/success_rate", info['outcome_statistic']['success'] / (episode_ita + 1), global_step)
-                episode_ita += 1
-                if episode_ita < args.num_episodes:
-                    # print("-------------------------------------------------------------------------------------------")
-                    print("*******************************************************************************************")
-                    print(f"  Episode {episode_ita + 1}: ")
-                    print("*******************************************************************************************")
-
-                break
 
             # training
             # TBD after empirical tuning : training for n times each step like: for j in range(8)
@@ -297,11 +275,11 @@ def main():
 
                 # save net parameters
                 if args.save_model:
-                    if (global_step % args.model_save_frequency == 0) or (episode_ita == args.num_episodes):
+                    if (global_step % args.model_save_frequency == 0) or ((episode_ita == args.train_num_episodes - 1) and done):
                         save_dir = f"{args.model_path}/drm_nav"
                         try:
                             os.mkdir(save_dir)
-                            print("[Save Model]: Directory ", save_dir, " Created")
+                            print("[Save Model]: Directory ", save_dir, " created")
                         except FileExistsError:
                             print("[Save Model]: Directory", save_dir, " already exists")
 
@@ -327,6 +305,29 @@ def main():
                     # writer.add_scalar("charts/SPS", int(global_step / (time.time() - start_time)), global_step)
                     if args.autotune:
                         writer.add_scalar("losses/alpha_loss", alpha_loss.item(), global_step)
+
+            # check the episode end points and log the relevant episodic return (not considering parallel envs)
+            if info["episodic_outcome"] is not None:
+                print(f"[Training Info]: episode={episode_ita}, "
+                      f"global_step={global_step}, outcome={info['episodic_outcome']}, "
+                      f"episodic_return={info['episodic_return']:.2f}, \n"
+                      f"episodic_length={info['episodic_length']},"
+                      f"success: {info['outcome_statistic']['success']}, "
+                      f"collision: {info['outcome_statistic']['collision']}, "
+                      f"timeout: {info['outcome_statistic']['timeout']}, "
+                      f"success rate: {(100 * info['outcome_statistic']['success'] / (episode_ita - 300 + 1)):.1f}% \n")
+                writer.add_scalar("charts/episodic_return", info["episodic_return"], global_step)
+                writer.add_scalar("charts/episodic_length", info["episodic_length"], global_step)
+                writer.add_scalar("charts/success_rate",
+                                  info['outcome_statistic']['success'] / (episode_ita - 300 + 1), global_step)
+                episode_ita += 1
+                if episode_ita < args.train_num_episodes:
+                    print(
+                        "*******************************************************************************************")
+                    print(f"  Episode {episode_ita}: ")
+                    print(
+                        "*******************************************************************************************")
+                break
 
     training_period = time.time() - start_time
     hours = int(training_period // 3600)

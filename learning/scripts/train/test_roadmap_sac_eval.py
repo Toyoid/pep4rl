@@ -12,12 +12,6 @@ from envs.drm_navigation_env import DecisionRoadmapNavEnv
 from algorithm.attention_networks import PolicyNet
 
 
-# def get_time_str():
-#     date_time = datetime.fromtimestamp(time.time())
-#     formatted_date_time = date_time.strftime('%Y%m%d%H%M%S')
-#     return formatted_date_time
-
-
 def main():
     args = get_config()
 
@@ -43,9 +37,9 @@ def main():
     # load attention policy network
     policy = PolicyNet(args.input_dim, args.embedding_dim).to(device)
     if device == 'cpu':
-        checkpoint = torch.load(f'{args.model_path}/drm_nav/checkpoint_999.pth', map_location=torch.device('cpu'))
+        checkpoint = torch.load(f'{args.model_path}/drm_nav/checkpoint_646.pth', map_location=torch.device('cpu'))
     else:
-        checkpoint = torch.load(f'{args.model_path}/drm_nav/checkpoint_999.pth')
+        checkpoint = torch.load(f'{args.model_path}/drm_nav/checkpoint_646.pth')
     policy.load_state_dict(checkpoint['actor_network'])
 
     np.set_printoptions(precision=3)
@@ -54,7 +48,7 @@ def main():
     global_step = 0
     episode_ita = 0
     start_time = time.time()
-    while episode_ita < args.num_episodes:
+    while episode_ita < args.eval_num_episodes:
         roadmap_state = envs.reset(episode_ita)
         while not rospy.is_shutdown():
             global_step += 1
@@ -72,14 +66,21 @@ def main():
 
             # check the episode end points and log the relevant episodic return (not considering parallel envs)
             if info["episodic_outcome"] is not None:
-                print(f"[Training Info]: episode={episode_ita + 1}, "
+                print(f"[Training Info]: episode={episode_ita}, "
                       f"global_step={global_step}, outcome={info['episodic_outcome']}, "
-                      f"episodic_return={info['episodic_return']}, episodic_length={info['episodic_length']}, "
+                      f"episodic_return={info['episodic_return']:.2f}, \n"
+                      f"episodic_length={info['episodic_length']},"
                       f"success: {info['outcome_statistic']['success']}, "
                       f"collision: {info['outcome_statistic']['collision']}, "
                       f"timeout: {info['outcome_statistic']['timeout']}, "
-                      f"success rate: {info['outcome_statistic']['success'] / (episode_ita + 1)}%\n")
+                      f"success rate: {(100 * info['outcome_statistic']['success'] / (episode_ita + 1)):.1f}% \n")
                 episode_ita += 1
+                if episode_ita < args.train_num_episodes:
+                    print(
+                        "*******************************************************************************************")
+                    print(f"  Episode {episode_ita}: ")
+                    print(
+                        "*******************************************************************************************")
                 break
 
     eval_period = time.time() - start_time

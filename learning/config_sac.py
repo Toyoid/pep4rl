@@ -34,9 +34,11 @@ class Args:
     # Algorithm specific parameters
     env_name: str = "Decision-Roadmap-Navigation"
     """the name of the environment"""
-    num_episodes: int = 1000
-    """total episodes of the experiments"""
-    max_episode_steps: int = 32
+    train_num_episodes: int = 1000
+    """total episodes of the training experiments"""
+    eval_num_episodes: int = 200
+    """total episodes of the evaluation experiments"""
+    max_episode_steps: int = 10
     """the number of steps in one episode"""
     buffer_size: int = int(1e4)
     """the replay memory buffer size"""
