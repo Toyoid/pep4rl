@@ -38,7 +38,7 @@ class Args:
     """total episodes of the training experiments"""
     eval_num_episodes: int = 200
     """total episodes of the evaluation experiments"""
-    max_episode_steps: int = 10
+    max_episode_steps: int = 32
     """the number of steps in one episode"""
     buffer_size: int = int(1e4)
     """the replay memory buffer size"""

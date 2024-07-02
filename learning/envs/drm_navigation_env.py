@@ -7,6 +7,7 @@ import torch
 # import sys
 # sys.path.append('/opt/ros/noetic/lib/python3/dist-packages')
 import rospy
+import os
 
 from geometry_msgs.msg import PointStamped, PoseStamped
 from sensor_msgs.msg import Joy
@@ -323,6 +324,12 @@ class DecisionRoadmapNavEnv:
         done = torch.tensor(done, dtype=torch.int32).view(1, 1, 1).to(self.device)
 
         return roadmap_state, reward, done, self.info
+
+    @staticmethod
+    def close():
+        print(" ")
+        rospy.loginfo("Shutting down all nodes...")
+        os.system("rosnode kill -a")
 
     def _get_next_state(self):
         # # Get Collision State

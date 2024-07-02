@@ -335,6 +335,7 @@ def main():
     seconds = int(training_period % 60)
     print(f"Total training time: {hours} h, {minutes} mins, {seconds} s")
     writer.close()
+    envs.close()
 
 
 if __name__ == "__main__":
