@@ -159,13 +159,6 @@ class DecisionRoadmapNavEnv:
         rospy.wait_for_service('/gazebo/set_model_state')
         try:
             resp = self.set_model_pose(target_msg)
-            target = PointStamped()
-            target.header.frame_id = "map"
-            target.header.stamp = rospy.Time.now()
-            target.point.x = self.target_position[0]
-            target.point.y = self.target_position[1]
-            target.point.z = self.target_position[2]
-            self.nav_target_pub.publish(target)
             print(f"[ROS Service Request]: Target position [{self.target_position[0]}, {self.target_position[1]}, {self.target_position[2]}]")
         except rospy.ServiceException as e:
             print("Set Target Service Failed: %s" % e)
@@ -196,6 +189,14 @@ class DecisionRoadmapNavEnv:
             resp = self.reset_roadmap(robot_msg)
         except rospy.ServiceException as e:
             print("Reset Roadmap Service Failed: %s" % e)
+        # publish navigation target position to roadmap after resetting roadmap
+        target = PointStamped()
+        target.header.frame_id = "map"
+        target.header.stamp = rospy.Time.now()
+        target.point.x = self.target_position[0]
+        target.point.y = self.target_position[1]
+        target.point.z = self.target_position[2]
+        self.nav_target_pub.publish(target)
         # rotate the robot to get initial scan of the environment
         rospy.wait_for_service('/falco_planner/init_rotate_scan_service')
         try:

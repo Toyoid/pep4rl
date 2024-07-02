@@ -287,13 +287,12 @@ namespace globalPlanner{
 	}
 
 	void DEP::resetRoadmap(const gazebo_msgs::ModelState& resetRobotPos) {
-	    // IMPORTANT: reset flag variables before clearing roadmap_ and prmNodeVec_ to prevent visiting invalid roadmap data in waypointUpdateTimer
+	    // IMPORTANT: lock waypointUpdateTimer to prevent visiting invalid memory
 	    this->currGoalReceived_ = false;
-		this->resettingRLEnv_ = true;
+		this->resettingRLEnv_ = false;
 
 		this->prmNodeVec_.clear();
 		this->roadmap_->clear();
-		
 
 		Eigen::Vector3d p;
 		p(0) = resetRobotPos.pose.position.x;
@@ -309,6 +308,10 @@ namespace globalPlanner{
 		this->histTraj_.clear();  
 		this->bestPath_.clear();
 		this->frontierPointPairs_.clear();
+
+	    // IMPORTANT: unlock waypointUpdateTimer
+		this->currGoalReceived_ = false;
+		this->resettingRLEnv_ = true;
 	}
 
 	void DEP::registerPub(){
@@ -1000,6 +1003,7 @@ namespace globalPlanner{
 
 	void DEP::waypointUpdateCB(const ros::TimerEvent&) {
 		if (this->resettingRLEnv_) {
+		    assert(this->currGoal_ != nullptr);
 		    // Publishing robot initial position as waypoint to reset RL Env
 			geometry_msgs::PointStamped waypoint;
 			waypoint.header.stamp = ros::Time::now();
@@ -1011,6 +1015,10 @@ namespace globalPlanner{
 			// std::cout << "\033[1;32m[Debug]: Publishing robot initial position as waypoint to reset RL Env... \033[0m" << std::endl;
 		}
 		else if (this->currGoalReceived_) {
+		    assert(this->currGoal_ != nullptr);
+		    assert(this->roadmap_ != nullptr);
+		    assert(this->map_ != nullptr);
+
 			Point3D lastNavWaypoint = this->navWaypoint_;
 
 			// find best path to current goal

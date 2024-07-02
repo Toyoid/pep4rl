@@ -181,12 +181,8 @@ namespace AutoFlight{
 		this->map_.reset(new mapManager::occMap (this->nh_));
 
 		// reset roadmap
-//		this->expPlanner_->resetRoadmap(req.robotPose);
-//		this->expPlanner_->setMap(this->map_);
-
-		this->expPlanner_.reset(new globalPlanner::DEP (this->nh_));
-		this->expPlanner_->setMap(this->map_);
 		this->expPlanner_->resetRoadmap(req.robotPose);
+		this->expPlanner_->setMap(this->map_);
 
 		cout << "\n\033[1;32m[Roadmap]: Successfully reset map and roadmap.\033[0m" << endl;
 
