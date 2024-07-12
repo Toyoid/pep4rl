@@ -83,7 +83,7 @@
     <param name="lookAheadScale" type="double" value="0.2" />
     <param name="minLookAheadDis" type="double" value="0.2" />
     <param name="minSpeed" type="double" value="0.5" />
-    <param name="maxSpeed" type="double" value="1.5" />
+    <param name="maxSpeed" type="double" value="1.75" />
     <param name="accXYGain" type="double" value="0.05" />
     <param name="velXYGain" type="double" value="0.4" />
     <param name="posXYGain" type="double" value="0.05" />

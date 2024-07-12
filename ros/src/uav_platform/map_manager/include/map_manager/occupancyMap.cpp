@@ -549,10 +549,10 @@ namespace mapManager{
 		}
 
 		// occupancy update callback
-		this->occTimer_ = this->nh_.createTimer(ros::Duration(0.1), &occMap::updateOccupancyCB, this);  // ros::Duration(0.05)
+		this->occTimer_ = this->nh_.createTimer(ros::Duration(0.05), &occMap::updateOccupancyCB, this);  // ros::Duration(0.05)
 
 		// map inflation callback
-		this->inflateTimer_ = this->nh_.createTimer(ros::Duration(0.1), &occMap::inflateMapCB, this);  // ros::Duration(0.05)
+		this->inflateTimer_ = this->nh_.createTimer(ros::Duration(0.05), &occMap::inflateMapCB, this);  // ros::Duration(0.05)
 
 		// visualization callback
 		this->visTimer_ = this->nh_.createTimer(ros::Duration(0.1), &occMap::visCB, this);
@@ -679,39 +679,44 @@ namespace mapManager{
 	}
 
 	void occMap::updateOccupancyCB(const ros::TimerEvent& ){
-		if (not this->occNeedUpdate_){
-			return;
-		}
-		// cout << "update occupancy map" << endl;
-		ros::Time startTime, endTime;
-		
-		startTime = ros::Time::now();
-		if (this->sensorInputMode_ == 0){
-			// project 3D points from depth map
-			this->projectDepthImage();
-		}
-		else if (this->sensorInputMode_ == 1){
-			// directly get pointcloud
-			this->getPointcloud();
-		}
+	    ROS_INFO("occMap::updateOccupancy callback called");
+        try {
+            if (not this->occNeedUpdate_){
+                return;
+            }
+            // cout << "update occupancy map" << endl;
+            ros::Time startTime, endTime;
 
-		// raycasting and update occupancy
-		this->raycastUpdate();
+            startTime = ros::Time::now();
+            if (this->sensorInputMode_ == 0){
+                // project 3D points from depth map
+                this->projectDepthImage();
+            }
+            else if (this->sensorInputMode_ == 1){
+                // directly get pointcloud
+                this->getPointcloud();
+            }
+
+            // raycasting and update occupancy
+            this->raycastUpdate();
 
 
-		// clear local map
-		if (this->cleanLocalMap_){
-			this->cleanLocalMap();
-		}
-		
-		// infalte map
-		// this->inflateLocalMap();
-		endTime = ros::Time::now();
-		if (this->verbose_){
-			cout << this->hint_ << ": Occupancy update time: " << (endTime - startTime).toSec() << " s." << endl;
-		}
-		this->occNeedUpdate_ = false;
-		this->mapNeedInflate_ = true;
+            // clear local map
+            if (this->cleanLocalMap_){
+                this->cleanLocalMap();
+            }
+
+            // infalte map
+            // this->inflateLocalMap();
+            endTime = ros::Time::now();
+            if (this->verbose_){
+                cout << this->hint_ << ": Occupancy update time: " << (endTime - startTime).toSec() << " s." << endl;
+            }
+            this->occNeedUpdate_ = false;
+            this->mapNeedInflate_ = true;
+        } catch (const std::exception &e) {
+            ROS_ERROR("Exception caught: %s", e.what());
+        }
 	}
 
 	void occMap::inflateMapCB(const ros::TimerEvent& ){
@@ -859,8 +864,6 @@ namespace mapManager{
 			else{
 				this->flagRayend_[rayendVoxelID] = this->raycastNum_;
 			}
-
-
 
 			// raycasting for update occupancy
 			this->raycaster_.setInput(currPoint/this->mapRes_, this->position_/this->mapRes_);
@@ -1023,48 +1026,53 @@ namespace mapManager{
 	}
 
 	void occMap::inflateLocalMap(){
-		Eigen::Vector3i clearIndex;
-		// clear previous data in current data range
-		for (int x=this->localBoundMin_(0); x<=this->localBoundMax_(0); ++x){
-			for (int y=this->localBoundMin_(1); y<=this->localBoundMax_(1); ++y){
-				for (int z=this->localBoundMin_(2); z<=this->localBoundMax_(2); ++z){
-					clearIndex(0) = x; clearIndex(1) = y; clearIndex(2) = z;
-					this->occupancyInflated_[this->indexToAddress(clearIndex)] = false;
-				}
-			}
-		}
+		ROS_INFO("occMap::inflateLocalMap called");
+        try {
+            Eigen::Vector3i clearIndex;
+            // clear previous data in current data range
+            for (int x=this->localBoundMin_(0); x<=this->localBoundMax_(0); ++x){
+                for (int y=this->localBoundMin_(1); y<=this->localBoundMax_(1); ++y){
+                    for (int z=this->localBoundMin_(2); z<=this->localBoundMax_(2); ++z){
+                        clearIndex(0) = x; clearIndex(1) = y; clearIndex(2) = z;
+                        this->occupancyInflated_[this->indexToAddress(clearIndex)] = false;
+                    }
+                }
+            }
 
-		int xInflateSize = ceil(this->robotSize_(0)/(2*this->mapRes_));
-		int yInflateSize = ceil(this->robotSize_(1)/(2*this->mapRes_));
-		int zInflateSize = ceil(this->robotSize_(2)/(2*this->mapRes_));
+            int xInflateSize = ceil(this->robotSize_(0)/(2*this->mapRes_));
+            int yInflateSize = ceil(this->robotSize_(1)/(2*this->mapRes_));
+            int zInflateSize = ceil(this->robotSize_(2)/(2*this->mapRes_));
 
-		// inflate based on current occupancy
-		Eigen::Vector3i pointIndex, inflateIndex;
-		int inflateAddress;
-		const int  maxIndex = this->mapVoxelMax_(0) * this->mapVoxelMax_(1) * this->mapVoxelMax_(2);
-		for (int x=this->localBoundMin_(0); x<=this->localBoundMax_(0); ++x){
-			for (int y=this->localBoundMin_(1); y<=this->localBoundMax_(1); ++y){
-				for (int z=this->localBoundMin_(2); z<=this->localBoundMax_(2); ++z){
-					pointIndex(0) = x; pointIndex(1) = y; pointIndex(2) = z;
-					if (this->isOccupied(pointIndex)){
-						for (int ix=-xInflateSize; ix<=xInflateSize; ++ix){
-							for (int iy=-yInflateSize; iy<=yInflateSize; ++iy){
-								for (int iz=-zInflateSize; iz<=zInflateSize; ++iz){
-									inflateIndex(0) = pointIndex(0) + ix;
-									inflateIndex(1) = pointIndex(1) + iy;
-									inflateIndex(2) = pointIndex(2) + iz;
-									inflateAddress = this->indexToAddress(inflateIndex);
-									if ((inflateAddress < 0) or (inflateAddress > maxIndex)){
-										continue; // those points are not in the reserved map
-									} 
-									this->occupancyInflated_[inflateAddress] = true;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+            // inflate based on current occupancy
+            Eigen::Vector3i pointIndex, inflateIndex;
+            int inflateAddress;
+            const int  maxIndex = this->mapVoxelMax_(0) * this->mapVoxelMax_(1) * this->mapVoxelMax_(2);
+            for (int x=this->localBoundMin_(0); x<=this->localBoundMax_(0); ++x){
+                for (int y=this->localBoundMin_(1); y<=this->localBoundMax_(1); ++y){
+                    for (int z=this->localBoundMin_(2); z<=this->localBoundMax_(2); ++z){
+                        pointIndex(0) = x; pointIndex(1) = y; pointIndex(2) = z;
+                        if (this->isOccupied(pointIndex)){
+                            for (int ix=-xInflateSize; ix<=xInflateSize; ++ix){
+                                for (int iy=-yInflateSize; iy<=yInflateSize; ++iy){
+                                    for (int iz=-zInflateSize; iz<=zInflateSize; ++iz){
+                                        inflateIndex(0) = pointIndex(0) + ix;
+                                        inflateIndex(1) = pointIndex(1) + iy;
+                                        inflateIndex(2) = pointIndex(2) + iz;
+                                        inflateAddress = this->indexToAddress(inflateIndex);
+                                        if ((inflateAddress < 0) or (inflateAddress > maxIndex)){
+                                            continue; // those points are not in the reserved map
+                                        }
+                                        this->occupancyInflated_[inflateAddress] = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (const std::exception &e) {
+            ROS_ERROR("Exception caught: %s", e.what());
+        }
 	}
 
 

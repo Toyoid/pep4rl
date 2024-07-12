@@ -37,12 +37,10 @@ def main():
     # load attention policy network
     policy = PolicyNet(args.input_dim, args.embedding_dim).to(device)
     if device == 'cpu':
-        checkpoint = torch.load(f'{args.model_path}/drm_nav/checkpoint_999.pth', map_location=torch.device('cpu'))
+        checkpoint = torch.load(f'{args.model_path}/drm_nav_train_env_1-4/checkpoint_987.pth', map_location=torch.device('cpu'))
     else:
-        checkpoint = torch.load(f'{args.model_path}/drm_nav/checkpoint_646.pth')
+        checkpoint = torch.load(f'{args.model_path}/drm_nav_train_env_1-4/checkpoint_987.pth')
     policy.load_state_dict(checkpoint['actor_network'])
-
-    np.set_printoptions(precision=3)
 
     # run the experiment
     global_step = 0
@@ -66,7 +64,7 @@ def main():
 
             # check the episode end points and log the relevant episodic return (not considering parallel envs)
             if info["episodic_outcome"] is not None:
-                print(f"[Training Info]: episode={episode_ita}, "
+                print(f"[Evaluation Info]: episode={episode_ita}, "
                       f"global_step={global_step}, outcome={info['episodic_outcome']}, "
                       f"episodic_return={info['episodic_return']:.2f}, \n"
                       f"episodic_length={info['episodic_length']},"

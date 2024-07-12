@@ -344,7 +344,7 @@ namespace globalPlanner{
 		this->visTimer_ = this->nh_.createTimer(ros::Duration(0.2), &DEP::visCB, this);
 
 		//added by me waypoint publish timer
-		this->waypointTimer_ = this->nh_.createTimer(ros::Duration(0.25), &DEP::waypointUpdateCB, this);
+		this->waypointTimer_ = this->nh_.createTimer(ros::Duration(0.33), &DEP::waypointUpdateCB, this);
 
 		//added by me
 		this->currGoalSub_ = this->nh_.subscribe("/agent/current_goal", 5, &DEP::currGoalCB, this); 
@@ -988,84 +988,89 @@ namespace globalPlanner{
 	}
 
 	void DEP::currGoalCB(const geometry_msgs::PointStamped::ConstPtr& goal) {
-		this->currGoalReceived_ = true;
-		this->resettingRLEnv_ = false;
-
 		Eigen::Vector3d p(goal->point.x, goal->point.y, goal->point.z);
 		this->currGoal_.reset(new PRM::Node(p));
 
-		std::cout << "[Agent]: Current goal "
-		<< " x: " << std::setw(2) << this->currGoal_->pos(0)
-		<< " y: " << std::setw(2) << this->currGoal_->pos(1)
-		<< " z: " << std::setw(2) << this->currGoal_->pos(2)
-		<< endl;
+//		std::cout << "[Agent]: Current goal "
+//		<< " x: " << std::setw(2) << this->currGoal_->pos(0)
+//		<< " y: " << std::setw(2) << this->currGoal_->pos(1)
+//		<< " z: " << std::setw(2) << this->currGoal_->pos(2)
+//		<< endl;
+
+		this->currGoalReceived_ = true;
+		this->resettingRLEnv_ = false;
 	}
 
 	void DEP::waypointUpdateCB(const ros::TimerEvent&) {
-		if (this->resettingRLEnv_) {
-		    assert(this->currGoal_ != nullptr);
-		    // Publishing robot initial position as waypoint to reset RL Env
-			geometry_msgs::PointStamped waypoint;
-			waypoint.header.stamp = ros::Time::now();
-			waypoint.header.frame_id = "map";
-			waypoint.point.x = this->currGoal_->pos(0);
-			waypoint.point.y = this->currGoal_->pos(1);
-			waypoint.point.z = this->currGoal_->pos(2);
-			this->waypointPub_.publish(waypoint);
-			// std::cout << "\033[1;32m[Debug]: Publishing robot initial position as waypoint to reset RL Env... \033[0m" << std::endl;
-		}
-		else if (this->currGoalReceived_) {
-		    assert(this->currGoal_ != nullptr);
-		    assert(this->roadmap_ != nullptr);
-		    assert(this->map_ != nullptr);
+        ROS_INFO("waypointUpdate callback called");
+        try {
+            if (this->resettingRLEnv_) {
+                assert(this->currGoal_ != nullptr);
+                // Publishing robot initial position as waypoint to reset RL Env
+                geometry_msgs::PointStamped waypoint;
+                waypoint.header.stamp = ros::Time::now();
+                waypoint.header.frame_id = "map";
+                waypoint.point.x = this->currGoal_->pos(0);
+                waypoint.point.y = this->currGoal_->pos(1);
+                waypoint.point.z = this->currGoal_->pos(2);
+                this->waypointPub_.publish(waypoint);
+//                std::cout << "\033[1;32m[Debug]: Publishing robot initial position as waypoint to reset RL Env... \033[0m" << std::endl;
+            }
+            else if (this->currGoalReceived_) {
+                assert(this->currGoal_ != nullptr);
+                assert(this->roadmap_ != nullptr);
+                assert(this->map_ != nullptr);
 
-			Point3D lastNavWaypoint = this->navWaypoint_;
+                Point3D lastNavWaypoint = this->navWaypoint_;
 
-			// find best path to current goal
-			this->bestPath_.clear();
-			// find nearest node of current location
-			std::shared_ptr<PRM::Node> currPos(new PRM::Node (this->position_));
-			std::shared_ptr<PRM::Node> start = this->roadmap_->nearestNeighbor(currPos);
-			std::shared_ptr<PRM::Node> temp_goal = this->roadmap_->nearestNeighbor(this->currGoal_);  // this is important, or no path will be found!
+                // find best path to current goal
+                this->bestPath_.clear();
+                // find nearest node of current location
+                std::shared_ptr<PRM::Node> currPos(new PRM::Node (this->position_));
+                std::shared_ptr<PRM::Node> start = this->roadmap_->nearestNeighbor(currPos);
+                std::shared_ptr<PRM::Node> temp_goal = this->roadmap_->nearestNeighbor(this->currGoal_);  // this is important, or no path will be found!
 
-			std::vector<std::shared_ptr<PRM::Node>> path = PRM::AStar(this->roadmap_, start, temp_goal, this->map_);
-			if (int(path.size()) != 0) {
-				// Finding path success
-				path.insert(path.begin(), currPos);
-				std::vector<std::shared_ptr<PRM::Node>> pathSc;
-				this->shortcutPath(path, pathSc);
-				this->bestPath_ = pathSc;
-				this->waypointIdx_ = 0;
-			}
+                std::vector<std::shared_ptr<PRM::Node>> path = PRM::AStar(this->roadmap_, start, temp_goal, this->map_);
+                if (int(path.size()) != 0) {
+                    // Finding path success
+                    path.insert(path.begin(), currPos);
+                    std::vector<std::shared_ptr<PRM::Node>> pathSc;
+                    this->shortcutPath(path, pathSc);
+                    this->bestPath_ = pathSc;
+                    this->waypointIdx_ = 0;
+                }
 
-			// construct waypoint
-			geometry_msgs::PointStamped waypoint;
-			waypoint.header.stamp = ros::Time::now();
-			waypoint.header.frame_id = "map";
-			if (this->bestPath_.size() != 0) {
-				if (((this->position_ - this->bestPath_[this->waypointIdx_]->pos).norm() <= 0.2) && (this->waypointIdx_ < (this->bestPath_.size() - 1))){
-					this->waypointIdx_ += 1;
-				}  
+                // construct waypoint
+                geometry_msgs::PointStamped waypoint;
+                waypoint.header.stamp = ros::Time::now();
+                waypoint.header.frame_id = "map";
+                if (this->bestPath_.size() != 0) {
+                    if (((this->position_ - this->bestPath_[this->waypointIdx_]->pos).norm() <= 0.2) && (this->waypointIdx_ < (this->bestPath_.size() - 1))){
+                        this->waypointIdx_ += 1;
+                    }
 
-				this->navWaypoint_ = Point3D(this->bestPath_[this->waypointIdx_]->pos(0), this->bestPath_[this->waypointIdx_]->pos(1), this->bestPath_[this->waypointIdx_]->pos(2));
-				
-				Point3D projectedWaypoint = this->projectNavWaypoint(this->navWaypoint_, lastNavWaypoint);
-				
-				waypoint.point.x = projectedWaypoint.x;
-				waypoint.point.y = projectedWaypoint.y;
-				waypoint.point.z = projectedWaypoint.z;			
-			}
-			else {
-				// Find global paths fails. Directly using local planner
-				// std::cout << "\033[1;31m[Debug]: Find global paths fails. Directly using local planner... \033[0m" << std::endl;
-				this->navHeading_ = Point3D(0, 0, 0);
+                    this->navWaypoint_ = Point3D(this->bestPath_[this->waypointIdx_]->pos(0), this->bestPath_[this->waypointIdx_]->pos(1), this->bestPath_[this->waypointIdx_]->pos(2));
 
-				waypoint.point.x = this->currGoal_->pos(0);
-				waypoint.point.y = this->currGoal_->pos(1);
-				waypoint.point.z = this->currGoal_->pos(2);
-			}
-			this->waypointPub_.publish(waypoint);
-		}
+                    Point3D projectedWaypoint = this->projectNavWaypoint(this->navWaypoint_, lastNavWaypoint);
+
+                    waypoint.point.x = projectedWaypoint.x;
+                    waypoint.point.y = projectedWaypoint.y;
+                    waypoint.point.z = projectedWaypoint.z;
+                }
+                else {
+                    // Find global paths fails. Directly using local planner
+                    // std::cout << "\033[1;31m[Debug]: Find global paths fails. Directly using local planner... \033[0m" << std::endl;
+                    this->navHeading_ = Point3D(0, 0, 0);
+
+                    waypoint.point.x = this->currGoal_->pos(0);
+                    waypoint.point.y = this->currGoal_->pos(1);
+                    waypoint.point.z = this->currGoal_->pos(2);
+                }
+                this->waypointPub_.publish(waypoint);
+            }
+        } catch (const std::exception &e) {
+            ROS_ERROR("Exception caught: %s", e.what());
+        }
 	}
 
 	Point3D DEP::projectNavWaypoint(const Point3D& nav_waypoint, const Point3D& last_waypoint) {

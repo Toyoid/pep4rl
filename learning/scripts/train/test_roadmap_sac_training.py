@@ -138,11 +138,9 @@ def main():
     # replay buffer
     replay_buffer = RoadmapReplayBuffer(args.buffer_size, device)
 
-    np.set_printoptions(precision=3)  # print option for debug
-
     # run the experiment
     global_step = 0
-    episode_ita = 300
+    episode_ita = 0
     start_time = time.time()
     while episode_ita < args.train_num_episodes:
         roadmap_state = envs.reset(episode_ita)
@@ -168,99 +166,100 @@ def main():
             roadmap_state = next_roadmap_state
 
             # training
-            # TBD after empirical tuning : training for n times each step like: for j in range(8)
             if global_step > args.learning_starts:
-                data = replay_buffer.sample(args.batch_size)
+                # TBD after empirical tuning : training for n times each step like: for j in range(8)
+                for k_updates in range(8):
+                    data = replay_buffer.sample(args.batch_size)
 
-                node_inputs_batch = data["node_inputs"]
-                edge_inputs_batch = data["edge_inputs"]
-                current_inputs_batch = data["current_index"]
-                node_padding_mask_batch = data["node_padding_mask"]
-                edge_padding_mask_batch = data["edge_padding_mask"]
-                edge_mask_batch = data["edge_mask"]
-                action_batch = data["action"]
-                reward_batch = data["reward"]
-                done_batch = data["done"]
-                next_node_inputs_batch = data["next_node_inputs"]
-                next_edge_inputs_batch = data["next_edge_inputs"]
-                next_current_inputs_batch = data["next_current_index"]
-                next_node_padding_mask_batch = data["next_node_padding_mask"]
-                next_edge_padding_mask_batch = data["next_edge_padding_mask"]
-                next_edge_mask_batch = data["next_edge_mask"]
+                    node_inputs_batch = data["node_inputs"]
+                    edge_inputs_batch = data["edge_inputs"]
+                    current_inputs_batch = data["current_index"]
+                    node_padding_mask_batch = data["node_padding_mask"]
+                    edge_padding_mask_batch = data["edge_padding_mask"]
+                    edge_mask_batch = data["edge_mask"]
+                    action_batch = data["action"]
+                    reward_batch = data["reward"]
+                    done_batch = data["done"]
+                    next_node_inputs_batch = data["next_node_inputs"]
+                    next_edge_inputs_batch = data["next_edge_inputs"]
+                    next_current_inputs_batch = data["next_current_index"]
+                    next_node_padding_mask_batch = data["next_node_padding_mask"]
+                    next_edge_padding_mask_batch = data["next_edge_padding_mask"]
+                    next_edge_mask_batch = data["next_edge_mask"]
 
-                with torch.no_grad():
-                    next_log_pi = actor(next_node_inputs_batch, next_edge_inputs_batch, next_current_inputs_batch,
-                                        next_node_padding_mask_batch, next_edge_padding_mask_batch, next_edge_mask_batch)
-                    next_q1_values, _ = qf1_target(next_node_inputs_batch, next_edge_inputs_batch,
-                                                   next_current_inputs_batch, next_node_padding_mask_batch,
-                                                   next_edge_padding_mask_batch, next_edge_mask_batch)
-                    next_q2_values, _ = qf2_target(next_node_inputs_batch, next_edge_inputs_batch,
-                                                   next_current_inputs_batch, next_node_padding_mask_batch,
-                                                   next_edge_padding_mask_batch, next_edge_mask_batch)
-                    next_q_values = torch.min(next_q1_values, next_q2_values)
-                    value_prime_batch = torch.sum(
-                        next_log_pi.unsqueeze(2).exp() * (next_q_values - log_alpha.exp() * next_log_pi.unsqueeze(2)),
-                        dim=1).unsqueeze(1)
-                    target_q_batch = reward_batch + args.gamma * (1 - done_batch) * value_prime_batch
-                    # ? equation doesn't align
-                    # min_qf_next_target = torch.min(qf1_next_target, qf2_next_target) - alpha * next_state_log_pi
-                    # next_q_value = data.rewards.flatten() + (1 - data.dones.flatten()) * args.gamma * (
-                    #     min_qf_next_target).view(-1)
-
-                q1_values, _ = qf1(node_inputs_batch, edge_inputs_batch, current_inputs_batch,
-                                   node_padding_mask_batch, edge_padding_mask_batch, edge_mask_batch)
-                q2_values, _ = qf2(node_inputs_batch, edge_inputs_batch, current_inputs_batch,
-                                   node_padding_mask_batch, edge_padding_mask_batch, edge_mask_batch)
-                q1 = torch.gather(q1_values, 1, action_batch)
-                q2 = torch.gather(q2_values, 1, action_batch)
-                qf1_loss = F.mse_loss(q1, target_q_batch.detach())
-                qf2_loss = F.mse_loss(q2, target_q_batch.detach())
-                qf_loss = qf1_loss + qf2_loss
-
-                # optimize the model
-                q_optimizer.zero_grad()
-                qf_loss.backward()
-                # TBD:
-                # q1_grad_norm = torch.nn.utils.clip_grad_norm_(qf1.parameters(), max_norm=20000, norm_type=2)
-                # q2_grad_norm = torch.nn.utils.clip_grad_norm_(qf2.parameters(), max_norm=20000, norm_type=2)
-                q_optimizer.step()
-
-                if global_step % args.policy_frequency == 0:  # TD 3 Delayed update support
-                    for _ in range(
-                            args.policy_frequency
-                    ):  # compensate for the delay by doing 'actor_update_interval' instead of 1
-                        with torch.no_grad():
-                            # using torch.no_grad() because the Q-Net doesn't take actor output as input
-                            q1_values, _ = qf1(node_inputs_batch, edge_inputs_batch, current_inputs_batch,
-                                               node_padding_mask_batch, edge_padding_mask_batch, edge_mask_batch)
-                            q2_values, _ = qf2(node_inputs_batch, edge_inputs_batch, current_inputs_batch,
-                                               node_padding_mask_batch, edge_padding_mask_batch, edge_mask_batch)
-                            q_values = torch.min(q1_values, q2_values)
-
-                        log_pi = actor(node_inputs_batch, edge_inputs_batch, current_inputs_batch,
-                                       node_padding_mask_batch, edge_padding_mask_batch, edge_mask_batch)
-                        actor_loss = torch.sum((log_pi.exp().unsqueeze(2) * (
-                                    log_alpha.exp().detach() * log_pi.unsqueeze(2) - q_values.detach())), dim=1).mean()
+                    with torch.no_grad():
+                        next_log_pi = actor(next_node_inputs_batch, next_edge_inputs_batch, next_current_inputs_batch,
+                                            next_node_padding_mask_batch, next_edge_padding_mask_batch, next_edge_mask_batch)
+                        next_q1_values, _ = qf1_target(next_node_inputs_batch, next_edge_inputs_batch,
+                                                       next_current_inputs_batch, next_node_padding_mask_batch,
+                                                       next_edge_padding_mask_batch, next_edge_mask_batch)
+                        next_q2_values, _ = qf2_target(next_node_inputs_batch, next_edge_inputs_batch,
+                                                       next_current_inputs_batch, next_node_padding_mask_batch,
+                                                       next_edge_padding_mask_batch, next_edge_mask_batch)
+                        next_q_values = torch.min(next_q1_values, next_q2_values)
+                        value_prime_batch = torch.sum(
+                            next_log_pi.unsqueeze(2).exp() * (next_q_values - log_alpha.exp() * next_log_pi.unsqueeze(2)),
+                            dim=1).unsqueeze(1)
+                        target_q_batch = reward_batch + args.gamma * (1 - done_batch) * value_prime_batch
                         # ? equation doesn't align
-                        # actor_loss = ((alpha * log_pi) - min_qf_pi).mean()
+                        # min_qf_next_target = torch.min(qf1_next_target, qf2_next_target) - alpha * next_state_log_pi
+                        # next_q_value = data.rewards.flatten() + (1 - data.dones.flatten()) * args.gamma * (
+                        #     min_qf_next_target).view(-1)
 
-                        actor_optimizer.zero_grad()
-                        actor_loss.backward()
-                        # TBD: actor_grad_norm = torch.nn.utils.clip_grad_norm_(actor.parameters(), max_norm=100, norm_type=2)
-                        actor_optimizer.step()
+                    q1_values, _ = qf1(node_inputs_batch, edge_inputs_batch, current_inputs_batch,
+                                       node_padding_mask_batch, edge_padding_mask_batch, edge_mask_batch)
+                    q2_values, _ = qf2(node_inputs_batch, edge_inputs_batch, current_inputs_batch,
+                                       node_padding_mask_batch, edge_padding_mask_batch, edge_mask_batch)
+                    q1 = torch.gather(q1_values, 1, action_batch)
+                    q2 = torch.gather(q2_values, 1, action_batch)
+                    qf1_loss = F.mse_loss(q1, target_q_batch.detach())
+                    qf2_loss = F.mse_loss(q2, target_q_batch.detach())
+                    qf_loss = qf1_loss + qf2_loss
 
-                        if args.autotune:
-                            entropy = (log_pi * log_pi.exp()).sum(dim=-1)
-                            alpha_loss = -(log_alpha * (entropy.detach() + target_entropy)).mean()
+                    # optimize the model
+                    q_optimizer.zero_grad()
+                    qf_loss.backward()
+                    # TBD:
+                    # q1_grad_norm = torch.nn.utils.clip_grad_norm_(qf1.parameters(), max_norm=20000, norm_type=2)
+                    # q2_grad_norm = torch.nn.utils.clip_grad_norm_(qf2.parameters(), max_norm=20000, norm_type=2)
+                    q_optimizer.step()
+
+                    if global_step % args.policy_frequency == 0:  # TD 3 Delayed update support
+                        for _ in range(
+                                args.policy_frequency
+                        ):  # compensate for the delay by doing 'actor_update_interval' instead of 1
+                            with torch.no_grad():
+                                # using torch.no_grad() because the Q-Net doesn't take actor output as input
+                                q1_values, _ = qf1(node_inputs_batch, edge_inputs_batch, current_inputs_batch,
+                                                   node_padding_mask_batch, edge_padding_mask_batch, edge_mask_batch)
+                                q2_values, _ = qf2(node_inputs_batch, edge_inputs_batch, current_inputs_batch,
+                                                   node_padding_mask_batch, edge_padding_mask_batch, edge_mask_batch)
+                                q_values = torch.min(q1_values, q2_values)
+
+                            log_pi = actor(node_inputs_batch, edge_inputs_batch, current_inputs_batch,
+                                           node_padding_mask_batch, edge_padding_mask_batch, edge_mask_batch)
+                            actor_loss = torch.sum((log_pi.exp().unsqueeze(2) * (
+                                        log_alpha.exp().detach() * log_pi.unsqueeze(2) - q_values.detach())), dim=1).mean()
                             # ? equation doesn't align
-                            # with torch.no_grad():
-                            #     _, log_pi, _ = actor.get_action(data.observations)
-                            # alpha_loss = (-log_alpha.exp() * (log_pi + target_entropy)).mean()
+                            # actor_loss = ((alpha * log_pi) - min_qf_pi).mean()
 
-                            alpha_optimizer.zero_grad()
-                            alpha_loss.backward()
-                            alpha_optimizer.step()
-                            alpha = log_alpha.exp().item()
+                            actor_optimizer.zero_grad()
+                            actor_loss.backward()
+                            # TBD: actor_grad_norm = torch.nn.utils.clip_grad_norm_(actor.parameters(), max_norm=100, norm_type=2)
+                            actor_optimizer.step()
+
+                            if args.autotune:
+                                entropy = (log_pi * log_pi.exp()).sum(dim=-1)
+                                alpha_loss = -(log_alpha * (entropy.detach() + target_entropy)).mean()
+                                # ? equation doesn't align
+                                # with torch.no_grad():
+                                #     _, log_pi, _ = actor.get_action(data.observations)
+                                # alpha_loss = (-log_alpha.exp() * (log_pi + target_entropy)).mean()
+
+                                alpha_optimizer.zero_grad()
+                                alpha_loss.backward()
+                                alpha_optimizer.step()
+                                alpha = log_alpha.exp().item()
 
                 # context not use?
                 # actor_lr_decay.step()
@@ -315,11 +314,11 @@ def main():
                       f"success: {info['outcome_statistic']['success']}, "
                       f"collision: {info['outcome_statistic']['collision']}, "
                       f"timeout: {info['outcome_statistic']['timeout']}, "
-                      f"success rate: {(100 * info['outcome_statistic']['success'] / (episode_ita - 300 + 1)):.1f}% \n")
+                      f"success rate: {(100 * info['outcome_statistic']['success'] / (episode_ita + 1)):.1f}% \n")
                 writer.add_scalar("charts/episodic_return", info["episodic_return"], global_step)
                 writer.add_scalar("charts/episodic_length", info["episodic_length"], global_step)
                 writer.add_scalar("charts/success_rate",
-                                  info['outcome_statistic']['success'] / (episode_ita - 300 + 1), global_step)
+                                  info['outcome_statistic']['success'] / (episode_ita + 1), global_step)
                 episode_ita += 1
                 if episode_ita < args.train_num_episodes:
                     print(

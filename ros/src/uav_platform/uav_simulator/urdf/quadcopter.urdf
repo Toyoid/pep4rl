@@ -102,10 +102,11 @@
             <clip>
               <near>0.18</near>
               <far>15.0</far>
+              <!-- <far>6.0</far> -->
             </clip>
           </camera>
           <pose> 0.09 0.0 0.095 0 0 0 </pose>
-          <!-- <plugin name="camera_plugin" filename="libgazebo_ros_openni_kinect.so"> -->
+          <!-- <plugin name="camera_plugin" filename="libgazebo_ros_openni_kinect.so" -->
           <plugin name="camera_plugin" filename="libgazebo_ros_depth_camera.so">
             <baseline>0.2</baseline>
             <alwaysOn>true</alwaysOn>

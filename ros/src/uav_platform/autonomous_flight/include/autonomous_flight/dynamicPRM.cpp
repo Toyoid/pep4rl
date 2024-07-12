@@ -16,7 +16,7 @@ namespace AutoFlight{
 
 		if (this->useFakeDetector_){
 			// free map callback
-			this->freeMapTimer_ = this->nh_.createTimer(ros::Duration(0.1), &dynamicPRM::freeMapCB, this);
+			this->freeMapTimer_ = this->nh_.createTimer(ros::Duration(0.066), &dynamicPRM::freeMapCB, this);
 		}
 	}
 
@@ -122,7 +122,7 @@ namespace AutoFlight{
 		// initialize exploration planner
 		this->expPlanner_.reset(new globalPlanner::DEP (this->nh_));
 		this->expPlanner_->setMap(this->map_);
-		this->expPlanner_->loadVelocity(this->desiredVel_, this->desiredAngularVel_);		
+		this->expPlanner_->loadVelocity(this->desiredVel_, this->desiredAngularVel_);
 	}
 
 	// void dynamicPRM::registerCallback(){
@@ -132,26 +132,31 @@ namespace AutoFlight{
 	// }
 
 	void dynamicPRM::freeMapCB(const ros::TimerEvent&){
-		std::vector<onboardDetector::box3D> obstacles;
-		std::vector<std::pair<Eigen::Vector3d, Eigen::Vector3d>> freeRegions;
-		this->detector_->getObstacles(obstacles);
-		double fov = 1.57;
-		for (onboardDetector::box3D ob: obstacles){
-			if (this->detector_->isObstacleInSensorRange(ob, fov)){
-				Eigen::Vector3d lowerBound (ob.x-ob.x_width/2-0.3, ob.y-ob.y_width/2-0.3, ob.z);
-				Eigen::Vector3d upperBound (ob.x+ob.x_width/2+0.3, ob.y+ob.y_width/2+0.3, ob.z+ob.z_width+0.3);
-				freeRegions.push_back(std::make_pair(lowerBound, upperBound));
-			}
-		}
-		this->map_->updateFreeRegions(freeRegions);
-		this->map_->freeRegions(freeRegions);
+	    ROS_INFO("dynamicPRM::freeMap callback called");
+        try {
+            std::vector<onboardDetector::box3D> obstacles;
+            std::vector<std::pair<Eigen::Vector3d, Eigen::Vector3d>> freeRegions;
+            this->detector_->getObstacles(obstacles);
+            double fov = 1.57;
+            for (onboardDetector::box3D ob: obstacles){
+                if (this->detector_->isObstacleInSensorRange(ob, fov)){
+                    Eigen::Vector3d lowerBound (ob.x-ob.x_width/2-0.3, ob.y-ob.y_width/2-0.3, ob.z);
+                    Eigen::Vector3d upperBound (ob.x+ob.x_width/2+0.3, ob.y+ob.y_width/2+0.3, ob.z+ob.z_width+0.3);
+                    freeRegions.push_back(std::make_pair(lowerBound, upperBound));
+                }
+            }
+            this->map_->updateFreeRegions(freeRegions);
+            this->map_->freeRegions(freeRegions);
+        } catch (const std::exception &e) {
+            ROS_ERROR("Exception caught: %s", e.what());
+        }
 	}
 
 	bool dynamicPRM::getRoadmapServiceCB(global_planner::GetRoadmap::Request& req, global_planner::GetRoadmap::Response& resp){
 		this->expPlanner_->setMap(this->map_);
 		bool replanSuccess = this->expPlanner_->makePlan();
 		if (replanSuccess){
-			std::cout << "\033[1;32m[AutoFlight]: Roadmap Generation Succeed!\033[0m" << endl;
+//			std::cout << "\033[1;32m[AutoFlight]: Roadmap Generation Succeed!\033[0m" << endl;
 			resp.roadmapMarkers = this->expPlanner_->buildRoadmapMarkers();
 		}
 		else{
@@ -162,30 +167,34 @@ namespace AutoFlight{
 	}
 
 	bool dynamicPRM::resetRoadmapServiceCB(falco_planner::SetRobotPose::Request& req, falco_planner::SetRobotPose::Response& resp){
-		// if (this->useFakeDetector_){
-		// 	// reset fake detector
-		// 	// this->detector_.reset(new onboardDetector::fakeDetector (this->nh_));	
-	    //     this->map_.reset(new mapManager::dynamicMap (this->nh_, false));
-		// }
-		// else{
-		// 	this->map_.reset(new mapManager::dynamicMap (this->nh_));
-		// }
+        ROS_INFO("resetRoadmapService callback called");
+        try {
+            // if (this->useFakeDetector_){
+            // 	// reset fake detector
+            // 	// this->detector_.reset(new onboardDetector::fakeDetector (this->nh_));
+            //     this->map_.reset(new mapManager::dynamicMap (this->nh_, false));
+            // }
+            // else{
+            // 	this->map_.reset(new mapManager::dynamicMap (this->nh_));
+            // }
 
 
-		// two ways to clear the map data
-		// way 1: call member funtion in occMap to clear (but the last scan from previous episode will remain, the timers' frequecy should set lower, like 1/0.2)
-		// this->map_->clearMapData();
+            // two ways to clear the map data
+            // way 1: call member funtion in occMap to clear (but the last scan from previous episode will remain, the timers' frequecy should set lower, like 1/0.2)
+            // this->map_->clearMapData();
 
-		// way 2: create a new map object every time after reset (the registered service should be shutdown before that)  
-		this->map_->collisionCheckServer_.shutdown();
-		this->map_.reset(new mapManager::occMap (this->nh_));
+            // way 2: create a new map object every time after reset (the registered service should be shutdown before that)
+            // reset roadmap first to set status flag
+            this->expPlanner_->resetRoadmap(req.robotPose);
 
-		// reset roadmap
-		this->expPlanner_->resetRoadmap(req.robotPose);
-		this->expPlanner_->setMap(this->map_);
+            this->map_->collisionCheckServer_.shutdown();
+            this->map_.reset(new mapManager::occMap (this->nh_));
+            this->expPlanner_->setMap(this->map_);
 
-		cout << "\n\033[1;32m[Roadmap]: Successfully reset map and roadmap.\033[0m" << endl;
-
+            cout << "\n\033[1;32m[Roadmap]: Successfully reset map and roadmap.\033[0m" << endl;
+        } catch (const std::exception &e) {
+            ROS_ERROR("Exception caught: %s", e.what());
+        }
 		return true;
 	}
 

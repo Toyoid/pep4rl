@@ -74,7 +74,7 @@ class Args:
     """embedding dimension of the attention network"""
 
     # Roadmap env specific parameters
-    k_neighbor_size: int = 30  # 15 in dep.cpp
+    k_neighbor_size: int = 20  # 15 in dep.cpp
     """number of k-nearest neighbors for edge connection"""
     step_time: float = 4.0
     """step time duration for executing a command from policy network"""

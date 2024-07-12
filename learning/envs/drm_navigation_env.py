@@ -33,13 +33,14 @@ class DecisionRoadmapNavEnv:
                  collision_reward=-20,
                  step_penalty_reward=-0.5,
                  goal_dis_amp=1/64.,
-                 goal_near_th=0.5,
+                 goal_near_th=0.2,
                  env_height_range=[0.2,2.5],
                  goal_dis_scale=1.0,
                  goal_dis_min_dis=0.3,
                  ):
         self.is_train = is_train
-        if self.is_train:
+        self.use_train_env = False
+        if self.use_train_env:
             # get initial robot and goal pose list in training_worlds.world
             self.init_robot_array, self.init_target_array = self._get_init_robot_goal("Rand_R1")
         else:
@@ -395,7 +396,7 @@ class DecisionRoadmapNavEnv:
                 edges_adj_pos.append(edges_from_current_node)
 
         # 2. compute direction_vector
-        self.node_coords = np.round(node_pos, 4)
+        self.node_coords = np.round(node_pos, 3)
         n_nodes = self.node_coords.shape[0]
         dis_vector = [self.target_position[0], self.target_position[1]] - self.node_coords
         dis = np.sqrt(np.sum(dis_vector**2, axis=1))
@@ -445,10 +446,17 @@ class DecisionRoadmapNavEnv:
         for adj_nodes in edges_adj_pos:
             adj_node_idxs = []
             for adj_node_pos in adj_nodes:
-                assert len(pos) == self.node_coords.shape[1], "Wrong dimension on node coordinates"
                 # pos = [adj_node_pos.x, adj_node_pos.y, adj_node_pos.z]
-                pos = np.round([adj_node_pos.x, adj_node_pos.y], 4)
-                idx = np.argwhere((self.node_coords == pos).all(axis=1)).item()
+                pos = np.round([adj_node_pos.x, adj_node_pos.y], 3)
+                assert len(pos) == self.node_coords.shape[1], "Wrong dimension on node coordinates"
+                try:
+                    idx = np.argwhere((self.node_coords == pos).all(axis=1)).item()
+                except ValueError as e:
+                    print("[Error]: Error in finding adjacent node index: %s" % e)
+                    print(f"[Error]: idx array: {np.argwhere((self.node_coords == pos).all(axis=1))}")
+                except Exception as e:
+                    print(f"Unexpected {e}, {type(e)}")
+                    raise
                 adj_node_idxs.append(idx)
             edges_adj_idx.append(adj_node_idxs)
 
@@ -583,14 +591,14 @@ class DecisionRoadmapNavEnv:
         print(f"Use Random Start and Goal Positions [{rand_name}] ...")
 
         init_drone_height = 1.0
-        if self.is_train:
+        if self.use_train_env:
             num_episodes = 1000
         else:
             num_episodes = 200
 
         overall_init_z = np.array([init_drone_height] * num_episodes)
 
-        if self.is_train:
+        if self.use_train_env:
             overall_robot_array = np.zeros((num_episodes, 4))
             overall_goal_array = np.zeros((num_episodes, 3))
             env_idx = 0
