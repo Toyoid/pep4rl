@@ -54,6 +54,8 @@ class Args:
     """the learning rate of the policy network optimizer"""
     q_lr: float = 2e-5
     """the learning rate of the Q network network optimizer"""
+    lr_decay_step: float = 256
+    """the step interval to perform a decay on learning rates"""
     policy_frequency: int = 2
     """the frequency of training policy (delayed)"""
     target_network_frequency: int = 1  # Denis Yarats' implementation delays this by 2.

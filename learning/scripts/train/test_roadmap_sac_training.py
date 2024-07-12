@@ -132,8 +132,8 @@ def main():
         alpha = args.alpha
 
     # set learning rate decay step | not use in context?
-    actor_lr_decay = optim.lr_scheduler.StepLR(actor_optimizer, step_size=256, gamma=0.96)
-    q_net_lr_decay = optim.lr_scheduler.StepLR(q_optimizer, step_size=256, gamma=0.96)
+    actor_lr_decay = optim.lr_scheduler.StepLR(actor_optimizer, step_size=args.lr_decay_step, gamma=0.96)
+    q_net_lr_decay = optim.lr_scheduler.StepLR(q_optimizer, step_size=args.lr_decay_step, gamma=0.96)
 
     # replay buffer
     replay_buffer = RoadmapReplayBuffer(args.buffer_size, device)
@@ -261,9 +261,9 @@ def main():
                                 alpha_optimizer.step()
                                 alpha = log_alpha.exp().item()
 
-                # context not use?
-                # actor_lr_decay.step()
-                # q_net_lr_decay.step()
+                # update learning rates
+                actor_lr_decay.step()
+                q_net_lr_decay.step()
 
                 # update the target networks
                 if global_step % args.target_network_frequency == 0:  # 64
@@ -300,6 +300,8 @@ def main():
                     writer.add_scalar("losses/qf_loss", qf_loss.item() / 2.0, global_step)
                     writer.add_scalar("losses/actor_loss", actor_loss.item(), global_step)
                     writer.add_scalar("losses/alpha", alpha, global_step)
+                    writer.add_scalar("learning_rates/actor_lr", actor_optimizer.param_groups[0]['lr'], global_step)
+                    writer.add_scalar("learning_rates/q-net_lr", q_optimizer.param_groups[0]['lr'], global_step)
                     # print("SPS:", int(global_step / (time.time() - start_time)))
                     # writer.add_scalar("charts/SPS", int(global_step / (time.time() - start_time)), global_step)
                     if args.autotune:
@@ -314,7 +316,9 @@ def main():
                       f"success: {info['outcome_statistic']['success']}, "
                       f"collision: {info['outcome_statistic']['collision']}, "
                       f"timeout: {info['outcome_statistic']['timeout']}, "
-                      f"success rate: {(100 * info['outcome_statistic']['success'] / (episode_ita + 1)):.1f}% \n")
+                      f"success rate: {(100 * info['outcome_statistic']['success'] / (episode_ita + 1)):.1f}% \n"
+                      f"actor lr: {actor_optimizer.param_groups[0]['lr']}, "
+                      f"q-net lr: {q_optimizer.param_groups[0]['lr']} \n")
                 writer.add_scalar("charts/episodic_return", info["episodic_return"], global_step)
                 writer.add_scalar("charts/episodic_length", info["episodic_length"], global_step)
                 writer.add_scalar("charts/success_rate",
