@@ -1073,9 +1073,8 @@ namespace mapManager{
         } catch (const std::exception &e) {
             ROS_ERROR("Exception caught: %s", e.what());
         }
+        ROS_INFO("occMap::inflateLocalMap finished");
 	}
-
-
 
 	void occMap::visCB(const ros::TimerEvent& ){
 		this->publishProjPoints();

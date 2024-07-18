@@ -33,13 +33,13 @@ class DecisionRoadmapNavEnv:
                  collision_reward=-20,
                  step_penalty_reward=-0.5,
                  goal_dis_amp=1/64.,
-                 goal_near_th=0.2,
+                 goal_near_th=0.3,
                  env_height_range=[0.2,2.5],
                  goal_dis_scale=1.0,
                  goal_dis_min_dis=0.3,
                  ):
         self.is_train = is_train
-        self.use_train_env = False
+        self.use_train_env = is_train
         if self.use_train_env:
             # get initial robot and goal pose list in training_worlds.world
             self.init_robot_array, self.init_target_array = self._get_init_robot_goal("Rand_R1")

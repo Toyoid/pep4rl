@@ -1014,7 +1014,7 @@ namespace globalPlanner{
                 waypoint.point.y = this->currGoal_->pos(1);
                 waypoint.point.z = this->currGoal_->pos(2);
                 this->waypointPub_.publish(waypoint);
-//                std::cout << "\033[1;32m[Debug]: Publishing robot initial position as waypoint to reset RL Env... \033[0m" << std::endl;
+                // std::cout << "\033[1;32m[Debug]: Publishing robot initial position as waypoint to reset RL Env... \033[0m" << std::endl;
             }
             else if (this->currGoalReceived_) {
                 assert(this->currGoal_ != nullptr);

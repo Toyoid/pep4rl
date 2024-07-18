@@ -131,9 +131,9 @@ def main():
     else:
         alpha = args.alpha
 
-    # set learning rate decay step | not use in context?
-    actor_lr_decay = optim.lr_scheduler.StepLR(actor_optimizer, step_size=args.lr_decay_step, gamma=0.96)
-    q_net_lr_decay = optim.lr_scheduler.StepLR(q_optimizer, step_size=args.lr_decay_step, gamma=0.96)
+    # # set learning rate decay step | not use in context?
+    # actor_lr_decay = optim.lr_scheduler.StepLR(actor_optimizer, step_size=args.lr_decay_step, gamma=0.99)
+    # q_net_lr_decay = optim.lr_scheduler.StepLR(q_optimizer, step_size=args.lr_decay_step, gamma=0.99)
 
     # replay buffer
     replay_buffer = RoadmapReplayBuffer(args.buffer_size, device)
@@ -168,7 +168,7 @@ def main():
             # training
             if global_step > args.learning_starts:
                 # TBD after empirical tuning : training for n times each step like: for j in range(8)
-                for k_updates in range(8):
+                for _ in range(2):
                     data = replay_buffer.sample(args.batch_size)
 
                     node_inputs_batch = data["node_inputs"]
@@ -261,9 +261,10 @@ def main():
                                 alpha_optimizer.step()
                                 alpha = log_alpha.exp().item()
 
-                # update learning rates
-                actor_lr_decay.step()
-                q_net_lr_decay.step()
+                # # update learning rates
+                # q_net_lr_decay.step()
+                # if global_step % args.policy_frequency == 0:
+                #     actor_lr_decay.step()
 
                 # update the target networks
                 if global_step % args.target_network_frequency == 0:  # 64

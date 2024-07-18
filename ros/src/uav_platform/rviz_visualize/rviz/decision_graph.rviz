@@ -68,7 +68,7 @@ Visualization Manager:
       Reference Frame: <Fixed Frame>
       Show Trail: false
       Value: false
-    - Alpha: 0.20000000298023224
+    - Alpha: 0.10000000149011612
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
         Max Value: 2
@@ -582,17 +582,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -2.1178784370422363
-        Y: 0.4096333980560303
-        Z: 6.542690277099609
+        X: -3.5484848022460938
+        Y: 0.39758622646331787
+        Z: 5.600937843322754
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.1147971153259277
+      Pitch: 1.0847971439361572
       Target Frame: <Fixed Frame>
-      Yaw: 3.1466891765594482
+      Yaw: 3.1466917991638184
     Saved: ~
 Window Geometry:
   Displays:
