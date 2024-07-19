@@ -5,6 +5,7 @@ import rospy
 from roadmap_service import RoadmapService
 from pynput import keyboard
 from matplotlib import pyplot as plt
+from copy import deepcopy
 
 terminate = False
 
@@ -63,7 +64,7 @@ def gen_robot_target_pairs(candidate_vertex_list, num_pairs, robot_target_diff=9
     robot_pose_list = []
     target_pos_list = []
     for i in range(num_pairs):
-        init_robot_pose, init_target_pos = sample_one_robot_target_pair(candidate_vertex_list, robot_target_diff)
+        init_robot_pose, init_target_pos = sample_one_robot_target_pair(deepcopy(candidate_vertex_list), robot_target_diff)  # deepcopy is critical
         robot_pose_list.append(init_robot_pose)
         target_pos_list.append(init_target_pos)
     robot_target_pair_list = [robot_pose_list, target_pos_list]
