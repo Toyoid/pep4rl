@@ -39,7 +39,7 @@ def main():
     if device == 'cpu':
         checkpoint = torch.load(f'{args.model_path}/drm_nav/checkpoint_987.pth', map_location=torch.device('cpu'))
     else:
-        checkpoint = torch.load(f'{args.model_path}/drm_nav/checkpoint_999.pth')
+        checkpoint = torch.load(f'{args.model_path}/drm_nav_lr_decay_2_step_gradient/checkpoint_999.pth')
     policy.load_state_dict(checkpoint['actor_network'])
 
     # run the experiment

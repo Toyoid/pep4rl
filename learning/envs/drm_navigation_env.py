@@ -40,12 +40,13 @@ class DecisionRoadmapNavEnv:
                  ):
         self.is_train = is_train
         self.use_train_env = is_train
-        if self.use_train_env:
-            # get initial robot and goal pose list in training_worlds.world
-            self.init_robot_array, self.init_target_array = self._get_init_robot_goal("Rand_R1")
-        else:
-            # get initial robot and goal pose list in dense_worlds.world
-            self.init_robot_array, self.init_target_array = self._get_init_robot_goal("eval_positions")
+        # if self.use_train_env:
+        #     # get initial robot and goal pose list in training_worlds.world
+        #     self.init_robot_array, self.init_target_array = self._get_init_robot_goal("Rand_R1")
+        # else:
+        #     # get initial robot and goal pose list in dense_worlds.world
+        #     self.init_robot_array, self.init_target_array = self._get_init_robot_goal("eval_positions")
+        self.init_robot_array, self.init_target_array = self._get_init_robot_goal("floorplan_world2")
 
         # Robot messages
         self.odom = None
@@ -579,50 +580,64 @@ class DecisionRoadmapNavEnv:
 
         return reward, done
 
-    def _get_init_robot_goal(self, rand_name):
+    # def _get_init_robot_goal(self, rand_name):
+    #     # Read Random Start Pose and Goal Position based on random name
+    #     from os import path as os_path
+    #     current_dir = os_path.dirname(os_path.abspath(__file__))
+    #     f = open(current_dir + "/random_positions/" + rand_name + ".p", "rb")
+    #     overall_list_xy = pickle.load(f)
+    #     f.close()
+    #     overall_robot_list_xy = overall_list_xy[0]
+    #     overall_goal_list_xy = overall_list_xy[1]
+    #     print(f"Use Random Start and Goal Positions [{rand_name}] ...")
+    #
+    #     init_drone_height = 1.0
+    #     if self.use_train_env:
+    #         num_episodes = 1000
+    #     else:
+    #         num_episodes = 200
+    #
+    #     overall_init_z = np.array([init_drone_height] * num_episodes)
+    #
+    #     if self.use_train_env:
+    #         overall_robot_array = np.zeros((num_episodes, 4))
+    #         overall_goal_array = np.zeros((num_episodes, 3))
+    #         env_idx = 0
+    #         for i in range(overall_goal_list_xy.__len__()):
+    #             init_robot_xy = np.array(overall_robot_list_xy[i])
+    #             init_goal_xy = np.array(overall_goal_list_xy[i])
+    #
+    #             init_robot_pose = np.insert(init_robot_xy, 2, overall_init_z[env_idx: env_idx + init_goal_xy.shape[0]],
+    #                                         axis=1)
+    #             init_goal_pos = np.insert(init_goal_xy, 2, overall_init_z[env_idx: env_idx + init_goal_xy.shape[0]],
+    #                                       axis=1)
+    #
+    #             overall_robot_array[env_idx: env_idx + init_goal_xy.shape[0]] = init_robot_pose
+    #             overall_goal_array[env_idx: env_idx + init_goal_xy.shape[0]] = init_goal_pos
+    #
+    #             env_idx += init_goal_xy.shape[0]
+    #     else:
+    #         init_robot_xy = np.array(overall_robot_list_xy)
+    #         init_goal_xy = np.array(overall_goal_list_xy)
+    #
+    #         overall_robot_array = np.insert(init_robot_xy, 2, overall_init_z[:], axis=1)
+    #         overall_goal_array = np.insert(init_goal_xy, 2, overall_init_z[:], axis=1)
+    #
+    #     return overall_robot_array, overall_goal_array
+
+    def _get_init_robot_goal(self, world_name):
         # Read Random Start Pose and Goal Position based on random name
         from os import path as os_path
         current_dir = os_path.dirname(os_path.abspath(__file__))
-        f = open(current_dir + "/random_positions/" + rand_name + ".p", "rb")
-        overall_list_xy = pickle.load(f)
+        f = open(current_dir + "/random_positions/" + world_name + "/robot_target_poses" + ".p", "rb")
+        overall_list = pickle.load(f)
         f.close()
-        overall_robot_list_xy = overall_list_xy[0]
-        overall_goal_list_xy = overall_list_xy[1]
-        print(f"Use Random Start and Goal Positions [{rand_name}] ...")
+        robot_poses_array = np.array(overall_list[0])
+        target_pos_array = np.array(overall_list[1])
 
-        init_drone_height = 1.0
-        if self.use_train_env:
-            num_episodes = 1000
-        else:
-            num_episodes = 200
+        print(f"Use Random Start and Goal Positions in [{world_name}] ...")
 
-        overall_init_z = np.array([init_drone_height] * num_episodes)
-
-        if self.use_train_env:
-            overall_robot_array = np.zeros((num_episodes, 4))
-            overall_goal_array = np.zeros((num_episodes, 3))
-            env_idx = 0
-            for i in range(overall_goal_list_xy.__len__()):
-                init_robot_xy = np.array(overall_robot_list_xy[i])
-                init_goal_xy = np.array(overall_goal_list_xy[i])
-
-                init_robot_pose = np.insert(init_robot_xy, 2, overall_init_z[env_idx: env_idx + init_goal_xy.shape[0]],
-                                            axis=1)
-                init_goal_pos = np.insert(init_goal_xy, 2, overall_init_z[env_idx: env_idx + init_goal_xy.shape[0]],
-                                          axis=1)
-
-                overall_robot_array[env_idx: env_idx + init_goal_xy.shape[0]] = init_robot_pose
-                overall_goal_array[env_idx: env_idx + init_goal_xy.shape[0]] = init_goal_pos
-
-                env_idx += init_goal_xy.shape[0]
-        else:
-            init_robot_xy = np.array(overall_robot_list_xy)
-            init_goal_xy = np.array(overall_goal_list_xy)
-
-            overall_robot_array = np.insert(init_robot_xy, 2, overall_init_z[:], axis=1)
-            overall_goal_array = np.insert(init_goal_xy, 2, overall_init_z[:], axis=1)
-
-        return overall_robot_array, overall_goal_array
+        return robot_poses_array, target_pos_array
 
     def _pub_falco_planner_joy(self):
         joy = Joy()
