@@ -37,7 +37,7 @@ def main():
     # load attention policy network
     policy = PolicyNet(args.input_dim, args.embedding_dim).to(device)
     if device == 'cpu':
-        checkpoint = torch.load(f'{args.model_path}/drm_nav_train_env_1-4/checkpoint_987.pth', map_location=torch.device('cpu'))
+        checkpoint = torch.load(f'{args.model_path}/drm_nav/checkpoint_987.pth', map_location=torch.device('cpu'))
     else:
         checkpoint = torch.load(f'{args.model_path}/drm_nav/checkpoint_999.pth')
     policy.load_state_dict(checkpoint['actor_network'])
