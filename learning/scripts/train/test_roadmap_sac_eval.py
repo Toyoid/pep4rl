@@ -39,8 +39,10 @@ def main():
     if device == 'cpu':
         checkpoint = torch.load(f'{args.model_path}/drm_nav/checkpoint_987.pth', map_location=torch.device('cpu'))
     else:
-        checkpoint = torch.load(f'{args.model_path}/drm_nav_lr_decay_2_step_gradient/checkpoint_999.pth')
-    policy.load_state_dict(checkpoint['actor_network'])
+        # checkpoint = torch.load(f'{args.model_path}/drm_nav_lr_decay_2_step_gradient/checkpoint_999.pth')
+        checkpoint = torch.load(f'{args.model_path}/context_aware_nav/checkpoint.pth')
+    # policy.load_state_dict(checkpoint['actor_network'])
+    policy.load_state_dict(checkpoint['policy_model'])
 
     # run the experiment
     global_step = 0
@@ -67,7 +69,7 @@ def main():
                 print(f"[Evaluation Info]: episode={episode_ita}, "
                       f"global_step={global_step}, outcome={info['episodic_outcome']}, "
                       f"episodic_return={info['episodic_return']:.2f}, \n"
-                      f"episodic_length={info['episodic_length']},"
+                      f"episodic_length={info['episodic_length']}, "
                       f"success: {info['outcome_statistic']['success']}, "
                       f"collision: {info['outcome_statistic']['collision']}, "
                       f"timeout: {info['outcome_statistic']['timeout']}, "

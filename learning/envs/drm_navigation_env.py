@@ -287,7 +287,7 @@ class DecisionRoadmapNavEnv:
         robot_move = math.sqrt((self.odom.pose.pose.position.x - robot_position[0]) ** 2 +
                                (self.odom.pose.pose.position.y - robot_position[1]) ** 2 +
                                (self.odom.pose.pose.position.z - robot_position[2]) ** 2)
-        if robot_move <= 0.1:
+        if robot_move <= 0.05:
             rospy.wait_for_service('/falco_planner/escape_stuck_service')
             try:
                 resp = self.escape_stuck()

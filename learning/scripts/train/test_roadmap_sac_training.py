@@ -168,7 +168,7 @@ def main():
             # training
             if global_step > args.learning_starts:
                 # TBD after empirical tuning : training for n times each step like: for j in range(8)
-                for _ in range(2):
+                for _ in range(1):
                     data = replay_buffer.sample(args.batch_size)
 
                     node_inputs_batch = data["node_inputs"]
@@ -313,7 +313,7 @@ def main():
                 print(f"[Training Info]: episode={episode_ita}, "
                       f"global_step={global_step}, outcome={info['episodic_outcome']}, "
                       f"episodic_return={info['episodic_return']:.2f}, \n"
-                      f"episodic_length={info['episodic_length']},"
+                      f"episodic_length={info['episodic_length']}, "
                       f"success: {info['outcome_statistic']['success']}, "
                       f"collision: {info['outcome_statistic']['collision']}, "
                       f"timeout: {info['outcome_statistic']['timeout']}, "
