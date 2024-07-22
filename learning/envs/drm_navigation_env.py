@@ -584,7 +584,7 @@ class DecisionRoadmapNavEnv:
     #     # Read Random Start Pose and Goal Position based on random name
     #     from os import path as os_path
     #     current_dir = os_path.dirname(os_path.abspath(__file__))
-    #     f = open(current_dir + "/random_positions/" + rand_name + ".p", "rb")
+    #     f = open(current_dir + "/random_positions/dense_world/" + rand_name + ".p", "rb")
     #     overall_list_xy = pickle.load(f)
     #     f.close()
     #     overall_robot_list_xy = overall_list_xy[0]

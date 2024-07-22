@@ -4,30 +4,30 @@
 *   dynamic exploration planner implementation
 */
 
-#include <global_planner/dep.h>
+#include <global_planner/can_uniform_graph.h>
 #include <random>
 
 
 namespace globalPlanner{
-	DEP::DEP(const ros::NodeHandle& nh) : nh_(nh){
-		this->ns_ = "/DEP";
-		this->hint_ = "[DEP]";
+	CAN::CAN(const ros::NodeHandle& nh) : nh_(nh){
+		this->ns_ = "/CAN";
+		this->hint_ = "[CAN]";
 		this->initParam();
 		this->initModules();
 		this->registerPub();
 		this->registerCallback();
 	}
 
-	void DEP::setMap(const std::shared_ptr<mapManager::occMap>& map){
+	void CAN::setMap(const std::shared_ptr<mapManager::occMap>& map){
 		this->map_ = map;
 	}
 
-	void DEP::loadVelocity(double vel, double angularVel){
+	void CAN::loadVelocity(double vel, double angularVel){
 		this->vel_ = vel;
 		this->angularVel_ = angularVel;
 	}
 
-	void DEP::initParam(){
+	void CAN::initParam(){
 	    // initialize ultimate navigation target
 		this->ultimateTarget_.reset(new PRM::Node (this->position_));
 
@@ -281,12 +281,12 @@ namespace globalPlanner{
 		}
 	}
 
-	void DEP::initModules(){
+	void CAN::initModules(){
 		// initialize roadmap
 		this->roadmap_.reset(new PRM::KDTree ());
 	}
 
-	void DEP::resetRoadmap(const gazebo_msgs::ModelState& resetRobotPos) {
+	void CAN::resetRoadmap(const gazebo_msgs::ModelState& resetRobotPos) {
 	    // IMPORTANT: lock waypointUpdateTimer to prevent visiting invalid memory
 	    this->currGoalReceived_ = false;
 		this->resettingRLEnv_ = false;
@@ -314,7 +314,7 @@ namespace globalPlanner{
 		this->resettingRLEnv_ = true;
 	}
 
-	void DEP::registerPub(){
+	void CAN::registerPub(){
 		// roadmap visualization publisher
 		this->roadmapPub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("/dep/roadmap", 5);
 
@@ -332,25 +332,25 @@ namespace globalPlanner{
 		// this->bestPathGoalPub_ = this->nh_.advertise<geometry_msgs::PointStamped>("/agent/current_goal", 5); 
 	}
 
-	void DEP::registerCallback(){
+	void CAN::registerCallback(){
 		// odom subscriber
-		this->odomSub_ = this->nh_.subscribe(this->odomTopic_, 1000, &DEP::odomCB, this);
-		// this->odomSub_ = this->nh_.subscribe("/falco_planner/state_estimation", 1000, &DEP::odomCB, this);
+		this->odomSub_ = this->nh_.subscribe(this->odomTopic_, 1000, &CAN::odomCB, this);
+		// this->odomSub_ = this->nh_.subscribe("/falco_planner/state_estimation", 1000, &CAN::odomCB, this);
 
 		// ultimate target subscriber
-		this->ultimateTargetSub_ = this->nh_.subscribe("/env/nav_target", 5, &DEP::ultimateTargetCB, this);
+		this->ultimateTargetSub_ = this->nh_.subscribe("/env/nav_target", 5, &CAN::ultimateTargetCB, this);
 	
 		// visualization timer
-		this->visTimer_ = this->nh_.createTimer(ros::Duration(0.2), &DEP::visCB, this);
+		this->visTimer_ = this->nh_.createTimer(ros::Duration(0.2), &CAN::visCB, this);
 
 		//added by me waypoint publish timer
-		this->waypointTimer_ = this->nh_.createTimer(ros::Duration(0.33), &DEP::waypointUpdateCB, this);
+		this->waypointTimer_ = this->nh_.createTimer(ros::Duration(0.33), &CAN::waypointUpdateCB, this);
 
 		//added by me
-		this->currGoalSub_ = this->nh_.subscribe("/agent/current_goal", 5, &DEP::currGoalCB, this); 
+		this->currGoalSub_ = this->nh_.subscribe("/agent/current_goal", 5, &CAN::currGoalCB, this); 
 	}
 
-	bool DEP::makePlan(){
+	bool CAN::makePlan(){
 		if (not this->odomReceived_) return false;
 		// cout << "start detecting frontier" << endl;
 		// ros::Time frontierStartTime = ros::Time::now();
@@ -418,7 +418,7 @@ namespace globalPlanner{
 		return true;
 	}
 
-	nav_msgs::Path DEP::getBestPath(){
+	nav_msgs::Path CAN::getBestPath(){
 		nav_msgs::Path bestPath;
 		for (int i=0; i<int(this->bestPath_.size()); ++i){
 			std::shared_ptr<PRM::Node> currNode = this->bestPath_[i];
@@ -442,7 +442,7 @@ namespace globalPlanner{
 		return bestPath;
 	}
 
-	bool DEP::sensorRangeCondition(const shared_ptr<PRM::Node>& n1, const shared_ptr<PRM::Node>& n2){
+	bool CAN::sensorRangeCondition(const shared_ptr<PRM::Node>& n1, const shared_ptr<PRM::Node>& n2){
 		Eigen::Vector3d direction = n2->pos - n1->pos;
 		Eigen::Vector3d projection;
 		projection(0) = direction.x();
@@ -462,7 +462,7 @@ namespace globalPlanner{
 	// for yaw angles in vector3d:  cos(yaw), sin(yaw), 0
 	// horz angle between yaw angle vector and direction (x y 0) vector for horz FOV
 	// Vert angle yaw angle vector and yaw angle vector (c s z) z is direction.z()
-	bool DEP::sensorFOVCondition(const Eigen::Vector3d& sample, const Eigen::Vector3d& pos){
+	bool CAN::sensorFOVCondition(const Eigen::Vector3d& sample, const Eigen::Vector3d& pos){
 		Eigen::Vector3d direction = sample - pos;
 		double distance = direction.norm();
 		if (distance > this->dmax_){
@@ -493,7 +493,7 @@ namespace globalPlanner{
 		
 	}
 
-	void DEP::detectFrontierRegion(std::vector<std::pair<Eigen::Vector3d, double>>& frontierPointPairs){
+	void CAN::detectFrontierRegion(std::vector<std::pair<Eigen::Vector3d, double>>& frontierPointPairs){
 		frontierPointPairs.clear();
 
 		Eigen::Vector3d mapMin, mapMax;
@@ -578,7 +578,7 @@ namespace globalPlanner{
 		} 
 	}
 
-	void DEP::buildRoadMap(){
+	void CAN::buildRoadMap(){
 		bool saturate = false;
 		bool regionSaturate = false;
 		int countSample = 0;
@@ -586,11 +586,15 @@ namespace globalPlanner{
 		std::vector<std::shared_ptr<PRM::Node>> newNodes;
 
 		// add ultimate navigation goal to PRM
-		if (this->isPosValid(this->ultimateTarget_->pos, this->safeDistXY_, this->safeDistZ_) && (!this->prmNodeVec_.count(this->ultimateTarget_))) {
+		if (!this->prmNodeVec_.count(this->ultimateTarget_)) {
 			this->prmNodeVec_.insert(this->ultimateTarget_);
-			this->roadmap_->insert(this->ultimateTarget_);
-			newNodes.push_back(this->ultimateTarget_);
-
+		}
+		else {
+			if(!this->isTargetInRoadmap_) {
+				this->roadmap_->insert(this->ultimateTarget_);
+				newNodes.push_back(this->ultimateTarget_);
+				this->isTargetInRoadmap_ = true;
+			}
 		}
 
 		// while does reach sampling threshold (fail time) 
@@ -724,7 +728,7 @@ namespace globalPlanner{
 		}
 	}	 
 
-	void DEP::pruneNodes(){
+	void CAN::pruneNodes(){
 		// record the invalid nodes
 		std::unordered_set<std::shared_ptr<PRM::Node>> invalidSet;
 		for (std::shared_ptr<PRM::Node> n : this->prmNodeVec_){ // new nodes
@@ -756,7 +760,7 @@ namespace globalPlanner{
 		}
 	}
 
-	void DEP::updateInformationGain(){
+	void CAN::updateInformationGain(){
 		// iterate through all current nodes (ignore update by path now)
 		// two types of nodes need update:
 		// 1. new nodes
@@ -789,7 +793,7 @@ namespace globalPlanner{
 		this->histTraj_.clear(); // clear history
 	}
 
-	void DEP::getBestViewCandidates(std::vector<std::shared_ptr<PRM::Node>>& goalCandidates){
+	void CAN::getBestViewCandidates(std::vector<std::shared_ptr<PRM::Node>>& goalCandidates){
 		goalCandidates.clear();
 		bool firstNode = true;
 		std::priority_queue<std::shared_ptr<PRM::Node>, std::vector<std::shared_ptr<PRM::Node>>, PRM::GainCompareNode> gainPQ;
@@ -857,7 +861,7 @@ namespace globalPlanner{
 		}
 	}
 
-	bool DEP::findCandidatePath(const std::vector<std::shared_ptr<PRM::Node>>& goalCandidates, std::vector<std::vector<std::shared_ptr<PRM::Node>>>& candidatePaths){
+	bool CAN::findCandidatePath(const std::vector<std::shared_ptr<PRM::Node>>& goalCandidates, std::vector<std::vector<std::shared_ptr<PRM::Node>>>& candidatePaths){
 		bool findPath = false;
 		// find nearest node of current location
 		std::shared_ptr<PRM::Node> currPos;
@@ -881,7 +885,7 @@ namespace globalPlanner{
 		return findPath;
 	}
 
-	void DEP::findBestPath(const std::vector<std::vector<std::shared_ptr<PRM::Node>>>& candidatePaths, std::vector<std::shared_ptr<PRM::Node>>& bestPath){
+	void CAN::findBestPath(const std::vector<std::vector<std::shared_ptr<PRM::Node>>>& candidatePaths, std::vector<std::shared_ptr<PRM::Node>>& bestPath){
 		// find path highest unknown
 		bestPath.clear();
 		double highestScore = -1;
@@ -927,12 +931,12 @@ namespace globalPlanner{
 			}
 		}
 		if (highestScore == 0){
-			cout << "[DEP]: Current score is 0. The exploration might complete." << endl;
+			cout << "[CAN]: Current score is 0. The exploration might complete." << endl;
 		}
 	}
 
 
-	void DEP::odomCB(const nav_msgs::OdometryConstPtr& odom){
+	void CAN::odomCB(const nav_msgs::OdometryConstPtr& odom){
 		this->odom_ = *odom;
 		this->position_ = Eigen::Vector3d (this->odom_.pose.pose.position.x, this->odom_.pose.pose.position.y, this->odom_.pose.pose.position.z);
 		this->currYaw_ = globalPlanner::rpy_from_quaternion(this->odom_.pose.pose.orientation);
@@ -956,7 +960,7 @@ namespace globalPlanner{
 		}
 	}
 
-	void DEP::ultimateTargetCB(const geometry_msgs::PointStamped::ConstPtr& navTarget) {
+	void CAN::ultimateTargetCB(const geometry_msgs::PointStamped::ConstPtr& navTarget) {
 		Eigen::Vector3d ultimateTargetPos(navTarget->point.x, navTarget->point.y, navTarget->point.z);
 
 		this->ultimateTarget_.reset(new PRM::Node (ultimateTargetPos));
@@ -964,7 +968,7 @@ namespace globalPlanner{
 		cout << "[Roadmap]: Ultimate navigation target received. " << endl;
 	}
 
-	void DEP::visCB(const ros::TimerEvent&){
+	void CAN::visCB(const ros::TimerEvent&){
 		if (this->prmNodeVec_.size() != 0){
 			visualization_msgs::MarkerArray roadmapMarkers = this->buildRoadmapMarkers();
 			this->roadmapPub_.publish(roadmapMarkers);
@@ -983,7 +987,7 @@ namespace globalPlanner{
 		}
 	}
 
-	void DEP::currGoalCB(const geometry_msgs::PointStamped::ConstPtr& goal) {
+	void CAN::currGoalCB(const geometry_msgs::PointStamped::ConstPtr& goal) {
 		Eigen::Vector3d p(goal->point.x, goal->point.y, goal->point.z);
 		this->currGoal_.reset(new PRM::Node(p));
 
@@ -997,7 +1001,7 @@ namespace globalPlanner{
 		this->resettingRLEnv_ = false;
 	}
 
-	void DEP::waypointUpdateCB(const ros::TimerEvent&) {
+	void CAN::waypointUpdateCB(const ros::TimerEvent&) {
         ROS_INFO("waypointUpdate callback called");
         try {
             if (this->resettingRLEnv_) {
@@ -1069,7 +1073,7 @@ namespace globalPlanner{
         }
 	}
 
-	Point3D DEP::projectNavWaypoint(const Point3D& nav_waypoint, const Point3D& last_waypoint) {
+	Point3D CAN::projectNavWaypoint(const Point3D& nav_waypoint, const Point3D& last_waypoint) {
 		const float kEpsilon = 1e-5;
 		const bool is_momentum = (last_waypoint - nav_waypoint).norm() < kEpsilon ? true : false; // momentum heading if same goal
 		Point3D waypoint = nav_waypoint;
@@ -1098,7 +1102,7 @@ namespace globalPlanner{
 		return waypoint;
 	}
 
-	bool DEP::isPosValid(const Eigen::Vector3d& p){
+	bool CAN::isPosValid(const Eigen::Vector3d& p){
 		for (double x=p(0)-this->safeDistXY_; x<=p(0)+this->safeDistXY_; x+=this->map_->getRes()){
 			for (double y=p(1)-this->safeDistXY_; y<=p(1)+this->safeDistXY_; y+=this->map_->getRes()){
 				for (double z=p(2)-this->safeDistZ_; z<=p(2)+this->safeDistZ_; z+=this->map_->getRes()){
@@ -1119,7 +1123,7 @@ namespace globalPlanner{
 	}
 
 
-	bool DEP::isPosValid(const Eigen::Vector3d& p, double safeDistXY, double safeDistZ){
+	bool CAN::isPosValid(const Eigen::Vector3d& p, double safeDistXY, double safeDistZ){
 		for (double x=p(0)-safeDistXY; x<=p(0)+safeDistXY; x+=this->map_->getRes()){
 			for (double y=p(1)-safeDistXY; y<=p(1)+safeDistXY; y+=this->map_->getRes()){
 				for (double z=p(2)-safeDistZ; z<=p(2)+safeDistZ; z+=this->map_->getRes()){
@@ -1139,7 +1143,7 @@ namespace globalPlanner{
 		return true;		
 	}
 
-	std::shared_ptr<PRM::Node> DEP::randomConfigBBox(const Eigen::Vector3d& minRegion, const Eigen::Vector3d& maxRegion){
+	std::shared_ptr<PRM::Node> CAN::randomConfigBBox(const Eigen::Vector3d& minRegion, const Eigen::Vector3d& maxRegion){
 		Eigen::Vector3d mapMinRegion, mapMaxRegion, minSampleRegion, maxSampleRegion;
 		this->map_->getCurrMapRange(mapMinRegion, mapMaxRegion);
 		// cout << "current map range is: " << mapMinRegion.transpose() << ", " << mapMaxRegion.transpose() << endl;
@@ -1174,7 +1178,7 @@ namespace globalPlanner{
 		return newNode;
 	}
 
-	int DEP::calculateUnknown(const shared_ptr<PRM::Node>& n, std::unordered_map<double, int>& yawNumVoxels){
+	int CAN::calculateUnknown(const shared_ptr<PRM::Node>& n, std::unordered_map<double, int>& yawNumVoxels){
 		for (double yaw : this->yaws_){
 			yawNumVoxels[yaw] = 0;
 		}
@@ -1214,7 +1218,7 @@ namespace globalPlanner{
 		return countTotalUnknown;
 	}
 
-	double DEP::calculatePathLength(const std::vector<shared_ptr<PRM::Node>>& path){
+	double CAN::calculatePathLength(const std::vector<shared_ptr<PRM::Node>>& path){
 		int idx1 = 0;
 		double length = 0;
 		for (size_t idx2=1; idx2<=path.size()-1; ++idx2){
@@ -1224,7 +1228,7 @@ namespace globalPlanner{
 		return length;
 	}
 
-	void DEP::shortcutPath(const std::vector<std::shared_ptr<PRM::Node>>& path, std::vector<std::shared_ptr<PRM::Node>>& pathSc){
+	void CAN::shortcutPath(const std::vector<std::shared_ptr<PRM::Node>>& path, std::vector<std::shared_ptr<PRM::Node>>& pathSc){
 		size_t ptr1 = 0; size_t ptr2 = 2;
 		pathSc.push_back(path[ptr1]);
 
@@ -1270,7 +1274,7 @@ namespace globalPlanner{
 		}		
 	}
 
-	int DEP::weightedSample(const std::vector<double>& weights){
+	int CAN::weightedSample(const std::vector<double>& weights){
 		double total = std::accumulate(weights.begin(), weights.end(), 0.0);
 		std::vector<double> normalizedWeights;
 
@@ -1285,7 +1289,7 @@ namespace globalPlanner{
 	}
 
 
-	std::shared_ptr<PRM::Node> DEP::sampleFrontierPoint(const std::vector<double>& sampleWeights){
+	std::shared_ptr<PRM::Node> CAN::sampleFrontierPoint(const std::vector<double>& sampleWeights){
 		// choose the frontier region (random sample by frontier area) 
 		int idx = weightedSample(sampleWeights);
 
@@ -1306,7 +1310,7 @@ namespace globalPlanner{
 		return frontierNode;
 	}
 
-	std::shared_ptr<PRM::Node> DEP::extendNode(const std::shared_ptr<PRM::Node>& n, const std::shared_ptr<PRM::Node>& target){
+	std::shared_ptr<PRM::Node> CAN::extendNode(const std::shared_ptr<PRM::Node>& n, const std::shared_ptr<PRM::Node>& target){
 		double extendDist = randomNumber(this->distThresh_, this->maxConnectDist_);
 		Eigen::Vector3d p = n->pos + (target->pos - n->pos)/(target->pos - n->pos).norm() * extendDist;
 		p(0) = std::max(this->globalRegionMin_(0), std::min(p(0), this->globalRegionMax_(0)));
@@ -1316,7 +1320,7 @@ namespace globalPlanner{
 		return extendedNode;
 	}
 
-	visualization_msgs::MarkerArray DEP::buildRoadmapMarkers(){  
+	visualization_msgs::MarkerArray CAN::buildRoadmapMarkers(){  
 		visualization_msgs::MarkerArray roadmapMarkers;
 
 		// PRM nodes and edges
@@ -1436,7 +1440,7 @@ namespace globalPlanner{
 		return roadmapMarkers;
 	}
 
-	void DEP::publishCandidatePaths(){
+	void CAN::publishCandidatePaths(){
 		visualization_msgs::MarkerArray candidatePathMarkers;
 		int countNodeNum = 0;
 		int countLineNum = 0;
@@ -1497,7 +1501,7 @@ namespace globalPlanner{
 		this->candidatePathPub_.publish(candidatePathMarkers);		
 	}
 	
-	void DEP::publishBestPath(){
+	void CAN::publishBestPath(){
 		visualization_msgs::MarkerArray bestPathMarkers;
 		int countNodeNum = 0;
 		int countLineNum = 0;
@@ -1556,7 +1560,7 @@ namespace globalPlanner{
 		this->bestPathPub_.publish(bestPathMarkers);		
 	}
 
-	void DEP::publishFrontier(){
+	void CAN::publishFrontier(){
 		visualization_msgs::MarkerArray frontierMarkers;
 		int frontierRangeCount = 0;
 		for (int i=0; i<int(this->frontierPointPairs_.size()); ++i){
