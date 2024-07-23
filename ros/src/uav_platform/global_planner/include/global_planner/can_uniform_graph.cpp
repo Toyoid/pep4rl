@@ -424,29 +424,7 @@ namespace globalPlanner{
 	}
 
 	void CAN::updateInformationGain(){
-		// iterate through all current nodes (ignore update by path now)
-		// two types of nodes need update:
-		// 1. new nodes
-		// 2. nodes close to the historical trajectory
-		std::unordered_set<std::shared_ptr<PRM::Node>> updateSet;
-		for (std::shared_ptr<PRM::Node> n : this->canNodeVec_){ // new nodes
-			if (n->newNode == true){// 1. new nodes
-				updateSet.insert(n);
-			}	
-		}
-
-		for (Eigen::Vector3d& histPos : this->histTraj_){ // traj update nodes
-			std::shared_ptr<PRM::Node> histN;
-			histN.reset(new PRM::Node(histPos));
-			std::vector<std::shared_ptr<PRM::Node>> nns = this->roadmap_->kNearestNeighbor(histN, 10);
-			for (std::shared_ptr<PRM::Node>& nn : nns){
-				if ((nn->pos - histN->pos).norm() <= this->updateDist_){
-					updateSet.insert(nn);
-				}
-			}
-		}
-
-		for (std::shared_ptr<PRM::Node> updateN : updateSet){ // update information gain
+		for (std::shared_ptr<PRM::Node> updateN : this->canNodeVec_){ // update information gain
 			std::unordered_map<double, int> yawNumVoxels;
 			int unknownVoxelNum = this->calculateUnknown(updateN, yawNumVoxels);
 			updateN->numVoxels = unknownVoxelNum;
@@ -787,9 +765,9 @@ namespace globalPlanner{
 			voxelNumText.pose.position.x = n->pos(0);
 			voxelNumText.pose.position.y = n->pos(1);
 			voxelNumText.pose.position.z = n->pos(2)+0.1;
-			voxelNumText.scale.x = 0.1;
-			voxelNumText.scale.y = 0.1;
-			voxelNumText.scale.z = 0.1;
+			voxelNumText.scale.x = 0.2;
+			voxelNumText.scale.y = 0.2;
+			voxelNumText.scale.z = 0.2;
 			voxelNumText.color.a = 1.0;
 			voxelNumText.text = std::to_string(n->numVoxels);
 			voxelNumText.lifetime = ros::Duration(0.2); //5
