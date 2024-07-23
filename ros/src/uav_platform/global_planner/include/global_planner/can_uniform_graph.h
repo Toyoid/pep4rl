@@ -20,6 +20,23 @@
 
 
 namespace globalPlanner{
+    // self-defined hash function for Eigen::Vector3d
+    struct Vector3dHash {
+        std::size_t operator()(const Eigen::Vector3d& vec) const {
+            std::size_t hx = std::hash<double>()(vec.x());
+            std::size_t hy = std::hash<double>()(vec.y());
+            std::size_t hz = std::hash<double>()(vec.z());
+            return hx ^ (hy << 1) ^ (hz << 2);
+        }
+    };
+
+    // self-defined equal-to function for Eigen::Vector3d
+    struct Vector3dEqual {
+        bool operator()(const Eigen::Vector3d& lhs, const Eigen::Vector3d& rhs) const {
+            return lhs.isApprox(rhs);
+        }
+    };
+    
 	class CAN{
 	private:
 		std::string ns_;
@@ -27,11 +44,8 @@ namespace globalPlanner{
 
 		ros::NodeHandle nh_;
 		ros::Publisher roadmapPub_;
-		ros::Publisher candidatePathPub_;
 		ros::Publisher bestPathPub_;
-		ros::Publisher frontierVisPub_;
 		ros::Publisher waypointPub_;  //added by me
-		ros::Publisher bestPathGoalPub_;
 		ros::Subscriber odomSub_;
 		ros::Subscriber currGoalSub_;  //added by me
 		ros::Subscriber ultimateTargetSub_;
@@ -47,11 +61,6 @@ namespace globalPlanner{
 		double angularVel_ = 1.0;
 		std::string odomTopic_;
 		Eigen::Vector3d globalRegionMin_, globalRegionMax_;
-		Eigen::Vector3d localRegionMin_, localRegionMax_;
-		int localSampleThresh_;
-		int globalSampleThresh_;
-		int frontierSampleThresh_;
-		double distThresh_;
 		double safeDistXY_;
 		double safeDistZ_;
 		bool safeDistCheckUnknown_;
@@ -60,14 +69,14 @@ namespace globalPlanner{
 		double dmin_;
 		double dmax_;
 		int nnNum_;
-		int nnNumFrontier_;
-		double maxConnectDist_;
 		std::vector<double> yaws_;
 		double minVoxelThresh_;
-		int minCandidateNum_;
-		int maxCandidateNum_;
 		double updateDist_;
-		double yawPenaltyWeight_;
+
+        double graphNodeHeight_;
+        std::vector<int> numGlobalPoints_;
+        Eigen::Vector3d envGlobalRangeMax_, envGlobalRangeMin_;
+
 
 		// data
 		bool odomReceived_ = false;
@@ -76,18 +85,14 @@ namespace globalPlanner{
 		Eigen::Vector3d position_;
 		std::shared_ptr<PRM::Node> currGoal_;  //added by me
 		std::shared_ptr<PRM::Node> ultimateTarget_;
-		bool isTargetInRoadmap_ = false;
 		unsigned int waypointIdx_ = 0;  //added by me
 		Point3D navWaypoint_;  //added by me
 		Point3D navHeading_;  //added by me
 		double currYaw_;
-		std::deque<Eigen::Vector3d> histTraj_; // historic trajectory for information gain update 
-		// std::vector<std::shared_ptr<PRM::Node>> prmNodeVec_; // all nodes		
-		std::unordered_set<std::shared_ptr<PRM::Node>> prmNodeVec_; // all nodes
-		std::vector<std::shared_ptr<PRM::Node>> goalCandidates_;
-		std::vector<std::vector<std::shared_ptr<PRM::Node>>> candidatePaths_;
+		std::deque<Eigen::Vector3d> histTraj_; // historic trajectory for information gain update 	
+		std::unordered_set<std::shared_ptr<PRM::Node>> canNodeVec_; // all nodes
+		std::unordered_set<Eigen::Vector3d, Vector3dHash, Vector3dEqual> uncoveredGlobalPoints_; // uncovered uniform nodes
 		std::vector<std::shared_ptr<PRM::Node>> bestPath_;
-		std::vector<std::pair<Eigen::Vector3d, double>> frontierPointPairs_;
 
 
 	public:
@@ -101,15 +106,9 @@ namespace globalPlanner{
 		void registerCallback();
 
 		bool makePlan();
-		nav_msgs::Path getBestPath();
-		void detectFrontierRegion(std::vector<std::pair<Eigen::Vector3d, double>>& frontierPointPairs);
 		void buildRoadMap();
 		void pruneNodes();
-		void updateInformationGain();
-		void getBestViewCandidates(std::vector<std::shared_ptr<PRM::Node>>& goalCandidates);
-		bool findCandidatePath(const std::vector<std::shared_ptr<PRM::Node>>& goalCandidates,  std::vector<std::vector<std::shared_ptr<PRM::Node>>>& candidatePaths);
-		void findBestPath(const std::vector<std::vector<std::shared_ptr<PRM::Node>>>& candidatePaths, std::vector<std::shared_ptr<PRM::Node>>& bestPath);
-		
+		void updateInformationGain();		
 
 		// callback functions
 		void odomCB(const nav_msgs::OdometryConstPtr& odom);
@@ -121,25 +120,21 @@ namespace globalPlanner{
 		// help function
 		bool isPosValid(const Eigen::Vector3d& p);
 		bool isPosValid(const Eigen::Vector3d& p, double safeDistXY, double safeDistZ);
-		std::shared_ptr<PRM::Node> randomConfigBBox(const Eigen::Vector3d& minRegion, const Eigen::Vector3d& maxRegion);
-		bool sensorRangeCondition(const shared_ptr<PRM::Node>& n1, const shared_ptr<PRM::Node>& n2);
+        bool isNodeRequireUpdate(std::shared_ptr<PRM::Node> n, std::vector<std::shared_ptr<PRM::Node>> path, double& leastDistance);
 		bool sensorFOVCondition(const Eigen::Vector3d& sample, const Eigen::Vector3d& pos);
 		int calculateUnknown(const shared_ptr<PRM::Node>& n, std::unordered_map<double, int>& yawNumVoxels);
 		double calculatePathLength(const std::vector<shared_ptr<PRM::Node>>& path);
 		void shortcutPath(const std::vector<std::shared_ptr<PRM::Node>>& path, std::vector<std::shared_ptr<PRM::Node>>& pathSc);
-		int weightedSample(const std::vector<double>& weights);
-		std::shared_ptr<PRM::Node> sampleFrontierPoint(const std::vector<double>& sampleWeights);
-		std::shared_ptr<PRM::Node> extendNode(const std::shared_ptr<PRM::Node>& n, const std::shared_ptr<PRM::Node>& target);
 		Point3D projectNavWaypoint(const Point3D& nav_waypoint, const Point3D& last_waypoint);  // added by me
 
 		// visualization functions
 		visualization_msgs::MarkerArray buildRoadmapMarkers();
-		void publishCandidatePaths();
 		void publishBestPath();
-		void publishFrontier();
 
 		// clear function for RL training
 		void resetRoadmap(const gazebo_msgs::ModelState& resetRobotPos);
+
+        std::unordered_set<Eigen::Vector3d, Vector3dHash, Vector3dEqual> generateGlobalPoints2D(double& height);
 	};
 }
 

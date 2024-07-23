@@ -139,6 +139,7 @@ add_library(
   include/${PROJECT_NAME}/dynamicNavigation.cpp
   # include/${PROJECT_NAME}/dynamicExploration.cpp
   include/${PROJECT_NAME}/dynamicPRM.cpp
+  include/${PROJECT_NAME}/dynamicUG.cpp
 )
 
 ## Add cmake target dependencies of the library
@@ -156,6 +157,7 @@ add_executable(test_cmd_vel_node src/test_cmd_vel_node.cpp)
 add_executable(dynamic_navigation_node src/dynamic_navigation_node.cpp)
 # add_executable(dynamic_exploration_node src/dynamic_exploration_node.cpp)
 add_executable(test_dynamic_prm_node src/test_dynamic_prm_node.cpp)
+add_executable(test_dynamic_ug_node src/test_dynamic_ug_node.cpp)
 
 
 ## Rename C++ executable without prefix
@@ -179,6 +181,7 @@ target_link_libraries(test_cmd_vel_node ${catkin_LIBRARIES} ${PROJECT_NAME})
 target_link_libraries(dynamic_navigation_node ${catkin_LIBRARIES} ${PROJECT_NAME})
 # target_link_libraries(dynamic_exploration_node ${catkin_LIBRARIES} ${PROJECT_NAME})
 target_link_libraries(test_dynamic_prm_node ${catkin_LIBRARIES} ${PROJECT_NAME})
+target_link_libraries(test_dynamic_ug_node ${catkin_LIBRARIES} ${PROJECT_NAME})
 
 
 #############

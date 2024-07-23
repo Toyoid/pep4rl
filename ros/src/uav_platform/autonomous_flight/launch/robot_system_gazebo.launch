@@ -26,21 +26,11 @@
   	    <arg name="quadcopterYaw" value="$(arg quadcopterYaw)"/>
     </include> 
 	
+	<!-- start dynamic uniform graph generator -->
+	<include file="$(find autonomous_flight)/launch/test_dynamic_ug.launch" /> 
 	
 	<!-- start dynamic PRM generator -->
-	<remap from="/mavros/local_position/odom" to="CERLAB/quadcopter/odom" />
-	<remap from="/mavros/setpoint_raw/local" to="CERLAB/quadcopter/cmd_acc" />
-	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/fake_detector_param.yaml" />
-	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/flight_base.yaml" ns="autonomous_flight"/>
-	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/exploration_param.yaml" ns="DEP"/>
-	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/planner_param.yaml" />
-	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/dynamic_detector_param.yaml" ns="/onboard_detector" />
-	<!-- <rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/mapping_param.yaml" ns="/dynamic_map" /> -->
-	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/mapping_param.yaml" ns="/occupancy_map" />
-
-	<node pkg="autonomous_flight" type="throttle_topics.sh" name="throttle_topics" />
-	<node pkg="autonomous_flight" type="test_dynamic_prm_node" name="test_dynamic_prm_node" output="screen" />
-	
+	<!-- <include file="$(find autonomous_flight)/launch/test_dynamic_prm.launch" />  -->
 	
 	<!-- start local planner -->
 	<include file="$(find falco_planner)/launch/run_falco_planner.launch" >

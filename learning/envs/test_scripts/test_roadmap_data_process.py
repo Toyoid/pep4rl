@@ -4,6 +4,7 @@
 import rospy
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import PointStamped
+from sensor_msgs.msg import Joy
 from global_planner.srv import GetRoadmap
 from std_srvs.srv import Empty
 import matplotlib.pyplot as plt
@@ -21,7 +22,7 @@ odom_ = None
 node_coords_ = None
 edge_inputs_ = None
 route_node_ = []
-target_position_ = [-7., -7.]
+target_position_ = [-8., -8., 1.0]
 robot_position_ = []
 greedy_ = True
 input_dim_ = 7
@@ -29,10 +30,10 @@ embedding_dim_ = 128
 coords_norm_coef_ = 30.
 utility_norm_coef_ = 4000.
 use_node_padding_ = False
-node_padding_size_ = 20
+node_padding_size_ = 300
 k_neighbor_size = 20
 current_dir = os_path.dirname(os_path.abspath(__file__))
-model_path_ = current_dir + "/../model_weights/context_aware_nav/"
+model_path_ = current_dir + "/../../model_weights/context_aware_nav"
 
 
 def odom_callback(msg):
@@ -57,6 +58,8 @@ if __name__ == "__main__":
     escape_stuck = rospy.ServiceProxy('/falco_planner/escape_stuck_service', Empty)
     # current_goal_pub = rospy.Publisher("/falco_planner/way_point", PointStamped, queue_size=5)
     current_goal_pub = rospy.Publisher("/agent/current_goal", PointStamped, queue_size=5)
+    nav_target_pub = rospy.Publisher("env/nav_target", PointStamped, queue_size=5)
+    pub_joy = rospy.Publisher('/falco_planner/joy', Joy, queue_size=5)
 
     # roadmap data processing specific variables
     if torch.cuda.is_available():
@@ -86,6 +89,23 @@ if __name__ == "__main__":
 
     goal = PointStamped()
     goal.header.frame_id = "map"
+
+    # publish navigation target position to roadmap after resetting roadmap
+    target = PointStamped()
+    target.header.frame_id = "map"
+    target.header.stamp = rospy.Time.now()
+    target.point.x = target_position_[0]
+    target.point.y = target_position_[1]
+    target.point.z = target_position_[2]
+    nav_target_pub.publish(target)
+
+    # publish joy for activating falco planner
+    joy = Joy()
+    joy.axes = [0., 0., -1.0, 0., 1.0, 1.0, 0., 0.]
+    joy.buttons = [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
+    joy.header.stamp = rospy.Time.now()
+    joy.header.frame_id = "waypoint_tool"
+    pub_joy.publish(joy)
 
     global_step = 0
     while not rospy.is_shutdown():
@@ -130,6 +150,8 @@ if __name__ == "__main__":
         # 2. compute direction_vector
         node_coords_ = np.round(node_pos, 4)
         n_nodes = node_coords_.shape[0]
+        print(f"Number of covered nodes: {n_nodes}")
+
         dis_vector = [target_position_[0], target_position_[1]] - node_coords_
         dis = np.sqrt(np.sum(dis_vector ** 2, axis=1))
         # normalize direction vector
@@ -178,7 +200,14 @@ if __name__ == "__main__":
                 assert len(pos) == node_coords_.shape[1], "Wrong dimension on node coordinates"
                 # pos = [adj_node_pos.x, adj_node_pos.y, adj_node_pos.z]
                 pos = np.round([adj_node_pos.x, adj_node_pos.y], 4)
-                idx = np.argwhere((node_coords_ == pos).all(axis=1)).item()
+                try:
+                    idx = np.argwhere((node_coords_ == pos).all(axis=1)).item()
+                except ValueError as e:
+                    print("[Error]: Error in finding adjacent node index: %s" % e)
+                    print(f"[Error]: idx array: {np.argwhere((node_coords_ == pos).all(axis=1))}")
+                except Exception as e:
+                    print(f"Unexpected {e}, {type(e)}")
+                    raise
                 adj_node_idxs.append(idx)
             edges_adj_idx.append(adj_node_idxs)
 
@@ -190,41 +219,41 @@ if __name__ == "__main__":
                 (0, node_padding_size_ - n_nodes, 0, node_padding_size_ - n_nodes), 1)
             edge_mask = padding(edge_mask)
 
-        # # pad edge_inputs_ with 0
-        # edge = deepcopy(edges_adj_idx[current_index])
-        # while len(edge) < k_neighbor_size:
-        #     edge.append(0)  # won't this be conflict with 'connection to node 0'? I think it will
-        #
-        # edge_inputs_ = torch.tensor(edge).unsqueeze(0).unsqueeze(0).to(device)  # (1, 1, k_neighbor_size)
-        #
-        # edge_padding_mask = torch.zeros((1, 1, k_neighbor_size), dtype=torch.int64).to(device)
-        # one = torch.ones_like(edge_padding_mask, dtype=torch.int64).to(device)
-        # edge_padding_mask = torch.where(edge_inputs_ == 0, one, edge_padding_mask)
+        # pad edge_inputs_ with 0
+        edge = deepcopy(edges_adj_idx[current_index])
+        while len(edge) < k_neighbor_size:
+            edge.append(0)  # won't this be conflict with 'connection to node 0'? I think it will
 
-        # pad edge_inputs_ with k-nearest neighbors
-        current_node_pos = node_coords_[current_node_idx]
-        # build kd-tree to search k-nearest neighbors
-        kdtree = KDTree(node_coords_)
-        k = min(k_neighbor_size, n_nodes)
-        _, nearest_indices = kdtree.query(current_node_pos, k=k)
-
-        # padding option 1: pad edge_inputs to k_nearest_size with 0, this will filter node_0 as unconnected node
-        edge = np.pad(nearest_indices, (0, k_neighbor_size - k), mode='constant', constant_values=0)
         edge_inputs_ = torch.tensor(edge).unsqueeze(0).unsqueeze(0).to(device)  # (1, 1, k_neighbor_size)
 
         edge_padding_mask = torch.zeros((1, 1, k_neighbor_size), dtype=torch.int64).to(device)
         one = torch.ones_like(edge_padding_mask, dtype=torch.int64).to(device)
         edge_padding_mask = torch.where(edge_inputs_ == 0, one, edge_padding_mask)
 
-        # padding option 2: pad edge_inputs to k_nearest_size with -1 first, this keeps node_0 if it is connected
-        edge = np.pad(nearest_indices, (0, k_neighbor_size - k), mode='constant', constant_values=-1)
-        edge_inputs_ = torch.tensor(edge).unsqueeze(0).unsqueeze(0).to(device)  # (1, 1, k_neighbor_size)
-
-        edge_padding_mask = torch.zeros((1, 1, k_neighbor_size), dtype=torch.int64).to(device)
-        one = torch.ones_like(edge_padding_mask, dtype=torch.int64).to(device)
-        edge_padding_mask = torch.where(edge_inputs_ == -1, one, edge_padding_mask)
-        zero = torch.zeros_like(edge_padding_mask, dtype=torch.int64).to(device)
-        edge_inputs_ = torch.where(edge_inputs_ == -1, zero, edge_inputs_)
+        # # pad edge_inputs_ with k-nearest neighbors
+        # current_node_pos = node_coords_[current_node_idx]
+        # # build kd-tree to search k-nearest neighbors
+        # kdtree = KDTree(node_coords_)
+        # k = min(k_neighbor_size, n_nodes)
+        # _, nearest_indices = kdtree.query(current_node_pos, k=k)
+        #
+        # # # padding option 1: pad edge_inputs to k_nearest_size with 0, this will filter node_0 as unconnected node
+        # # edge = np.pad(nearest_indices, (0, k_neighbor_size - k), mode='constant', constant_values=0)
+        # # edge_inputs_ = torch.tensor(edge).unsqueeze(0).unsqueeze(0).to(device)  # (1, 1, k_neighbor_size)
+        # #
+        # # edge_padding_mask = torch.zeros((1, 1, k_neighbor_size), dtype=torch.int64).to(device)
+        # # one = torch.ones_like(edge_padding_mask, dtype=torch.int64).to(device)
+        # # edge_padding_mask = torch.where(edge_inputs_ == 0, one, edge_padding_mask)
+        #
+        # # padding option 2: pad edge_inputs to k_nearest_size with -1 first, this keeps node_0 if it is connected
+        # edge = np.pad(nearest_indices, (0, k_neighbor_size - k), mode='constant', constant_values=-1)
+        # edge_inputs_ = torch.tensor(edge).unsqueeze(0).unsqueeze(0).to(device)  # (1, 1, k_neighbor_size)
+        #
+        # edge_padding_mask = torch.zeros((1, 1, k_neighbor_size), dtype=torch.int64).to(device)
+        # one = torch.ones_like(edge_padding_mask, dtype=torch.int64).to(device)
+        # edge_padding_mask = torch.where(edge_inputs_ == -1, one, edge_padding_mask)
+        # zero = torch.zeros_like(edge_padding_mask, dtype=torch.int64).to(device)
+        # edge_inputs_ = torch.where(edge_inputs_ == -1, zero, edge_inputs_)
 
         roadmap_state = node_inputs, edge_inputs_, current_index, node_padding_mask, edge_padding_mask, edge_mask
 
@@ -292,7 +321,7 @@ if __name__ == "__main__":
 
         robot = patches.Circle(xy=(odom_.pose.pose.position.x, odom_.pose.pose.position.y), radius=0.2, color='r',
                                alpha=0.8)
-        robot.set_zorder(3)
+        robot.set_zorder(1)
         ax1.add_patch(robot)
         plot_patch_list1.append(robot)
 
@@ -307,6 +336,7 @@ if __name__ == "__main__":
         # nodes
         # nodes = ax2.scatter([n.x for n in current_node_edges], [n.y for n in current_node_edges],
         #                     c='orange', alpha=1, zorder=1)
+        nearest_indices = deepcopy(edges_adj_idx[current_index])
         nodes = ax2.scatter(node_coords_[nearest_indices, 0], node_coords_[nearest_indices, 1],
                             c='orange', alpha=1, zorder=1)
         plot_patch_list2.append(nodes)
@@ -331,7 +361,7 @@ if __name__ == "__main__":
         plot_patch_list2.append(selection)
 
         robot_position_ = [odom_.pose.pose.position.x, odom_.pose.pose.position.y, odom_.pose.pose.position.z]
-        plt.pause(3.5)
+        plt.pause(2)
 
         dis = math.sqrt((odom_.pose.pose.position.x - robot_position_[0]) ** 2 +
                         (odom_.pose.pose.position.y - robot_position_[1]) ** 2 +

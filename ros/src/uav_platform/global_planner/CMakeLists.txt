@@ -133,7 +133,8 @@ include_directories(
 # )
 add_library(${PROJECT_NAME} src/globalPlannerLib.cpp
                             include/${PROJECT_NAME}/PRMKDTree.cpp
-                            include/${PROJECT_NAME}/dep.cpp)
+                            include/${PROJECT_NAME}/dep.cpp
+                            include/${PROJECT_NAME}/can_uniform_graph.cpp)
 
 
 ## Add cmake target dependencies of the library

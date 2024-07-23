@@ -717,6 +717,7 @@ namespace mapManager{
         } catch (const std::exception &e) {
             ROS_ERROR("Exception caught: %s", e.what());
         }
+	    ROS_INFO("occMap::updateOccupancy callback finished");
 	}
 
 	void occMap::inflateMapCB(const ros::TimerEvent& ){

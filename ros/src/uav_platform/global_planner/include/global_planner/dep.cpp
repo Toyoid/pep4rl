@@ -302,7 +302,6 @@ namespace globalPlanner{
 
 		this->navWaypoint_ = Point3D(p(0), p(1), p(2));
 		this->navHeading_ = Point3D(0, 0, 0);
-		this->isTargetInRoadmap_ = false;
 
 		this->waypointIdx_ = 0;  
 		this->histTraj_.clear();  
@@ -475,7 +474,7 @@ namespace globalPlanner{
 		return true;
 	}
 
-	bool isNodeRequireUpdate(std::shared_ptr<PRM::Node> n, std::vector<std::shared_ptr<PRM::Node>> path, double& leastDistance){
+	bool DEP::isNodeRequireUpdate(std::shared_ptr<PRM::Node> n, std::vector<std::shared_ptr<PRM::Node>> path, double& leastDistance){
 		double distanceThresh = 2;
 		leastDistance = std::numeric_limits<double>::max();
 		for (std::shared_ptr<PRM::Node>& waypoint: path){
@@ -1359,9 +1358,9 @@ namespace globalPlanner{
 			voxelNumText.pose.position.x = n->pos(0);
 			voxelNumText.pose.position.y = n->pos(1);
 			voxelNumText.pose.position.z = n->pos(2)+0.1;
-			voxelNumText.scale.x = 0.1;
-			voxelNumText.scale.y = 0.1;
-			voxelNumText.scale.z = 0.1;
+			voxelNumText.scale.x = 0.2;
+			voxelNumText.scale.y = 0.2;
+			voxelNumText.scale.z = 0.2;
 			voxelNumText.color.a = 1.0;
 			voxelNumText.text = std::to_string(n->numVoxels);
 			voxelNumText.lifetime = ros::Duration(0.2); //5

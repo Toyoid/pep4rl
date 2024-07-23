@@ -3,12 +3,13 @@
 	<remap from="/mavros/local_position/odom" to="CERLAB/quadcopter/odom" />
 	<remap from="/mavros/setpoint_raw/local" to="CERLAB/quadcopter/cmd_acc" />
 
-	<rosparam file="$(find autonomous_flight)/cfg/dynamic_exploration/fake_detector_param.yaml" />
-	<rosparam file="$(find autonomous_flight)/cfg/dynamic_exploration/flight_base.yaml" ns="autonomous_flight"/>
-	<rosparam file="$(find autonomous_flight)/cfg/dynamic_exploration/exploration_param.yaml" ns="DEP"/>
-	<rosparam file="$(find autonomous_flight)/cfg/dynamic_exploration/planner_param.yaml" />
-	<rosparam file="$(find autonomous_flight)/cfg/dynamic_exploration/dynamic_detector_param.yaml" ns="/onboard_detector" />
-	<rosparam file="$(find autonomous_flight)/cfg/dynamic_exploration/mapping_param.yaml" ns="/dynamic_map" />
+	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/fake_detector_param.yaml" />
+	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/flight_base.yaml" ns="autonomous_flight"/>
+	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/exploration_param.yaml" ns="DEP"/>
+	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/planner_param.yaml" />
+	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/dynamic_detector_param.yaml" ns="/onboard_detector" />
+	<!-- <rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/mapping_param.yaml" ns="/dynamic_map" /> -->
+	<rosparam file="$(find autonomous_flight)/cfg/dynamic_prm/mapping_param.yaml" ns="/occupancy_map" />
 
 	<node pkg="autonomous_flight" type="throttle_topics.sh" name="throttle_topics" />
 	<node pkg="autonomous_flight" type="test_dynamic_prm_node" name="test_dynamic_prm_node" output="screen" />

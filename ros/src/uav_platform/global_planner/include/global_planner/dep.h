@@ -76,7 +76,6 @@ namespace globalPlanner{
 		Eigen::Vector3d position_;
 		std::shared_ptr<PRM::Node> currGoal_;  //added by me
 		std::shared_ptr<PRM::Node> ultimateTarget_;
-		bool isTargetInRoadmap_ = false;
 		unsigned int waypointIdx_ = 0;  //added by me
 		Point3D navWaypoint_;  //added by me
 		Point3D navHeading_;  //added by me
@@ -121,6 +120,7 @@ namespace globalPlanner{
 		// help function
 		bool isPosValid(const Eigen::Vector3d& p);
 		bool isPosValid(const Eigen::Vector3d& p, double safeDistXY, double safeDistZ);
+		bool isNodeRequireUpdate(std::shared_ptr<PRM::Node> n, std::vector<std::shared_ptr<PRM::Node>> path, double& leastDistance);
 		std::shared_ptr<PRM::Node> randomConfigBBox(const Eigen::Vector3d& minRegion, const Eigen::Vector3d& maxRegion);
 		bool sensorRangeCondition(const shared_ptr<PRM::Node>& n1, const shared_ptr<PRM::Node>& n2);
 		bool sensorFOVCondition(const Eigen::Vector3d& sample, const Eigen::Vector3d& pos);

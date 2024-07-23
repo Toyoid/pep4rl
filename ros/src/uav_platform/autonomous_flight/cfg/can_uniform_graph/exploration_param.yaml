@@ -1,0 +1,24 @@
+odom_topic: "/CERLAB/quadcopter/odom"
+# odom_topic: "/mavros/local_position/odom"
+global_region_min: [-20, -20, 0.7]
+global_region_max: [20, 20, 1.2]
+safe_distance_xy: 0.3
+safe_distance_z: 0.0
+safe_distance_check_unknown: true # true will make node sampling conservative but safe 
+
+# Camera Parameters
+horizontal_FOV: 1.57
+vertical_FOV: 1.57
+dmin: 0.3
+dmax: 2.0
+num_yaw_angles: 32
+
+# utility information update
+information_gain_update_distance: 1.0
+
+# uniform graph
+graph_node_height: 1.0
+num_global_points: [30, 30, 3]
+env_global_range_min: [-10, -10, 0.5]
+env_global_range_max: [10, 10, 2.0]
+nearest_neighbor_number: 19
