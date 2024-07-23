@@ -168,7 +168,7 @@ def main():
             # training
             if global_step > args.learning_starts:
                 # TBD after empirical tuning : training for n times each step like: for j in range(8)
-                for _ in range(1):
+                for _ in range(2):
                     data = replay_buffer.sample(args.batch_size)
 
                     node_inputs_batch = data["node_inputs"]

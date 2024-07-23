@@ -60,7 +60,7 @@ class Args:
     """the frequency of training policy (delayed)"""
     target_network_frequency: int = 1  # Denis Yarats' implementation delays this by 2.
     """the frequency of updates for the target networks"""
-    model_save_frequency: int = 512
+    model_save_frequency: int = 1024
     """the frequency of saving model weights"""
     noise_clip: float = 0.5
     """noise clip parameter of the Target Policy Smoothing Regularization"""
@@ -84,7 +84,7 @@ class Args:
     """coefficient for normalizing node coordinates"""
     utility_norm_coef_: float = 4000.
     """coefficient for normalizing node utility"""
-    node_padding_size: int = 400
+    node_padding_size: int = 500
     """"the node number in the graph will be padded to node_padding_size during training to keep the consistency of training input tensor"""
 
 

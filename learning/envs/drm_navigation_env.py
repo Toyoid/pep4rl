@@ -429,7 +429,7 @@ class DecisionRoadmapNavEnv:
 
         # 5. calculate a mask for padded node
         if self.is_train:
-            assert n_nodes < self.node_padding_size
+            assert n_nodes < self.node_padding_size, f"Number of nodes: {n_nodes}"
             padding = torch.nn.ZeroPad2d((0, 0, 0, self.node_padding_size - n_nodes))
             node_inputs = padding(node_inputs)
             # calculate a mask to padded nodes
