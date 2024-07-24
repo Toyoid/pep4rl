@@ -7,7 +7,7 @@ import rospy
 
 import torch
 
-from config_sac import get_config
+from config_uniform_graph_sac import get_config
 from envs.uniform_graph_nav_env import UniformGraphNavEnv
 from algorithm.attention_networks import PolicyNet
 
@@ -31,7 +31,7 @@ def main():
     torch.set_num_threads(args.n_training_threads)
 
     # env setup
-    rospy.init_node("decision_roadmap_agent")
+    rospy.init_node("uniform_graph_agent")
     envs = UniformGraphNavEnv(args=args, device=device, is_train=False)
 
     # load attention policy network

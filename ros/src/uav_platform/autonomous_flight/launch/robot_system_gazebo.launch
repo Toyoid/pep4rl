@@ -27,10 +27,10 @@
     </include> 
 	
 	<!-- start dynamic uniform graph generator -->
-    <!-- <include file="$(find autonomous_flight)/launch/test_dynamic_ug.launch" />  -->
+    <include file="$(find autonomous_flight)/launch/test_dynamic_ug.launch" />
 	
 	<!-- start dynamic PRM generator -->
-	<include file="$(find autonomous_flight)/launch/test_dynamic_prm.launch" />
+<!-- 	<include file="$(find autonomous_flight)/launch/test_dynamic_prm.launch" /> -->
 	
 	<!-- start local planner -->
 	<include file="$(find falco_planner)/launch/run_falco_planner.launch" >
