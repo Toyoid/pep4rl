@@ -756,29 +756,37 @@ namespace globalPlanner{
 	}
 
 	void DEP::updateInformationGain(){
-		// iterate through all current nodes (ignore update by path now)
-		// two types of nodes need update:
-		// 1. new nodes
-		// 2. nodes close to the historical trajectory
-		std::unordered_set<std::shared_ptr<PRM::Node>> updateSet;
-		for (std::shared_ptr<PRM::Node> n : this->prmNodeVec_){ // new nodes
-			if (n->newNode == true){// 1. new nodes
-				updateSet.insert(n);
-			}	
-		}
+//		// iterate through all current nodes (ignore update by path now)
+//		// two types of nodes need update:
+//		// 1. new nodes
+//		// 2. nodes close to the historical trajectory
+//		std::unordered_set<std::shared_ptr<PRM::Node>> updateSet;
+//		for (std::shared_ptr<PRM::Node> n : this->prmNodeVec_){ // new nodes
+//			if (n->newNode == true){// 1. new nodes
+//				updateSet.insert(n);
+//			}
+//		}
+//
+//		for (Eigen::Vector3d& histPos : this->histTraj_){ // traj update nodes
+//			std::shared_ptr<PRM::Node> histN;
+//			histN.reset(new PRM::Node(histPos));
+//			std::vector<std::shared_ptr<PRM::Node>> nns = this->roadmap_->kNearestNeighbor(histN, 10);
+//			for (std::shared_ptr<PRM::Node>& nn : nns){
+//				if ((nn->pos - histN->pos).norm() <= this->updateDist_){
+//					updateSet.insert(nn);
+//				}
+//			}
+//		}
+//
+//		for (std::shared_ptr<PRM::Node> updateN : updateSet){ // update information gain
+//			std::unordered_map<double, int> yawNumVoxels;
+//			int unknownVoxelNum = this->calculateUnknown(updateN, yawNumVoxels);
+//			updateN->numVoxels = unknownVoxelNum;
+//			updateN->yawNumVoxels = yawNumVoxels;
+//			updateN->newNode = false;
+//		}
 
-		for (Eigen::Vector3d& histPos : this->histTraj_){ // traj update nodes
-			std::shared_ptr<PRM::Node> histN;
-			histN.reset(new PRM::Node(histPos));
-			std::vector<std::shared_ptr<PRM::Node>> nns = this->roadmap_->kNearestNeighbor(histN, 10);
-			for (std::shared_ptr<PRM::Node>& nn : nns){
-				if ((nn->pos - histN->pos).norm() <= this->updateDist_){
-					updateSet.insert(nn);
-				}
-			}
-		}
-
-		for (std::shared_ptr<PRM::Node> updateN : updateSet){ // update information gain
+		for (std::shared_ptr<PRM::Node> updateN : this->prmNodeVec_){ // update information gain
 			std::unordered_map<double, int> yawNumVoxels;
 			int unknownVoxelNum = this->calculateUnknown(updateN, yawNumVoxels);
 			updateN->numVoxels = unknownVoxelNum;
