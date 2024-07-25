@@ -151,15 +151,6 @@ namespace globalPlanner{
 			cout << this->hint_ << ": Number of yaw angles is set to: " << yawNum << endl;
 		}
 
-		// Information gain update  distance
-		if (not this->nh_.getParam(this->ns_ + "/information_gain_update_distance", this->updateDist_)){
-			this->updateDist_ = 1.0;
-			cout << this->hint_ << ": No information gain update distance param. Use default: 1.0m." << endl;
-		}
-		else{
-			cout << this->hint_ << ": Information gain update distance is set to: " << this->updateDist_ << endl;
-		}
-
         if (not this->nh_.getParam(this->ns_ + "/graph_node_height", this->graphNodeHeight_)){
 			this->graphNodeHeight_ = 1.5;
 			cout << this->hint_ << ": No graph node height param. Use default: 1.5." << endl;

@@ -71,7 +71,6 @@ namespace globalPlanner{
 		int nnNum_;
 		std::vector<double> yaws_;
 		double minVoxelThresh_;
-		double updateDist_;
 
         double graphNodeHeight_;
         std::vector<int> numGlobalPoints_;

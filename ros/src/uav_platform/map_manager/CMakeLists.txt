@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(map_manager)
 
+# TEMPORARY: complied in the debug mode for addressing the segmentation fault
+set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++14)
 set(CMAKE_CXX_FLAGS "-std=c++14 ${CMAKE_CXX_FLAGS} -O3 -Wall")

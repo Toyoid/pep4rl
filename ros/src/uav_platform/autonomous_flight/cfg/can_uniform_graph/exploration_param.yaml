@@ -13,9 +13,6 @@ dmin: 0.3
 dmax: 2.0
 num_yaw_angles: 32
 
-# utility information update
-information_gain_update_distance: 1.0
-
 # uniform graph
 graph_node_height: 1.0
 num_global_points: [30, 30, 3]

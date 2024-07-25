@@ -207,7 +207,7 @@ class DecisionRoadmapNavEnv:
             print("Initial Rotate Scan Service Failed: %s" % e)
         print("[ROS Service Request]: rotate to gain initial scan...")
         # IMPORTANT: sleep for enough time (>2.2s) for the robot to rotate, scan and gain enough free range to build the roadmap
-        rospy.sleep(2.2)
+        rospy.sleep(2.5)
 
         robot_pose, roadmap_state = self._get_next_state()
         '''

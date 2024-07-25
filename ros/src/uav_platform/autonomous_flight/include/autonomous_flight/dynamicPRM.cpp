@@ -190,8 +190,14 @@ namespace AutoFlight{
             this->map_->collisionCheckServer_.shutdown();
             this->map_.reset(new mapManager::occMap (this->nh_));
             this->expPlanner_->setMap(this->map_);
-
             cout << "\n\033[1;32m[Roadmap]: Successfully reset map and roadmap.\033[0m" << endl;
+
+            Eigen::Vector3d startPos (req.robotPose.pose.position.x, req.robotPose.pose.position.y, req.robotPose.pose.position.z);
+		    Eigen::Vector3d c1 = startPos - this->freeRange_;
+		    Eigen::Vector3d c2 = startPos + this->freeRange_;
+		    this->map_->freeRegion(c1, c2);
+		    cout << "[AutoFlight]: Robot nearby region is set to free. Range: " << this->freeRange_.transpose() << endl;
+
         } catch (const std::exception &e) {
             ROS_ERROR("Exception caught: %s", e.what());
         }

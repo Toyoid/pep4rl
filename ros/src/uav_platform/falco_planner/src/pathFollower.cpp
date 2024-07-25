@@ -255,11 +255,11 @@ void stateEstimationHandler(const nav_msgs::Odometry::ConstPtr& odom)
     if (RLResetting) {
       double rotateTime = ros::Time::now().toSec();
       if (autoAdjustMode) {
-        if (rotateTime - rotateStartTime < 2.2) {
+        if (rotateTime - rotateStartTime < 2.5) {
           joyFwd = 0;
           joyLeft = 0;
           joyUp = 0;
-          joyYaw = 3.3;  
+          joyYaw = 3.0;
         } else {
           joyFwd = 1.0;
           joyLeft = 0;

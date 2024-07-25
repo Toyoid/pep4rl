@@ -344,7 +344,7 @@ Visualization Manager:
       Marker Topic: /dep/frontier_regions
       Name: frontier regions
       Namespaces:
-        frontier range: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
