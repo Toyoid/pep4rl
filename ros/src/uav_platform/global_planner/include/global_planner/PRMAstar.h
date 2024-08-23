@@ -62,6 +62,7 @@ namespace PRM{
 				// Node must be not in close
 				if (not inClose(neighborNode, close)){
 					if (map->isInflatedFreeLine(currNode->pos, neighborNode->pos)){
+					// if (not map->isInflatedOccupiedLine(currNode->pos, neighborNode->pos)){
 						double cost = currNode->g + (currNode->pos - neighborNode->pos).norm();
 						if (cost < neighborNode->g){
 							neighborNode->g = cost;

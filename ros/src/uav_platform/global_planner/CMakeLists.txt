@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(global_planner)
 
-# TEMPORARY: complied in the debug mode for addressing the segmentation fault
-set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+# # TEMPORARY: complied in the debug mode for addressing the segmentation fault
+# set(CMAKE_BUILD_TYPE Debug)
+# set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -138,7 +138,8 @@ include_directories(
 add_library(${PROJECT_NAME} src/globalPlannerLib.cpp
                             include/${PROJECT_NAME}/PRMKDTree.cpp
                             include/${PROJECT_NAME}/dep.cpp
-                            include/${PROJECT_NAME}/can_uniform_graph.cpp)
+                            include/${PROJECT_NAME}/can_uniform_graph.cpp
+                            include/${PROJECT_NAME}/dprm_planner.cpp)
 
 
 ## Add cmake target dependencies of the library

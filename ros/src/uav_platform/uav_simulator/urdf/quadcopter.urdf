@@ -101,7 +101,7 @@
             </image>
             <clip>
               <near>0.18</near>
-              <far>15.0</far>
+              <far>15</far>
               <!-- <far>6.0</far> -->
             </clip>
           </camera>

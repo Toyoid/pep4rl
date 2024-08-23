@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(autonomous_flight)
 
-# TEMPORARY: complied in the debug mode for addressing the segmentation fault
-set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+# # TEMPORARY: complied in the debug mode for addressing the segmentation fault
+# set(CMAKE_BUILD_TYPE Debug)
+# set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -144,6 +144,7 @@ add_library(
   # include/${PROJECT_NAME}/dynamicExploration.cpp
   include/${PROJECT_NAME}/dynamicPRM.cpp
   include/${PROJECT_NAME}/dynamicUG.cpp
+  include/${PROJECT_NAME}/dprmPlanManager.cpp
 )
 
 ## Add cmake target dependencies of the library
@@ -162,6 +163,7 @@ add_executable(dynamic_navigation_node src/dynamic_navigation_node.cpp)
 # add_executable(dynamic_exploration_node src/dynamic_exploration_node.cpp)
 add_executable(test_dynamic_prm_node src/test_dynamic_prm_node.cpp)
 add_executable(test_dynamic_ug_node src/test_dynamic_ug_node.cpp)
+add_executable(dprm_planner_node src/dprm_planner_node.cpp)
 
 
 ## Rename C++ executable without prefix
@@ -186,6 +188,7 @@ target_link_libraries(dynamic_navigation_node ${catkin_LIBRARIES} ${PROJECT_NAME
 # target_link_libraries(dynamic_exploration_node ${catkin_LIBRARIES} ${PROJECT_NAME})
 target_link_libraries(test_dynamic_prm_node ${catkin_LIBRARIES} ${PROJECT_NAME})
 target_link_libraries(test_dynamic_ug_node ${catkin_LIBRARIES} ${PROJECT_NAME})
+target_link_libraries(dprm_planner_node ${catkin_LIBRARIES} ${PROJECT_NAME})
 
 
 #############

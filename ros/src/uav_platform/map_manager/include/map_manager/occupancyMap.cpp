@@ -679,7 +679,7 @@ namespace mapManager{
 	}
 
 	void occMap::updateOccupancyCB(const ros::TimerEvent& ){
-	    ROS_INFO("occMap::updateOccupancy callback called");
+	    // ROS_INFO("occMap::updateOccupancy callback called");
         try {
             if (not this->occNeedUpdate_){
                 return;
@@ -717,7 +717,7 @@ namespace mapManager{
         } catch (const std::exception &e) {
             ROS_ERROR("Exception caught: %s", e.what());
         }
-	    ROS_INFO("occMap::updateOccupancy callback finished");
+	    // ROS_INFO("occMap::updateOccupancy callback finished");
 	}
 
 	void occMap::inflateMapCB(const ros::TimerEvent& ){
@@ -1027,7 +1027,7 @@ namespace mapManager{
 	}
 
 	void occMap::inflateLocalMap(){
-		ROS_INFO("occMap::inflateLocalMap called");
+		// ROS_INFO("occMap::inflateLocalMap called");
         try {
             Eigen::Vector3i clearIndex;
             // clear previous data in current data range
@@ -1074,7 +1074,7 @@ namespace mapManager{
         } catch (const std::exception &e) {
             ROS_ERROR("Exception caught: %s", e.what());
         }
-        ROS_INFO("occMap::inflateLocalMap finished");
+        // ROS_INFO("occMap::inflateLocalMap finished");
 	}
 
 	void occMap::visCB(const ros::TimerEvent& ){
