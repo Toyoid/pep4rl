@@ -10,12 +10,12 @@
   	<arg name="quadcopterZ" default="1.0"/>
   	<arg name="quadcopterYaw" default="0"/>
 	<arg name="realtime_factor_falco" default="1.0"/>
-    <!-- <arg name="world_name" default="false" /> -->
+    <arg name="map_name" default="indoor" />
 
 
 	<!-- start gazebo world -->
 	<include file="$(find uav_simulator)/launch/start.launch" >
-        <!-- <arg name="world_name" value="$(arg world_name)"/> -->
+        <arg name="map_name" value="$(arg map_name)"/>
         <arg name="verbose" value="$(arg verbose)"/>
         <arg name="use_sim_time" value="$(arg use_sim_time)"/>
         <arg name="debug" value="$(arg debug)" />
@@ -45,7 +45,10 @@
         <arg name="vehicleYaw" value="$(arg quadcopterYaw)"/>
     </include> 
 
-	
+	<include file="$(find metrics_visualization)/launch/visualization_tools_gazebo.launch" >
+        <arg name="map_name" value="$(arg map_name)"/>
+    </include>
+
 	<!-- start rviz visualizer -->
 	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find rviz_visualize)/rviz/decision_graph.rviz" required="true"/>
 </launch> 

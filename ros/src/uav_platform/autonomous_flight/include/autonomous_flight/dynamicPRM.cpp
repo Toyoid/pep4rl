@@ -132,7 +132,7 @@ namespace AutoFlight{
 	// }
 
 	void dynamicPRM::freeMapCB(const ros::TimerEvent&){
-	    ROS_INFO("dynamicPRM::freeMap callback called");
+	    // ROS_INFO("dynamicPRM::freeMap callback called");
         try {
             std::vector<onboardDetector::box3D> obstacles;
             std::vector<std::pair<Eigen::Vector3d, Eigen::Vector3d>> freeRegions;
@@ -167,7 +167,7 @@ namespace AutoFlight{
 	}
 
 	bool dynamicPRM::resetRoadmapServiceCB(falco_planner::SetRobotPose::Request& req, falco_planner::SetRobotPose::Response& resp){
-        ROS_INFO("resetRoadmapService callback called");
+        // ROS_INFO("resetRoadmapService callback called");
         try {
             // if (this->useFakeDetector_){
             // 	// reset fake detector

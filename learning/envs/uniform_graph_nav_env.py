@@ -46,7 +46,7 @@ class UniformGraphNavEnv:
         # else:
         #     # get initial robot and goal pose list in dense_worlds.world
         #     self.init_robot_array, self.init_target_array = self._get_init_robot_goal("eval_positions")
-        self.init_robot_array, self.init_target_array = self._get_init_robot_goal("floorplan_world2")
+        self.init_robot_array, self.init_target_array = self._get_init_robot_goal("maze_medium")
 
         # Robot messages
         self.odom = None

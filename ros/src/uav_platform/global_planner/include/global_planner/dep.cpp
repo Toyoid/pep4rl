@@ -369,7 +369,7 @@ namespace globalPlanner{
 		this->pruneNodes();
 
 		// cout << "start update information gain" << endl;
-		this->updateInformationGain();
+		// this->updateInformationGain();
 		// ros::Time updateEndTime = ros::Time::now();
 		// cout << "update time: " << (updateEndTime - updateStartTime).toSec() << endl;
 
@@ -1005,7 +1005,7 @@ namespace globalPlanner{
 	}
 
 	void DEP::waypointUpdateCB(const ros::TimerEvent&) {
-        ROS_INFO("waypointUpdate callback called");
+        // ROS_INFO("waypointUpdate callback called");
         try {
             if (this->resettingRLEnv_) {
                 assert(this->currGoal_ != nullptr);

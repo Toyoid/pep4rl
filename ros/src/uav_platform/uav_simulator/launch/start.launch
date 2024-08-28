@@ -3,16 +3,18 @@
   <arg name="verbose" default="false"/>
   <arg name="use_sim_time" default="true"/>
   <arg name="debug" default="false" />
+  <arg name="headless" default="false"/>
   <arg name="gazebo_gui" default="true" />
   <arg name="quadcopterX" default="0"/>
   <arg name="quadcopterY" default="0"/>
-  <arg name="quadcopterInitZ" default="0.1"/>
+  <arg name="quadcopterInitZ" default="1"/>
   <arg name="quadcopterYaw" default="0"/>
   <arg name="use_keyboard" default="false"/>
+  <arg name="map_name" default="indoor"/>
 
 <!--   <arg name="world_name" value="$(find uav_simulator)/worlds/dense_world.world" /> -->
 <!--   <arg name="world_name" value="$(find uav_simulator)/worlds/training_worlds.world" /> -->
-  <arg name="world_name" value="$(find uav_simulator)/worlds/floorplan4/floorplan4_static.world" />
+  <arg name="world_name" value="$(find uav_simulator)/worlds/$(arg map_name).world" />
   
 <!--   <arg name="world_name" value="$(find uav_simulator)/worlds/room.world" /> -->
 
@@ -76,10 +78,10 @@
         <arg name="verbose" value="$(arg verbose)"/>
         <arg name="use_sim_time" value="$(arg use_sim_time)"/>
         <arg name="debug" value="$(arg debug)" />
+        <arg name="headless" value="$(arg headless)"/>
         <arg name="gui" value="$(arg gazebo_gui)" />
   </include>
-
-
+  
    <!-- send robot urdf to param server -->
   <param name="robot_description" command="cat '$(find uav_simulator)/urdf/quadcopter.urdf'" />
 

@@ -10,11 +10,13 @@
 #include <map_manager/dynamicMap.h>
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
+#include <std_msgs/Float32.h>
 #include <geometry_msgs/PointStamped.h>  //added by me
 #include <gazebo_msgs/ModelState.h>  //added
 #include <global_planner/PRMKDTree.h>
 #include <global_planner/PRMAstar.h>
 #include <global_planner/utils.h>
+#include <global_planner/time_measure.h>
 #include <global_planner/point_struct.h>
 #include <opencv2/opencv.hpp>
 
@@ -31,6 +33,7 @@ namespace globalPlanner{
 		ros::Publisher frontierVisPub_;
 		ros::Publisher waypointPub_;  //added by me
 		ros::Publisher currGoalPub_;
+		ros::Publisher runtimePub_;
 		ros::Subscriber odomSub_;
 		ros::Subscriber ultimateTargetSub_;
 		ros::Timer visTimer_;
@@ -89,7 +92,9 @@ namespace globalPlanner{
 		std::vector<std::vector<std::shared_ptr<PRM::Node>>> candidatePaths_;
 		std::vector<std::shared_ptr<PRM::Node>> bestPath_;
 		std::vector<std::pair<Eigen::Vector3d, double>> frontierPointPairs_;
-
+		// time measure
+		TimeMeasure measureTimer_;
+		std_msgs::Float32 runtime_;
 
 	public:
 		DPRM(const ros::NodeHandle& nh);

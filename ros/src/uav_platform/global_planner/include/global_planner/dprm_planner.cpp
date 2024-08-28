@@ -347,6 +347,9 @@ namespace globalPlanner{
 		this->waypointPub_ = this->nh_.advertise<geometry_msgs::PointStamped>("/falco_planner/way_point", 5); 
 
 		this->currGoalPub_ = this->nh_.advertise<geometry_msgs::PointStamped>("/agent/current_goal", 5); 
+
+  		this->runtimePub_ = this->nh_.advertise<std_msgs::Float32>("/data_recording/runtime",1);
+
 	}
 
 	void DPRM::registerCallback(){
@@ -366,71 +369,50 @@ namespace globalPlanner{
 
 	bool DPRM::makePlan(){
 		if (not this->odomReceived_) return false;
+		this->runtime_.data = 0.f;
+
 		// cout << "start detecting frontier" << endl;
 		// ros::Time frontierStartTime = ros::Time::now();
-
+		this->measureTimer_.start_time("Detect Frontier");
 		this->detectFrontierRegion(this->frontierPointPairs_);
+		this->runtime_.data += this->measureTimer_.end_time("Detect Frontier") / 1000.f; // Unit: second
 		// ros::Time frontierEndTime = ros::Time::now();
 		// cout << "frontier detection time: " << (frontierEndTime - frontierStartTime).toSec() << endl;
 
 		// cout << "start building roadmap" << endl;
 		// ros::Time buildStartTime = ros::Time::now();
+		this->measureTimer_.start_time("Build Roadmap");
 		this->buildRoadMap();
+		this->runtime_.data += this->measureTimer_.end_time("Build Roadmap") / 1000.f; // Unit: second
 		// ros::Time buildEndTime = ros::Time::now();
 		// cout << "build roadmap time: " << (buildEndTime - buildStartTime).toSec() << endl;
 
 		// cout << "start pruning nodes" << endl;
 		// ros::Time updateStartTime = ros::Time::now();
+		this->measureTimer_.start_time("Prune Nodes");
 		this->pruneNodes();
+		this->runtime_.data += this->measureTimer_.end_time("Prune Nodes") / 1000.f; // Unit: second
 
 		// cout << "start update information gain" << endl;
+		// ros::Time updateStartTime = ros::Time::now();
+		this->measureTimer_.start_time("Update Information Gain");
 		this->updateInformationGain();
+		this->runtime_.data += this->measureTimer_.end_time("Update Information Gain") / 1000.f; // Unit: second
 		// ros::Time updateEndTime = ros::Time::now();
 		// cout << "update time: " << (updateEndTime - updateStartTime).toSec() << endl;
 
 		// cout << "start get goal candidates" << endl;
 		// ros::Time pathStartTime = ros::Time::now();
+		this->measureTimer_.start_time("Get Goal Candidates");
 		this->getBestViewCandidates(this->goalCandidates_);
+		this->runtime_.data += this->measureTimer_.end_time("Get Goal Candidates") / 1000.f; // Unit: second
 
 		// cout << "start get best current goal" << endl;
+		this->measureTimer_.start_time("Get Current Goal");
 		this->getBestCurrGoal();
+		this->runtime_.data += this->measureTimer_.end_time("Get Current Goal") / 1000.f; // Unit: second
 
-		// cout << "finish best view candidate with size: " << this->goalCandidates_.size() << endl;
-
-		// bool findCandidatePathSuccess = this->findCandidatePath(this->goalCandidates_, this->candidatePaths_);
-
-		// cout << "finish candidate path with size: " << this->candidatePaths_.size() << endl;
-		// this->waypointIdx_ = 0; 
-		// geometry_msgs::PointStamped bestGoal;	
-		// bestGoal.header.frame_id = "map";
-		// if (not findCandidatePathSuccess){
-		// 	// cout << "Find candidate paths fails. need generate more samples." << endl;
-		// 	// std::cout << "\033[1;31m[Debug]: Find candidate paths fails. Please carefully check the candidate points. \033[0m" << std::endl;
-		// 	std::cout << "\033[1;31m[Debug]: Find candidate paths fails. Directly using local planner... \033[0m" << std::endl;
-		// 	std::shared_ptr<PRM::Node> bestNode = this->goalCandidates_.back();
-		// 	bestGoal.header.stamp = ros::Time::now();
-		// 	bestGoal.point.x = bestNode->pos(0);
-		// 	bestGoal.point.y = bestNode->pos(1);
-		// 	bestGoal.point.z = bestNode->pos(2);
-		// 	this->waypointPub_.publish(bestGoal);
-		// 	// std::cin.clear();
-		// 	// fflush(stdin);
-		// 	// std::cin.get();
-		// 	// return false;
-		// }
-		// else {
-		// 	this->findBestPath(this->candidatePaths_, this->bestPath_);
-
-		// 	std::shared_ptr<PRM::Node> bestNode = this->bestPath_.back();
-		// 	bestGoal.header.stamp = ros::Time::now();
-		// 	bestGoal.point.x = bestNode->pos(0);
-		// 	bestGoal.point.y = bestNode->pos(1);
-		// 	bestGoal.point.z = bestNode->pos(2);
-		// 	this->bestPathGoalPub_.publish(bestGoal);
-		// }
-		// ros::Time pathEndTime = ros::Time::now();
-		// cout << "path time: " << (pathEndTime - pathStartTime).toSec() << endl;
-		// cout << "found best path with size: " << this->bestPath_.size() << endl;
+		this->runtimePub_.publish(this->runtime_);
 
 		return true;
 	}

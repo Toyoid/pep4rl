@@ -5,10 +5,12 @@
 
 	<rosparam file="$(find autonomous_flight)/cfg/dprm_plan_manager/fake_detector_param.yaml" />
 	<rosparam file="$(find autonomous_flight)/cfg/dprm_plan_manager/flight_base.yaml" ns="autonomous_flight"/>
-	<rosparam file="$(find autonomous_flight)/cfg/dprm_plan_manager/exploration_param.yaml" ns="DPRM"/>
+	<!-- <rosparam file="$(find autonomous_flight)/cfg/dprm_plan_manager/exploration_param.yaml" ns="DPRM"/> -->
+	<rosparam file="$(find autonomous_flight)/cfg/dprm_plan_manager/exploration_param_large.yaml" ns="DPRM"/>
 	<rosparam file="$(find autonomous_flight)/cfg/dprm_plan_manager/dynamic_detector_param.yaml" ns="/onboard_detector" />
 	<!-- <rosparam file="$(find autonomous_flight)/cfg/dprm_plan_manager/mapping_param.yaml" ns="/dynamic_map" /> -->
-	<rosparam file="$(find autonomous_flight)/cfg/dprm_plan_manager/mapping_param.yaml" ns="/occupancy_map" />
+	<!-- <rosparam file="$(find autonomous_flight)/cfg/dprm_plan_manager/mapping_param.yaml" ns="/occupancy_map" /> -->
+	<rosparam file="$(find autonomous_flight)/cfg/dprm_plan_manager/mapping_param_large.yaml" ns="/occupancy_map" />
 
 	<node pkg="autonomous_flight" type="throttle_topics.sh" name="throttle_topics" />
 	<node pkg="autonomous_flight" type="dprm_planner_node" name="dprm_planner_node" output="screen" />

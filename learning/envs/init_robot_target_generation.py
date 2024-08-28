@@ -56,7 +56,7 @@ def sample_one_robot_target_pair(all_positions, robot_target_diff):
     return pose, target
 
 
-def gen_robot_target_pairs(candidate_vertex_list, num_pairs, robot_target_diff=9):
+def gen_robot_target_pairs(candidate_vertex_list, num_pairs, robot_target_diff=38):
     """
     Generate initial robot-target pairs for RL training and testing
     :return: robot-target pairs
@@ -85,7 +85,7 @@ def get_user_choice():
 if __name__ == "__main__":
     from os import path as os_path
 
-    world_name = "floorplan_world2"
+    world_name = "indoor"
     current_dir = os_path.dirname(os_path.abspath(__file__))
     file_path = current_dir + "/random_positions/" + world_name + "/roadmap_vertices" + ".p"
 
@@ -108,7 +108,6 @@ if __name__ == "__main__":
         print("\n\nRoadmap vertices saved.")
     print(f"Number of Vertices: {len(roadmap_vertice_list)}\n"
           f"Vertice Dimension: {len(roadmap_vertice_list[0])}")
-
 
     # sample robot-target pairs
     robot_target_pairs = gen_robot_target_pairs(roadmap_vertice_list, num_pairs=1000)

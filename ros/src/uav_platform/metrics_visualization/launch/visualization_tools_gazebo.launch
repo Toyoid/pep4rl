@@ -1,0 +1,20 @@
+<launch>
+
+  <arg name="map_name" default="garage"/>
+
+  <node pkg="metrics_visualization" type="visualizationTools" name="visualizationTools" output="screen">
+    <param name="metricFile" type="string" value="$(find metrics_visualization)/log/metrics" />
+    <param name="trajFile" type="string" value="$(find metrics_visualization)/log/trajectory" />
+    <param name="mapFile" type="string" value="$(find uav_simulator)/models/$(arg map_name)/preview/pointcloud.ply" />
+    <param name="overallMapVoxelSize" type="double" value="0.2" />
+    <param name="exploredAreaVoxelSize" type="double" value="0.2" />
+    <param name="exploredVolumeVoxelSize" type="double" value="0.1" />
+    <param name="transInterval" type="double" value="0.2" />
+    <param name="yawInterval" type="double" value="2.0" />
+    <param name="overallMapDisplayInterval" type="int" value="2" />
+    <param name="exploredAreaDisplayInterval" type="int" value="1" />
+  </node>
+
+  <node pkg="metrics_visualization" type="realTimePlot.py" name="realTimePlot" output="screen" respawn="false"/>
+
+</launch>

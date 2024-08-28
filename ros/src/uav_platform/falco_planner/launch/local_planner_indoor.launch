@@ -83,13 +83,13 @@
     <param name="lookAheadScale" type="double" value="0.2" />
     <param name="minLookAheadDis" type="double" value="0.2" />
     <param name="minSpeed" type="double" value="0.5" />
-    <param name="maxSpeed" type="double" value="1.75" />
-    <param name="accXYGain" type="double" value="0.05" />
-    <param name="velXYGain" type="double" value="0.4" />
-    <param name="posXYGain" type="double" value="0.05" />
+    <param name="maxSpeed" type="double" value="2.0" />  <!-- 1.75 -->
+    <param name="accXYGain" type="double" value="0.05" />  <!-- 0.05 -->
+    <param name="velXYGain" type="double" value="0.8" />  <!-- 0.4 -->
+    <param name="posXYGain" type="double" value="0.05" />  <!-- 0.05 -->
     <param name="stopVelXYGain" type="double" value="0.2" />
     <param name="stopPosXYGain" type="double" value="0.2" />
-    <param name="smoothIncrSpeed" type="double" value="0.75" />
+    <param name="smoothIncrSpeed" type="double" value="1.5" />  <!-- 0.75 -->
     <param name="maxRollPitch" type="double" value="30.0" />
     <param name="yawRateScale" type="double" value="1.0" />
     <param name="yawGain" type="double" value="2.0" />
